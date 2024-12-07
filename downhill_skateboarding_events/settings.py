@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+import os
 import environ
 from pathlib import Path
 
@@ -40,6 +41,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'events',
+    'tailwind',
+    'theme',
+    'django_browser_reload',
 ]
 
 
@@ -53,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'django_browser_reload.middleware.BrowserReloadMiddleware',
 ]
 
 SITE_ID = 1
@@ -88,6 +93,13 @@ DATABASES = {
     }
 }
 
+TAILWIND_APP_NAME = 'theme'
+
+NPM_BIN_PATH = "C:/Users/user/AppData/Roaming/npm/npm.cmd"
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -138,6 +150,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [BASE_DIR / "theme/static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
