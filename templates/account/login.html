@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="flex justify-center items-center mt-4">
+    <div class="w-full max-w-md">
+        <form method="post" action="{% url 'account_login' %}" class="bg-base-300 shadow-md rounded px-8 pt-6 pb-8 mb-4" autocomplete="off">
+            {% csrf_token %}
+            <h2 class="text-center text-2xl font-bold mb-6">{% trans "Sign In" %}</h2>
+
+            <!-- Login field -->
+            <div class="mb-4">
+                <label class="input input-bordered flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4 opacity-70">
+                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z" />
+                    </svg>
+                    <input type="text" name="{{ form.login.html_name }}" placeholder="Email or Username" class="grow"
+                           required id="{{ form.login.id_for_label }}" {% if form.login.value %}value="{{ form.login.value }}"{% endif %}>
+                </label>
+                {% if form.login.errors %}
+                    <p class="text-error text-xs mt-1">{{ form.login.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Password field -->
+            <div class="mb-6">
+                <label class="input input-bordered flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4 opacity-70">
+                        <path fill-rule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Z" clip-rule="evenodd" />
+                    </svg>
+                    <input type="password" name="{{ form.password.html_name }}" placeholder="Password" class="grow"
+                           required id="{{ form.password.id_for_label }}">
+                </label>
+                {% if form.password.errors %}
+                    <p class="text-error text-xs mt-1">{{ form.password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+
+            <div class="flex items-center justify-between mb-4">
+                <label class="label cursor-pointer">
+                    <input type="checkbox" name="{{ form.remember.html_name }}" class="checkbox checkbox-sm checkbox-primary" 
+                           id="{{ form.remember.id_for_label }}">
+                    <span class="label-text ml-2">{% trans "Remember Me" %}</span>
+                </label>
+                <a href="{% url 'account_reset_password' %}" class="text-primary hover:text-primary-focus text-sm">
+                    {% trans "Forgot Password?" %}
+                </a>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button class="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded focus:shadow-outline" type="submit">
+                    {% trans "Sign In" %}
+                </button>
+            </div>
+        </form>
+        <p class="text-center text-sm mt-4">
+            {% blocktrans %}Don't have an account? Then please <a href="{{ signup_url }}" class="text-primary hover:text-primary-focus">sign up</a>.{% endblocktrans %}
+        </p>
+    </div>
+</div>
+<style>
+    .input input {
+        border: none !important;
+        outline: none !important;
+        -webkit-appearance: none !important;
+        box-shadow: none !important;
+        background: none;
+    }
+    .input input:-webkit-autofill,
+    .input input:-webkit-autofill:hover,
+    .input input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0px 1000px #282A36 inset !important;
+    }
+    .checkbox {
+        background-color: #282A36 !important;
+    }
+</style>
+{% endblock %}
