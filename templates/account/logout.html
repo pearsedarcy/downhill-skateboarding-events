@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="flex justify-center items-center mt-4">
+    <div class="w-full max-w-md">
+        <form id="logoutForm" method="post" action="{% url 'account_logout' %}" class="bg-base-300 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            {% csrf_token %}
+            <h2 class="text-center text-2xl font-bold mb-6">{% trans "Sign Out" %}</h2>
+
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+            {% endif %}
+
+            <div class="flex items-center justify-center gap-4">
+                <button onclick="showLogoutModal(event)" class="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded focus:shadow-outline" type="button">
+                    {% trans "Sign Out" %}
+                </button>
+                <a href="/" class="bg-neutral hover:bg-neutral-focus text-white font-bold py-2 px-4 rounded focus:shadow-outline">
+                    {% trans "Cancel" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal -->
+<dialog id="logoutModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">{% trans "Confirm Sign Out" %}</h3>
+        <p class="py-4">{% trans 'Are you sure you want to sign out?' %}</p>
+        <div class="modal-action">
+            <form method="dialog">
+                <button onclick="submitLogout()" class="btn btn-primary mr-2">{% trans "Sign Out" %}</button>
+                <button class="btn">{% trans "Cancel" %}</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<script>
+function showLogoutModal(event) {
+    event.preventDefault();
+    logoutModal.showModal();
+}
+
+function submitLogout() {
+    document.getElementById('logoutForm').submit();
+}
+</script>
+{% endblock %}
