@@ -74,7 +74,7 @@
                 {% endif %}
 
                 <div class="flex items-center justify-between">
-                    <button class="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                    <button class="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded focus:shadow-outline" type="submit">
                         {% trans "Sign Up" %}
                     </button>
                 </div>  
@@ -84,27 +84,5 @@
             </p>
     </div>
 </div>
-<style>
-    .input input {
-        border: none !important;
-        outline: none !important;
-        -webkit-appearance: none !important;
-        box-shadow: none !important;
-    }
-    .input input:focus {
-        outline: none !important;
-        border: none !important;
-        ring: 0 !important;
-        ring-offset: 0 !important;
-        box-shadow: none !important;
-    }
-    .input input:hover {
-        border: none !important;
-    }
-    .input input:-webkit-autofill,
-    .input input:-webkit-autofill:hover,
-    .input input:-webkit-autofill:focus {
-        -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
-    }
-</style>
+
 {% endblock %}
