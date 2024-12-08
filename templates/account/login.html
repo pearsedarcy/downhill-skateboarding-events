@@ -17,9 +17,6 @@
                     <input type="text" name="{{ form.login.html_name }}" placeholder="Email or Username" class="grow"
                            required id="{{ form.login.id_for_label }}" {% if form.login.value %}value="{{ form.login.value }}"{% endif %}>
                 </label>
-                {% if form.login.errors %}
-                    <p class="text-error text-xs mt-1">{{ form.login.errors.0 }}</p>
-                {% endif %}
             </div>
 
             <!-- Password field -->
@@ -31,8 +28,12 @@
                     <input type="password" name="{{ form.password.html_name }}" placeholder="Password" class="grow"
                            required id="{{ form.password.id_for_label }}">
                 </label>
-                {% if form.password.errors %}
-                    <p class="text-error text-xs mt-1">{{ form.password.errors.0 }}</p>
+                {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                    <p class="text-error text-xs mt-1">
+                        {{ error }}
+                    </p>
+                {% endfor %}
                 {% endif %}
             </div>
 
@@ -62,21 +63,4 @@
         </p>
     </div>
 </div>
-<style>
-    .input input {
-        border: none !important;
-        outline: none !important;
-        -webkit-appearance: none !important;
-        box-shadow: none !important;
-        background: none;
-    }
-    .input input:-webkit-autofill,
-    .input input:-webkit-autofill:hover,
-    .input input:-webkit-autofill:focus {
-        -webkit-box-shadow: 0 0 0px 1000px #282A36 inset !important;
-    }
-    .checkbox {
-        background-color: #282A36 !important;
-    }
-</style>
 {% endblock %}

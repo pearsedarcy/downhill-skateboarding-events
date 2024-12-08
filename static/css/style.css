@@ -1,0 +1,18 @@
+.input input {
+  border: none !important;
+  outline: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-shadow: none !important;
+  background: none;
+}
+
+.input input:-webkit-autofill,
+.input input:-webkit-autofill:hover,
+.input input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #282a36 inset !important;
+}
+
+.checkbox {
+  background-color: #282a36 !important;
+}
