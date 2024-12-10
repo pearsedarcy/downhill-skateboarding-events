@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="flex justify-center items-center mt-4">
+    <div class="w-full max-w-md">
+        <div class="bg-base-300 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-center text-2xl font-bold mb-6">{% trans "Email Addresses" %}</h2>
+            
+            {% if user.emailaddress_set.all %}
+            <form action="{% url 'account_email' %}" method="post" class="mb-6">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    {% for emailaddress in user.emailaddress_set.all %}
+                    <div class="flex items-center gap-4">
+                        <label class="label cursor-pointer flex items-center gap-2">
+                            <input type="radio" name="email" value="{{ emailaddress.email }}"
+                                   {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked{% endif %}
+                                   class="radio radio-primary">
+                            <span class="label-text">{{ emailaddress.email }}</span>
+                        </label>
+                        <div class="space-x-2">
+                            {% if emailaddress.verified %}
+                            <span class="badge badge-success">{% trans "Verified" %}</span>
+                            {% else %}
+                            <span class="badge badge-warning">{% trans "Unverified" %}</span>
+                            {% endif %}
+                            {% if emailaddress.primary %}
+                            <span class="badge badge-primary">{% trans "Primary" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="flex gap-2 mt-6">
+                    <button class="btn btn-primary btn-sm" type="submit" name="action_primary">
+                        {% trans 'Make Primary' %}
+                    </button>
+                    <button class="btn btn-secondary btn-sm" type="submit" name="action_send">
+                        {% trans 'Re-send Verification' %}
+                    </button>
+                    <button class="btn btn-error btn-sm" type="submit" name="action_remove">
+                        {% trans 'Remove' %}
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+
+            <h3 class="font-bold text-lg mb-4">{% trans "Add Email Address" %}</h3>
+            <form method="post" action="{% url 'account_email' %}" class="add_email">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="input input-bordered flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="h-4 w-4 opacity-70">
+                            <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
+                            <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
+                        </svg>
+                        <input type="email" name="email" placeholder="Email" class="grow" required>
+                    </label>
+                </div>
+                <button class="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded focus:shadow-outline" type="submit">
+                    {% trans "Add Email" %}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
