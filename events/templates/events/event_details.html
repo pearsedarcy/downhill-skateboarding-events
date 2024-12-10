@@ -1,0 +1,295 @@
+<!-- Base template extension and metadata -->
+{% extends 'base.html' %}
+{% load static %}
+{% load countries %}
+{% block meta_description %}{{ event.title }} - {{ event.event_type }} in {{ event.location.city }}, {{ event.location.country.name }}. {{ event.description|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-base-200">
+  <!-- Full-width hero section with event cover image -->
+  <div class="hero min-h-[70vh] bg-base-100">
+    <div class="max-w-[1200px] w-full mx-auto">
+      <div class="hero-content p-0">
+        {% if event.cover_image %}
+        <img src="{{ event.cover_image.url }}" class="w-full h-[70vh] object-cover" alt="{{ event.title }} Poster">
+        {% else %}
+        <img src="{% static 'images/default_cover_image.jpg' %}" class="w-full h-[70vh] object-cover" alt="Default Event Cover">
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content container -->
+  <div class="max-w-[1200px] mx-auto px-1 -mt-20 mb-20">
+    <!-- Main event information card -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body px-4">
+        <!-- Event title and quick stats section -->
+        <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+          <div>
+            <h1 class="card-title text-3xl font-bold mb-2">{{ event.title }}</h1>
+            <div class="badge badge-primary">{{ event.event_type }}</div>
+            <div class="badge badge-secondary ml-2">{{ event.skill_level }}</div>
+          </div>
+          <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200">
+            <div class="stat">
+              <div class="stat-figure text-primary">
+                <i class="fas fa-dollar-sign text-2xl"></i>
+              </div>
+              <div class="stat-value text-primary">${{ event.cost }}</div>
+              <div class="stat-title">Entry Fee</div>
+              
+            </div>
+            <div class="stat">
+              <div class="stat-figure text-secondary">
+                <i class="fas fa-users text-2xl"></i>
+              </div>
+              <div class="stat-value text-secondary">{{ event.max_attendees }}</div>
+              <div class="stat-title">Max Capacity</div>
+              
+            </div>
+          </div>
+        </div>
+
+        <!-- Event description -->
+        <div class="prose max-w-none mt-4">
+          <p>{{ event.description }}</p>
+        </div>
+
+        <!-- Event details grid -->
+        <div class="divider"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Schedule information card -->
+          <div class="card bg-base-200">
+            <div class="card-body p-4">
+              <h2 class="card-title text-xl">📅 Event Schedule</h2>
+              <div class="space-y-2">
+                <p><i class="fas fa-calendar-day"></i> <span class="font-semibold">Start:</span> {{ event.start_date|date:"F j, Y" }}</p>
+                {% if event.end_date %}
+                <p><i class="fas fa-calendar-check"></i> <span class="font-semibold">End:</span> {{ event.end_date|date:"F j, Y" }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Location information with embedded map -->
+          <div class="card bg-base-200">
+            <div class="card-body p-4 ">
+              <h2 class="card-title text-xl">
+                <i class="fas fa-map-marker-alt"></i>
+                 Location
+              </h2>
+              <div class="space-y-2">
+                <p class="flex items-center gap-2">
+                  <i class="fas fa-city"></i>
+                  {{ event.location.city }}
+                </p>
+                <p class="flex items-center gap-2">
+                  
+                  {% with country=event.location.country %}
+                    <img src="/static/flags/{{ country.code|lower }}.gif"
+                    alt="{{ country.name }} Flag" class="w-6 h-4 object-cover
+                    rounded-sm">
+                    {{ country.name }}
+                  {% endwith %}
+                </p>
+                <!-- TODO REPLACE WITH DYNAMIC MAP BASED ON EVENT LOCATION -->
+                <!-- Google Maps -->
+                <div class="w-full h-48 mt-4 rounded-lg overflow-hidden">
+                  <iframe
+                    title="Google Maps"
+                    width="100%"
+                    height="100%"
+                    frameborder="0"
+                    style="border:0"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.9916256937595!2d2.292292615509614!3d48.85837007928745!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66e2964e34e2d%3A0x8ddca9ee380ef7e0!2sEiffel%20Tower!5e0!3m2!1sen!2sus!4v1647851000000!5m2!1sen!2sus"
+                    allowfullscreen>
+                  </iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Organizer Profile -->
+         
+        <div class="flex flex-col md:flex-row items-start gap-4 bg-base-200
+        rounded-lg p-4 mt-4">
+          <div class="avatar">
+            <div class="w-24 h-24 rounded-full">
+              {% if event.organizer.avatar %}
+                <img src="{{ event.organizer.avatar.url }}" alt="{{ event.organizer.user.username }}'s avatar" />
+              {% else %}
+                <img src="{% static 'images/default-profile.webp' %}" alt="Default avatar" />
+              {% endif %}
+            </div>
+          </div>
+          <a href="{% url 'events:user_profile' event.organizer.user.username %}" >
+        
+          <div class="flex-1">
+            <h2 class="text-xl font-bold mb-2">Event Organizer</h2>
+            <h3 class="text-lg font-semibold">{{ event.organizer.user.username }}</h3>
+            {% if event.organizer.bio %}
+              <p class="mt-2">{{ event.organizer.bio|truncatewords:50 }}</p>
+            {% endif %}
+            <div class="mt-4">
+              {% if event.organizer.instagram %}
+                <a href="https://instagram.com/{{ event.organizer.instagram }}" class="btn btn-sm btn-outline gap-2" target="_blank">
+                  <i class="fab fa-instagram"></i> Instagram
+                </a>
+              {% endif %}
+              <a href="mailto:{{ event.organizer.user.email }}" class="btn btn-sm btn-outline gap-2 ml-2">
+                <i class="fas fa-envelope"></i> Contact
+              </a>
+              <a href="{% url 'events:user_profile' event.organizer.user.username %}" class="btn btn-primary btn-sm mt-4">
+                <i class="fas fa-user"></i> View Profile
+              </a>
+            </div>
+          </div>
+          </a>
+        </div>
+        <!-- Call-to-action buttons -->
+        <div class="card-actions justify-start mt-6">
+          {% if event.tickets_link %}
+          <a href="{{ event.tickets_link }}" class="btn btn-primary btn-lg gap-2" target="_blank" aria-label="Get tickets for {{ event.title }}">
+            <i class="fas fa-ticket-alt"></i>
+            Get Tickets
+          </a>
+          {% endif %}
+          
+          <div class="dropdown">
+            <button id="rsvpBtn" 
+                    class="btn {% if rsvp_status %}btn-primary{% else %}btn-ghost{% endif %} btn-lg gap-2"
+                    {% if not user.is_authenticated %}
+                    onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23rsvpBtn'"
+                    {% endif %}
+            >
+              <i class="fas fa-calendar-check"></i>
+              <span id="rsvpBtnText">
+                {% if rsvp_status %}
+                  {{ rsvp_status }}
+                {% else %}
+                  RSVP
+                {% endif %}
+              </span>
+              {% if user.is_authenticated %}
+              <i class="fas fa-chevron-down"></i>
+              {% endif %}
+            </button>
+            {% if user.is_authenticated %}
+            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+              <li>
+                <a onclick="updateRSVP('Going')" class="flex justify-between">
+                  Going
+                  {% if rsvp_status == 'Going' %}
+                  <i class="fas fa-check text-success"></i>
+                  {% endif %}
+                </a>
+              </li>
+              <li>
+                <a onclick="updateRSVP('Interested')" class="flex justify-between">
+                  Interested
+                  {% if rsvp_status == 'Interested' %}
+                  <i class="fas fa-check text-success"></i>
+                  {% endif %}
+                </a>
+              </li>
+            </ul>
+            {% endif %}
+          </div>
+          
+            <button 
+            id="favoriteBtn" 
+            class="btn {% if is_favorited %}btn-primary{% else %}btn-ghost{% endif %} btn-lg gap-2" 
+            aria-label="Add {{ event.title }} to favorites"
+            {% if not user.is_authenticated %}
+            onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23favoriteBtn'"
+            {% endif %}
+            >
+            <i class="fas fa-heart"></i>
+            <span id="favoriteBtnText">
+              {% if is_favorited %}Favorited{% else %}Add to Favorites{% endif %}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if user.is_authenticated %}
+<script>
+document.getElementById('favoriteBtn').addEventListener('click', function() {
+    fetch('{% url "events:toggle_favorite" event.slug %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        const btn = document.getElementById('favoriteBtn');
+        const btnText = document.getElementById('favoriteBtnText');
+        
+        if (data.is_favorited) {
+            btn.classList.remove('btn-ghost');
+            btn.classList.add('btn-primary');
+            btnText.textContent = 'Favorited';
+        } else {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-ghost');
+            btnText.textContent = 'Add to Favorites';
+        }
+    });
+});
+
+function updateRSVP(status) {
+    const formData = new FormData();
+    formData.append('status', status);
+    
+    fetch('{% url "events:toggle_rsvp" event.slug %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const btn = document.getElementById('rsvpBtn');
+        const btnText = document.getElementById('rsvpBtnText');
+        const dropdownMenu = btn.nextElementSibling;
+        const menuItems = dropdownMenu.getElementsByTagName('a');
+        
+        // Update button state
+        if (data.status) {
+            btn.classList.remove('btn-ghost');
+            btn.classList.add('btn-primary');
+            btnText.textContent = data.status;
+        } else {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-ghost');
+            btnText.textContent = 'RSVP';
+        }
+        
+        // Update checkmarks
+        Array.from(menuItems).forEach(item => {
+            const checkIcon = item.querySelector('.fa-check');
+            if (checkIcon) checkIcon.remove();
+            
+            if (item.textContent.trim() === data.status) {
+                item.innerHTML += ' <i class="fas fa-check text-success"></i>';
+            }
+        });
+        
+        // Close dropdown
+        dropdownMenu.blur();
+    });
+}
+</script>
+{% endif %}
+<!-- Add CSRF token -->
+{% csrf_token %}
+
+<!-- Font Awesome inclusion -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% endblock %}

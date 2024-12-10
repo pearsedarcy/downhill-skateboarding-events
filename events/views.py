@@ -1,8 +1,11 @@
-from django.shortcuts import render
-from .models import Event
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Event, Favorite, RSVP
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.db.models import Case, When, Value, BooleanField
+from django.contrib.auth.models import User
 
 
 def event_list(request):
@@ -23,3 +26,66 @@ def event_list(request):
     page_number = request.GET.get("page")
     events = paginator.get_page(page_number)
     return render(request, "events/event_list.html", {"events": events})
+
+
+@login_required
+def toggle_favorite(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    favorite, created = Favorite.objects.get_or_create(
+        user=request.user.profile, event=event
+    )
+
+    if not created:
+        favorite.delete()
+        is_favorited = False
+    else:
+        is_favorited = True
+
+    return JsonResponse(
+        {"is_favorited": is_favorited, "count": event.favorites.count()}
+    )
+
+
+@login_required
+def toggle_rsvp(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    status = request.POST.get("status", "Going")
+
+    rsvp, created = RSVP.objects.get_or_create(
+        user=request.user.profile, event=event, defaults={"status": status}
+    )
+
+    if not created:
+        if rsvp.status != status:
+            rsvp.status = status
+            rsvp.save()
+        else:
+            rsvp.delete()
+            status = None
+
+    return JsonResponse({"status": status, "count": event.rsvps.count()})
+
+
+def event_details(request, slug):
+    event = get_object_or_404(Event, slug=slug, published=True)
+    is_favorited = False
+    rsvp_status = None
+
+    if request.user.is_authenticated:
+        is_favorited = Favorite.objects.filter(
+            user=request.user.profile, event=event
+        ).exists()
+        rsvp = RSVP.objects.filter(user=request.user.profile, event=event).first()
+        if rsvp:
+            rsvp_status = rsvp.status
+
+    return render(
+        request,
+        "events/event_details.html",
+        {
+            "event": event,
+            "is_favorited": is_favorited,
+            "rsvp_status": rsvp_status,
+            "rsvp_count": event.rsvps.count(),
+        },
+    )
