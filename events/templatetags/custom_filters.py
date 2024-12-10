@@ -18,3 +18,12 @@ def split(path):
         # Replace hyphens with spaces and capitalize
         return capfirst(segments[-1].replace("-", " "))
     return ""
+
+
+@register.filter(name="get_item")
+def get_item(dictionary, key):
+    """
+    Get an item from a dictionary using bracket notation.
+    Usage: {{ mydict|get_item:item.id }}
+    """
+    return dictionary.get(key)
