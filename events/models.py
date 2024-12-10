@@ -81,3 +81,76 @@ class Location(models.Model):
     address = models.CharField(max_length=200, null=True, blank=True)
     country = CountryField(blank_label="(select country)", null=True, blank=True)
     city = models.CharField(max_length=200, null=True, blank=True)
+
+
+class RSVP(models.Model):
+    user = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name="rsvps"
+    )
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="rsvps")
+    status = models.CharField(
+        max_length=50, choices=[("Going", "Going"), ("Interested", "Interested")]
+    )
+
+    def __str__(self):
+        return f"{self.user.user.username} - {self.event.title} - {self.status}"
+
+
+class Review(models.Model):
+    user = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name="reviews"
+    )
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.IntegerField()
+    comment = models.TextField()
+    review_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Review by {self.user.user.username} for {self.event.title}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name="favorites"
+    )
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="favorites")
+    favorited_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.user.username} favorited {self.event.title}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name="notifications"
+    )
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        null=True,
+        blank=True,
+    )
+    message = models.TextField()
+    notification_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=50,
+        choices=[("Sent", "Sent"), ("Read", "Read"), ("Unread", "Unread")],
+        default="Unread",
+    )
+
+    def __str__(self):
+        return f"Notification for {self.user.user.username}"
+
+
+class EventAnalytics(models.Model):
+    event = models.OneToOneField(
+        Event, on_delete=models.CASCADE, related_name="analytics"
+    )
+    views = models.IntegerField(default=0)
+    rsvps_count = models.IntegerField(default=0)
+    favorites_count = models.IntegerField(default=0)
+    attendance_count = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Analytics for {self.event.title}"
