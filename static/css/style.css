@@ -16,3 +16,10 @@
 .checkbox {
   background-color: #282a36 !important;
 }
+
+.logo-light {
+  filter: invert(1);
+}
+.logo-dark {
+  filter: invert(0);
+}

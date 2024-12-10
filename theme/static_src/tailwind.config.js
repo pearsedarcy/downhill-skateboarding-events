@@ -45,27 +45,19 @@ module.exports = {
         extend: {},
     },
     plugins: [
-        /**
-         * '@tailwindcss/forms' is the forms plugin that provides a minimal styling
-         * for forms. If you don't like it or have own styling for forms,
-         * comment the line below to disable '@tailwindcss/forms'.
-         */
         require("@tailwindcss/forms"),
         require("@tailwindcss/typography"),
         require("@tailwindcss/aspect-ratio"),
         require("daisyui"),
-      ],
-      daisyui: {
-        themes: [, "dracula"],
-      },
-      daisyui: {
+    ],
+    daisyui: {
         themes: ["light", "dracula"],
-        darkTheme: "dracula", // name of one of the included themes for dark mode
-        base: true, // applies background color and foreground color for root element by default
-        styled: true, // include daisyUI colors and design decisions for all components
-        utils: true, // adds responsive and modifier utility classes
-        prefix: "", // prefix for daisyUI classnames (components, modifiers and responsive class names. Not colors)
-        logs: true, // Shows info about daisyUI version and used config in the console when building your CSS
-        themeRoot: ":root", // The element that receives theme color CSS variables
-      },
+        darkTheme: "dracula",
+        base: true,
+        styled: true,
+        utils: true,
+        prefix: "",
+        logs: true,
+        themeRoot: ":root",
+    },
 };
