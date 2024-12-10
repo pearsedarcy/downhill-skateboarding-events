@@ -10,3 +10,13 @@ cloudinary_python.txt
 venv/
 .env
 *.sqlite3
+.htmlhintrc
+*/migrations/*
+!*/migrations/__init__.py
+settings.json
+.gitignore
+.vscode/*
+fixtures/
+requirements.txt
+Procfile
+.vscode/settings.json
