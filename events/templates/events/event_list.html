@@ -1,0 +1,65 @@
+<!-- Base template extension and page metadata -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ block.super }} - Event List{% endblock %}
+{% block meta_description %}Browse upcoming downhill skateboarding events, races, and competitions. Find events near you and connect with the downhill skating community.{% endblock %}
+
+{% block content %}
+<!-- Main container with responsive grid layout -->
+<div class="container mx-auto mt-2 mb-8 px-4 max-w-[1200px]"> 
+  <!-- Responsive grid for event cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Event card loop -->
+    {% for event in events %}
+      <!-- Only show published events -->
+      {% if event.published %}
+        <!-- Event card with hover effects -->
+        <div class="card bg-base-300 shadow-lg hover:shadow-2xl transition-all duration-300">
+          <a href="{% url 'events:event_details' event.slug %}" aria-label="View details for {{ event.title }}">
+            <div class="card-body p-0">
+              {% if event.cover_image %}
+                <img src="{{ event.cover_image.url }}" alt="event poster" class="rounded-t-lg" width="100%">
+                {% else %}
+                <img src="{% static 'images/default_cover_image.jpg' %}"
+                alt="Default Event Poster" class="rounded-t-lg" width="100%">
+              {% endif %}
+              <div class="px-4 mb-4">
+                <div class="flex justify-between items-center">
+                  <h2 class="card-title text-secondary">{{ event.title }}</h2>
+                  <div class="badge badge-primary">{{ event.event_type }}</div>
+                </div>
+                <div class="flex items-center space-x-2 mb-2 mt-2">
+                  {% with country=event.location.country %}
+                  <img src="/static/flags/{{ country.code|lower }}.gif" alt="{{ country.name }} flag" class="w-6 h-4 object-cover rounded-sm">
+                  <span class="text-sm text-300">{{ event.location.city }}</span>
+                  {% endwith %}
+                </div>
+                <p class="text-sm text-300">
+                    <span class="text-lg mr-1">📅</span> {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
+                </p>
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  
+  <!-- Pagination controls -->
+  <div class="flex justify-start mt-4">
+    <span class="btn-group">
+      {% if events.has_previous %}
+      <a href="?page={{ events.previous_page_number }}" class="btn" aria-label="Go to previous page">Previous</a>
+      {% else %}
+      <button class="btn" disabled aria-label="Previous page (disabled)">Previous</button>
+      {% endif %}
+      <span class="btn">Page {{ events.number }} of {{ events.paginator.num_pages }}</span>
+      {% if events.has_next %}
+      <a href="?page={{ events.next_page_number }}" class="btn" aria-label="Go to next page">Next</a>
+      {% else %}
+      <button class="btn" disabled aria-label="Next page (disabled)">Next</button>
+      {% endif %}
+    </span>
+  </div>
+</div>
+{% endblock %}
