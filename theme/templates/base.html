@@ -125,13 +125,15 @@
             mt-3 w-52 p-2 shadow gap-2"
           >
             {% if user.is_authenticated %}
+            {% if user.is_superuser %}
             <li>
               <a href="{% url 'admin:index' %}" class="btn btn-secondary"
                 >Admin</a
               >
             </li>
+            {% endif %}
             <li>
-              <a href="{% url 'events:user_profile' username=user.username %}" class="btn btn-secondary">My Profile</a>
+              <a href="{% url 'profiles:user_profile' username=user.username %}" class="btn btn-secondary">My Profile</a>
             </li>
             <li>
                   <a href="{% url 'account_logout' %}" class="btn btn-primary w-full">Log Out</a>

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "events",
+    "profiles",
     "tailwind",
     "theme",
     "django_browser_reload",
@@ -176,3 +177,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Add these CSRF settings
+CSRF_COOKIE_SECURE = not DEBUG  # Only send cookie over HTTPS in production
+CSRF_COOKIE_HTTPONLY = False    # False allows JavaScript to access the cookie
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+])
+CSRF_USE_SESSIONS = False       # Store CSRF token in cookie, not session
+CSRF_COOKIE_SAMESITE = 'Lax'   # Allows CSRF cookie in same-site requests

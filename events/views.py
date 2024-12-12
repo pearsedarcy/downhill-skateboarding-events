@@ -90,29 +90,3 @@ def event_details(request, slug):
         },
     )
 
-
-def user_profile(request, username=None):
-    if username is None:
-        if not request.user.is_authenticated:
-            return redirect("account_login")
-        user = request.user
-    else:
-        user = get_object_or_404(User, username=username)
-
-    profile = user.profile
-    attending_events = profile.attending_events.all()[:3]
-    # Get RSVP statuses for the attending events
-    rsvp_statuses = {
-        rsvp.event_id: rsvp.status
-        for rsvp in RSVP.objects.filter(user=profile, event__in=attending_events)
-    }
-
-    context = {
-        "profile": profile,
-        "organized_events": profile.organized_events.all()[:3],
-        "attending_events": attending_events,
-        "rsvp_statuses": rsvp_statuses,
-        "reviews": profile.reviews.all()[:3],
-        "favorites": profile.favorites.all()[:3],
-    }
-    return render(request, "events/user_profile.html", context)
