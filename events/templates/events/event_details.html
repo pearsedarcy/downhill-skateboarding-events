@@ -2,6 +2,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load countries %}
+{% csrf_token %}
 {% block meta_description %}{{ event.title }} - {{ event.event_type }} in {{ event.location.city }}, {{ event.location.country.name }}. {{ event.description|truncatewords:25 }}{% endblock %}
 
 {% block content %}
@@ -123,7 +124,7 @@
               {% endif %}
             </div>
           </div>
-          <a href="{% url 'events:user_profile' event.organizer.user.username %}" >
+          <a href="{% url 'profiles:user_profile' event.organizer.user.username %}" >
         
           <div class="flex-1">
             <h2 class="text-xl font-bold mb-2">Event Organizer</h2>
@@ -140,7 +141,7 @@
               <a href="mailto:{{ event.organizer.user.email }}" class="btn btn-sm btn-outline gap-2 ml-2">
                 <i class="fas fa-envelope"></i> Contact
               </a>
-              <a href="{% url 'events:user_profile' event.organizer.user.username %}" class="btn btn-primary btn-sm mt-4">
+              <a href="{% url 'profiles:user_profile' event.organizer.user.username %}" class="btn btn-primary btn-sm mt-4">
                 <i class="fas fa-user"></i> View Profile
               </a>
             </div>
@@ -157,50 +158,72 @@
           {% endif %}
           
           <div class="dropdown">
-            <button id="rsvpBtn" 
-                    class="btn {% if rsvp_status %}btn-primary{% else %}btn-ghost{% endif %} btn-lg gap-2"
-                    {% if not user.is_authenticated %}
-                    onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23rsvpBtn'"
-                    {% endif %}
-            >
-              <i class="fas fa-calendar-check"></i>
-              <span id="rsvpBtnText">
-                {% if rsvp_status %}
-                  {{ rsvp_status }}
-                {% else %}
-                  RSVP
-                {% endif %}
-              </span>
-              {% if user.is_authenticated %}
-              <i class="fas fa-chevron-down"></i>
-              {% endif %}
-            </button>
-            {% if user.is_authenticated %}
-            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
-              <li>
-                <a onclick="updateRSVP('Going')" class="flex justify-between">
-                  Going
-                  {% if rsvp_status == 'Going' %}
-                  <i class="fas fa-check text-success"></i>
-                  {% endif %}
-                </a>
-              </li>
-              <li>
-                <a onclick="updateRSVP('Interested')" class="flex justify-between">
-                  Interested
-                  {% if rsvp_status == 'Interested' %}
-                  <i class="fas fa-check text-success"></i>
-                  {% endif %}
-                </a>
-              </li>
-            </ul>
-            {% endif %}
-          </div>
-          
+  <button id="rsvpBtn" 
+          class="btn {% if rsvp_status %}
+            {% if rsvp_status == 'Going' %}btn-primary
+            {% elif rsvp_status == 'Not interested' %}btn-error
+            {% else %}btn-secondary{% endif %}
+          {% else %}btn-ghost{% endif %} 
+          btn-lg gap-2"
+          data-url="{% url 'events:toggle_rsvp' event.slug %}"
+          {% if not user.is_authenticated %}
+          onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23rsvpBtn'"
+          {% endif %}
+  >
+    <i class="fas {% if rsvp_status == 'Going' %}fa-check-circle
+              {% elif rsvp_status == 'Not interested' %}fa-times-circle
+              {% else %}fa-calendar-check{% endif %}"></i>
+    <span id="rsvpBtnText">
+      {{ rsvp_status|default:"RSVP" }}
+    </span>
+    {% if user.is_authenticated %}
+    <i class="fas fa-chevron-down"></i>
+    {% endif %}
+  </button>
+  {% if user.is_authenticated %}
+  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+  <li>
+    <a onclick="updateRSVP('Going')" class="flex justify-between items-center py-2">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-check-circle w-4"></i>
+        <span>Going</span>
+      </span>
+      {% if rsvp_status == 'Going' %}
+      <i class="fas fa-check text-success"></i>
+      {% endif %}
+    </a>
+  </li>
+  <li>
+    <a onclick="updateRSVP('Interested')" class="flex justify-between items-center py-2">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-star w-4"></i>
+        <span>Interested</span>
+      </span>
+      {% if rsvp_status == 'Interested' %}
+      <i class="fas fa-check text-success"></i>
+      {% endif %}
+    </a>
+  </li>
+  <li class="border-t border-base-200 mt-2 pt-2">
+    <a onclick="updateRSVP('Not interested')" class="flex justify-between items-center py-2 text-error">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-times-circle w-4"></i>
+        <span>Not interested</span>
+      </span>
+      {% if rsvp_status == 'Not interested' %}
+      <i class="fas fa-check text-success"></i>
+      {% endif %}
+    </a>
+  </li>
+</ul>
+  {% endif %}
+</div>
+
             <button 
             id="favoriteBtn" 
             class="btn {% if is_favorited %}btn-primary{% else %}btn-ghost{% endif %} btn-lg gap-2" 
             aria-label="Add {{ event.title }} to favorites"
+            data-url="{% url 'events:toggle_favorite' event.slug %}"
             {% if not user.is_authenticated %}
             onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23favoriteBtn'"
             {% endif %}
@@ -217,75 +240,7 @@
 </div>
 
 {% if user.is_authenticated %}
-<script>
-document.getElementById('favoriteBtn').addEventListener('click', function() {
-    fetch('{% url "events:toggle_favorite" event.slug %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        const btn = document.getElementById('favoriteBtn');
-        const btnText = document.getElementById('favoriteBtnText');
-        
-        if (data.is_favorited) {
-            btn.classList.remove('btn-ghost');
-            btn.classList.add('btn-primary');
-            btnText.textContent = 'Favorited';
-        } else {
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-ghost');
-            btnText.textContent = 'Add to Favorites';
-        }
-    });
-});
-
-function updateRSVP(status) {
-    const formData = new FormData();
-    formData.append('status', status);
-    
-    fetch('{% url "events:toggle_rsvp" event.slug %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        const btn = document.getElementById('rsvpBtn');
-        const btnText = document.getElementById('rsvpBtnText');
-        const dropdownMenu = btn.nextElementSibling;
-        const menuItems = dropdownMenu.getElementsByTagName('a');
-        
-        // Update button state
-        if (data.status) {
-            btn.classList.remove('btn-ghost');
-            btn.classList.add('btn-primary');
-            btnText.textContent = data.status;
-        } else {
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-ghost');
-            btnText.textContent = 'RSVP';
-        }
-        
-        // Update checkmarks
-        Array.from(menuItems).forEach(item => {
-            const checkIcon = item.querySelector('.fa-check');
-            if (checkIcon) checkIcon.remove();
-            
-            if (item.textContent.trim() === data.status) {
-                item.innerHTML += ' <i class="fas fa-check text-success"></i>';
-            }
-        });
-        
-        // Close dropdown
-        dropdownMenu.blur();
-    });
-}
-</script>
+<script src="{% static 'js/event_interactions.js' %}"></script>
 {% endif %}
 <!-- Add CSRF token -->
 {% csrf_token %}
