@@ -17,6 +17,4 @@ settings.json
 .gitignore
 .vscode/*
 fixtures/
-requirements.txt
-Procfile
 .vscode/settings.json
