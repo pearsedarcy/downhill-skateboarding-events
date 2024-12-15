@@ -24,11 +24,11 @@
 
   <body class="bg-base-100 text-base-content font-sans">
     <!-- Navigation Header: Contains logo, menu, and user controls -->
-    <header class="navbar bg-base-100">
+    <header class="navbar bg-base-100 z-11">
       <!-- Left side of navbar: Menu, Logo, and Breadcrumbs -->
       <div class="navbar-start ">
         <!-- Navigation Menu -->
-        <div class="dropdown">
+        <div class="dropdown z-12">
           <div tabindex="0" role="button" class="btn btn-ghost btn-circle" aria-label="Navigation menu">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +47,7 @@
           </div>
           <ul
             tabindex="0"
-            class="menu menu-sm dropdown-content bg-base-300 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+            class="menu menu-sm dropdown-content bg-base-300 rounded-box z-[14] mt-3 w-52 p-2 shadow"
           >
             <li><a href="{% url 'events:event_list' %}" aria-label="Browse events">Events</a></li>
             <li><a href="{% url 'events:submit' %}" aria-label="Submit event">Submit Event</a></li>

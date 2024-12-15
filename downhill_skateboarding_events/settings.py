@@ -105,8 +105,8 @@ DATABASES = {
 
 # Tailwind Configuration
 TAILWIND_APP_NAME = 'theme'
-TAILWIND_CSS_PATH = 'css/dist/styles.css'  # Add this line
-TAILWIND_DEV_MODE = DEBUG  # Add this line
+TAILWIND_CSS_PATH = 'css/dist/styles.css'
+TAILWIND_DEV_MODE = DEBUG
 
 # Remove NPM_BIN_PATH in production
 if not DEBUG:
@@ -215,18 +215,3 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-
-# Add Heroku logging configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-}
