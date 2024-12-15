@@ -32,29 +32,115 @@
             <div class="badge badge-primary">{{ event.event_type }}</div>
             <div class="badge badge-secondary ml-2">{{ event.skill_level }}</div>
           </div>
-          <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200">
-            <div class="stat">
-              <div class="stat-figure text-primary">
-                <i class="fas fa-dollar-sign text-2xl"></i>
-              </div>
-              <div class="stat-value text-primary">${{ event.cost }}</div>
-              <div class="stat-title">Entry Fee</div>
-              
+          <!-- Call-to-action buttons moved up -->
+          <div class="card-actions justify-end">
+            {% if event.tickets_link %}
+            <a href="{{ event.tickets_link }}" class="btn btn-primary btn-md gap-2" target="_blank" aria-label="Get tickets for {{ event.title }}">
+              <i class="fas fa-ticket-alt"></i>
+              Get Tickets
+            </a>
+            {% endif %}
+            
+            <div class="dropdown">
+              <button id="rsvpBtn" 
+                      class="btn {% if rsvp_status %}
+                        {% if rsvp_status == 'Going' %}btn-primary
+                        {% elif rsvp_status == 'Not interested' %}btn-error
+                        {% else %}btn-secondary{% endif %}
+                      {% else %}btn-ghost{% endif %} 
+                      btn-md gap-2"
+                      data-url="{% url 'events:toggle_rsvp' event.slug %}"
+                      {% if not user.is_authenticated %}
+                      onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23rsvpBtn'"
+                      {% endif %}
+              >
+                <i class="fas {% if rsvp_status == 'Going' %}fa-check-circle
+                          {% elif rsvp_status == 'Not interested' %}fa-times-circle
+                          {% else %}fa-calendar-check{% endif %}"></i>
+                <span id="rsvpBtnText">
+                  {{ rsvp_status|default:"RSVP" }}
+                </span>
+                {% if user.is_authenticated %}
+                <i class="fas fa-chevron-down"></i>
+                {% endif %}
+              </button>
+              {% if user.is_authenticated %}
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+              <li>
+                <a onclick="updateRSVP('Going')" class="flex justify-between items-center py-2">
+                  <span class="flex items-center gap-2">
+                    <i class="fas fa-check-circle w-4"></i>
+                    <span>Going</span>
+                  </span>
+                  {% if rsvp_status == 'Going' %}
+                  <i class="fas fa-check text-success"></i>
+                  {% endif %}
+                </a>
+              </li>
+              <li>
+                <a onclick="updateRSVP('Interested')" class="flex justify-between items-center py-2">
+                  <span class="flex items-center gap-2">
+                    <i class="fas fa-star w-4"></i>
+                    <span>Interested</span>
+                  </span>
+                  {% if rsvp_status == 'Interested' %}
+                  <i class="fas fa-check text-success"></i>
+                  {% endif %}
+                </a>
+              </li>
+              <li class="border-t border-base-200 mt-2 pt-2">
+                <a onclick="updateRSVP('Not interested')" class="flex justify-between items-center py-2 text-error">
+                  <span class="flex items-center gap-2">
+                    <i class="fas fa-times-circle w-4"></i>
+                    <span>Not interested</span>
+                  </span>
+                  {% if rsvp_status == 'Not interested' %}
+                  <i class="fas fa-check text-success"></i>
+                  {% endif %}
+                </a>
+              </li>
+            </ul>
+              {% endif %}
             </div>
-            <div class="stat">
-              <div class="stat-figure text-secondary">
-                <i class="fas fa-users text-2xl"></i>
-              </div>
-              <div class="stat-value text-secondary">{{ event.max_attendees }}</div>
-              <div class="stat-title">Max Capacity</div>
-              
-            </div>
+
+            <button 
+              id="favoriteBtn" 
+              class="btn {% if is_favorited %}btn-primary{% else %}btn-ghost{% endif %} btn-md gap-2" 
+              aria-label="Add {{ event.title }} to favorites"
+              data-url="{% url 'events:toggle_favorite' event.slug %}"
+              {% if not user.is_authenticated %}
+              onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23favoriteBtn'"
+              {% endif %}
+              >
+              <i class="fas fa-heart"></i>
+              <span id="favoriteBtnText">
+                {% if is_favorited %}Favorited{% else %}Add to Favorites{% endif %}
+              </span>
+            </button>
           </div>
         </div>
 
         <!-- Event description -->
         <div class="prose max-w-none mt-4">
           <p>{{ event.description }}</p>
+        </div>
+
+        <!-- Stats moved down -->
+        <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200 mt-4">
+          <div class="stat">
+            <div class="stat-figure text-primary">
+              <i class="fas fa-dollar-sign text-2xl"></i>
+            </div>
+            <div class="stat-value text-primary">${{ event.cost }}</div>
+            <div class="stat-title">Entry Fee</div>
+          </div>
+          <div class="stat">
+            <div class="stat-figure text-secondary">
+              <i class="fas fa-users text-2xl"></i>
+            </div>
+            <div class="stat-value text-secondary">{{ event.max_attendees }}</div>
+            <div class="stat-title">Max Capacity</div>
+          </div>
         </div>
 
         <!-- Event details grid -->
@@ -147,92 +233,6 @@
             </div>
           </div>
           </a>
-        </div>
-        <!-- Call-to-action buttons -->
-        <div class="card-actions justify-start mt-6">
-          {% if event.tickets_link %}
-          <a href="{{ event.tickets_link }}" class="btn btn-primary btn-lg gap-2" target="_blank" aria-label="Get tickets for {{ event.title }}">
-            <i class="fas fa-ticket-alt"></i>
-            Get Tickets
-          </a>
-          {% endif %}
-          
-          <div class="dropdown">
-  <button id="rsvpBtn" 
-          class="btn {% if rsvp_status %}
-            {% if rsvp_status == 'Going' %}btn-primary
-            {% elif rsvp_status == 'Not interested' %}btn-error
-            {% else %}btn-secondary{% endif %}
-          {% else %}btn-ghost{% endif %} 
-          btn-lg gap-2"
-          data-url="{% url 'events:toggle_rsvp' event.slug %}"
-          {% if not user.is_authenticated %}
-          onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23rsvpBtn'"
-          {% endif %}
-  >
-    <i class="fas {% if rsvp_status == 'Going' %}fa-check-circle
-              {% elif rsvp_status == 'Not interested' %}fa-times-circle
-              {% else %}fa-calendar-check{% endif %}"></i>
-    <span id="rsvpBtnText">
-      {{ rsvp_status|default:"RSVP" }}
-    </span>
-    {% if user.is_authenticated %}
-    <i class="fas fa-chevron-down"></i>
-    {% endif %}
-  </button>
-  {% if user.is_authenticated %}
-  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
-  <li>
-    <a onclick="updateRSVP('Going')" class="flex justify-between items-center py-2">
-      <span class="flex items-center gap-2">
-        <i class="fas fa-check-circle w-4"></i>
-        <span>Going</span>
-      </span>
-      {% if rsvp_status == 'Going' %}
-      <i class="fas fa-check text-success"></i>
-      {% endif %}
-    </a>
-  </li>
-  <li>
-    <a onclick="updateRSVP('Interested')" class="flex justify-between items-center py-2">
-      <span class="flex items-center gap-2">
-        <i class="fas fa-star w-4"></i>
-        <span>Interested</span>
-      </span>
-      {% if rsvp_status == 'Interested' %}
-      <i class="fas fa-check text-success"></i>
-      {% endif %}
-    </a>
-  </li>
-  <li class="border-t border-base-200 mt-2 pt-2">
-    <a onclick="updateRSVP('Not interested')" class="flex justify-between items-center py-2 text-error">
-      <span class="flex items-center gap-2">
-        <i class="fas fa-times-circle w-4"></i>
-        <span>Not interested</span>
-      </span>
-      {% if rsvp_status == 'Not interested' %}
-      <i class="fas fa-check text-success"></i>
-      {% endif %}
-    </a>
-  </li>
-</ul>
-  {% endif %}
-</div>
-
-            <button 
-            id="favoriteBtn" 
-            class="btn {% if is_favorited %}btn-primary{% else %}btn-ghost{% endif %} btn-lg gap-2" 
-            aria-label="Add {{ event.title }} to favorites"
-            data-url="{% url 'events:toggle_favorite' event.slug %}"
-            {% if not user.is_authenticated %}
-            onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23favoriteBtn'"
-            {% endif %}
-            >
-            <i class="fas fa-heart"></i>
-            <span id="favoriteBtnText">
-              {% if is_favorited %}Favorited{% else %}Add to Favorites{% endif %}
-            </span>
-          </button>
         </div>
       </div>
     </div>

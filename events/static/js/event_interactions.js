@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update button state
                 if (data.status) {
-                    rsvpBtn.className = `btn btn-lg gap-2 ${
+                    rsvpBtn.className = `btn btn-md gap-2 ${
                         data.status === 'Going' ? 'btn-primary' : 
                         data.status === 'Not interested' ? 'btn-error' : 
                         'btn-secondary'
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'fa-star'
                     }`;
                 } else {
-                    rsvpBtn.className = 'btn btn-ghost btn-lg gap-2';
+                    rsvpBtn.className = 'btn btn-ghost btn-md gap-2';
                     btnText.textContent = 'RSVP';
                 }
                 
