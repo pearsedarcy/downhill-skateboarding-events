@@ -31,7 +31,7 @@ SECRET_KEY = env(
 
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "https://*.herokuapp.com"])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=['*'])
 
 # Application definition
 
@@ -105,7 +105,7 @@ DATABASES = {
 
 # Tailwind Configuration
 TAILWIND_APP_NAME = 'theme'
-TAILWIND_CSS_PATH = 'css/dist/output.css'  # Add this line
+TAILWIND_CSS_PATH = 'css/dist/styles.css'  # Add this line
 TAILWIND_DEV_MODE = DEBUG  # Add this line
 
 # Remove NPM_BIN_PATH in production
@@ -205,10 +205,28 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
 CSRF_USE_SESSIONS = False       # Store CSRF token in cookie, not session
 CSRF_COOKIE_SAMESITE = 'Lax'   # Allows CSRF cookie in same-site requests
 
-# Security settings
+# Production security settings
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 SECURE_BROWSER_XSS_FILTER = True
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Add Heroku logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
