@@ -236,7 +236,7 @@
                 <label class="label">
                   <span class="label-text-alt text-error">{{ location_form.start_line.errors|join:", " }}</span>
                 </label>
-                {% endif %}
+              {% endif %}
               </div>
               <div class="form-control">
                 <label class="label"><span class="label-text">Finish Line</span></label>
@@ -285,6 +285,12 @@
             </div>
 
             <div class="mt-8 flex justify-end gap-4">
+              {% if edit_mode and event.slug %}
+              <button type="button" class="btn btn-error btn-lg gap-2" onclick="openDeleteModal()">
+                <i class="fas fa-trash"></i>
+                Delete Event
+              </button>
+              {% endif %}
               <button type="reset" class="btn btn-ghost btn-lg gap-2">
                 <i class="fas fa-undo"></i>
                 Reset
@@ -323,6 +329,28 @@
     <button>close</button>
   </form>
 </dialog>
+
+<!-- Delete Confirmation Modal -->
+{% if edit_mode and event.slug %}
+<dialog id="delete_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Delete Event</h3>
+    <p class="py-4">Are you sure you want to delete this event? This action cannot be undone.</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn btn-ghost">Cancel</button>
+      </form>
+      <form action="{% url 'events:event_delete' event.slug %}" method="POST" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-error">Delete Event</button>
+      </form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+{% endif %}
 
 <!-- Add JavaScript for image preview -->
 <script>
@@ -415,6 +443,11 @@ document.querySelector('form').addEventListener('submit', function(e) {
         }
     }
 });
+
+function openDeleteModal() {
+    const modal = document.getElementById('delete_modal');
+    modal.showModal();
+}
 </script>
 
 <!-- Styles to reset border colors -->

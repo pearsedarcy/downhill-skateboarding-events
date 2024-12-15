@@ -111,13 +111,22 @@
     <div id="organized-content" class="tab-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for event in organized_events %}
       <div class="card bg-base-100 shadow-xl">
-        <figure class="px-4 pt-4">
-          {% if event.cover_image %}
-          <img src="{{ event.cover_image.url }}" class="rounded-xl h-48 w-full object-cover" alt="{{ event.title }}" />
-          {% else %}
-          <img src="{% static 'images/default_cover_image.jpg' %}" class="rounded-xl h-48 w-full object-cover" alt="Default event image" />
+        <div class="relative">
+          <figure class="px-4 pt-4">
+            {% if event.cover_image %}
+            <img src="{{ event.cover_image.url }}" class="rounded-xl h-48 w-full object-cover" alt="{{ event.title }}" />
+            {% else %}
+            <img src="{% static 'images/default_cover_image.jpg' %}" class="rounded-xl h-48 w-full object-cover" alt="Default event image" />
+            {% endif %}
+          </figure>
+          {% if request.user == profile.user %}
+          <div class="absolute top-6 right-6 flex gap-2">
+            <a href="{% url 'events:edit_event' event.slug %}" class="btn btn-circle btn-sm">
+              <i class="fas fa-edit"></i>
+            </a>
+          </div>
           {% endif %}
-        </figure>
+        </div>
         <div class="card-body">
           <h2 class="card-title">{{ event.title }}</h2>
           <p>{{ event.description|truncatewords:20 }}</p>
@@ -313,7 +322,6 @@
       <button>close</button>
     </form>
   </dialog>
-</div>
 
 {% block extra_js %}
 <!-- Fix script order and move inside content block -->
@@ -326,6 +334,7 @@
     },
     csrfToken: "{{ csrf_token }}"
   };
+
 </script>
 <script src="{% static 'js/profile/CSRFManager.js' %}"></script>
 <script src="{% static 'js/profile/TabManager.js' %}"></script>

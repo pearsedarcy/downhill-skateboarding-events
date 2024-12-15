@@ -201,3 +201,26 @@ def edit_event(request, slug):
         'event': event
     })
 
+@login_required
+def event_delete(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    
+    # Check if user is the organizer
+    if event.organizer != request.user.profile:
+        raise Http404("You don't have permission to delete this event")
+    
+    if request.method == "POST":
+        # Store the location to delete after the event
+        location = event.location
+        
+        # Delete the event
+        event.delete()
+        
+        # Delete the location if it's not used by other events
+        if location and not Event.objects.filter(location=location).exists():
+            location.delete()
+        
+        return redirect('events:event_list')
+    
+    raise Http404("Invalid request method")
+
