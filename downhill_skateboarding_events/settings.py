@@ -31,7 +31,7 @@ SECRET_KEY = env(
 
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "https://*.herokuapp.com"])
 
 # Application definition
 
@@ -103,12 +103,19 @@ DATABASES = {
     )
 }
 
-TAILWIND_APP_NAME = "theme"
+# Tailwind Configuration
+TAILWIND_APP_NAME = 'theme'
+TAILWIND_CSS_PATH = 'css/dist/output.css'  # Add this line
+TAILWIND_DEV_MODE = DEBUG  # Add this line
 
-NPM_BIN_PATH = "C:/Users/user/AppData/Roaming/npm/npm.cmd"
+# Remove NPM_BIN_PATH in production
+if not DEBUG:
+    NPM_BIN_PATH = None
+else:
+    NPM_BIN_PATH = "C:/Users/user/AppData/Roaming/npm/npm.cmd"
 
 INTERNAL_IPS = [
-    "127.0.0.1",
+    "127.0.0.1", "https://*.herokuapp.com",
 ]
 
 # Password validation
