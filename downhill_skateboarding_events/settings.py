@@ -137,6 +137,9 @@ ACCOUNT_USERNAME_REQUIRED = True
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
+ACCOUNT_ADAPTER = 'profiles.adapters.CustomAccountAdapter'
+ACCOUNT_SIGNUP_REDIRECT_URL = "/profiles/edit/"
+
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
@@ -185,5 +188,6 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ])
+
 CSRF_USE_SESSIONS = False       # Store CSRF token in cookie, not session
 CSRF_COOKIE_SAMESITE = 'Lax'   # Allows CSRF cookie in same-site requests

@@ -24,7 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("__reload__/", include("django_browser_reload.urls")),
-    path("profile/", include("profiles.urls", namespace="profiles")),
+    path("profiles/", include("profiles.urls", namespace="profiles")),  # Changed from profile/ to profiles/
     path("", include("events.urls", namespace="events")),
 ]
 

@@ -171,3 +171,12 @@ def update_rsvp(request):
             'status': 'error',
             'message': str(e)
         }, status=400)
+
+
+@require_POST
+@login_required
+def delete_profile(request):
+    """Delete the user's profile and account"""
+    user = request.user
+    user.delete()
+    return redirect('')

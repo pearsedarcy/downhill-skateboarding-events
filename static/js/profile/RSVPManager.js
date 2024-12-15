@@ -1,6 +1,6 @@
 class RSVPManager {
     static async updateRSVP(eventId, status) {
-        const response = await fetch('/profile/api/rsvp/update/', {
+        const response = await fetch('/profiles/api/rsvp/update/', {
             method: 'POST',
             headers: CSRFManager.getHeaders(),
             body: JSON.stringify({ event_id: eventId, status })

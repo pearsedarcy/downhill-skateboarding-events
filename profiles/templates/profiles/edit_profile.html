@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 {% load static %}
 
@@ -12,6 +11,16 @@
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           
+          <div class="form-control mb-4">
+            <label class="label">
+              <span class="label-text">Username</span>
+            </label>
+            {{ form.username }}
+            {% if form.username.errors %}
+            <label class="label"><span class="label-text-alt text-error">{{ form.username.errors|join:", " }}</span></label>
+            {% endif %}
+          </div>
+
           <div class="form-control mb-4">
             <label class="label">
               <span class="label-text">Profile Picture</span>
@@ -44,6 +53,7 @@
 
           <div class="flex justify-end gap-2">
             <a href="{% url 'profiles:my_profile' %}" class="btn">Cancel</a>
+            <button type="button" class="btn btn-error" onclick="document.getElementById('delete-modal').showModal()">Delete Profile</button>
             <button type="submit" class="btn btn-primary">Save Changes</button>
           </div>
         </form>
@@ -51,4 +61,38 @@
     </div>
   </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<dialog id="delete-modal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Delete Profile</h3>
+    <p class="py-4">Are you sure you want to delete your profile? This action cannot be undone.</p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Cancel</button>
+      </form>
+      <form method="POST" action="{% url 'profiles:delete_profile' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-error">Delete</button>
+      </form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<style>
+  .textarea,
+  .select {
+    border-color: var(--fallback-bc, oklch(var(--bc) / 0.2));
+  }
+  
+  .textarea:focus,
+  .select:focus {
+    border-color: var(--fallback-bc, oklch(var(--bc) / 0.2));
+    border-color: var(--fallback-bc, oklch(var(--bc) / 0.2));
+  }
+</style>
+
 {% endblock %}

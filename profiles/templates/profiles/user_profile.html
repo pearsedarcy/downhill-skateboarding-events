@@ -324,9 +324,7 @@
   </dialog>
 
 {% block extra_js %}
-<!-- Fix script order and move inside content block -->
 <script>
-  // Add this configuration object
   const profileConfig = {
     urls: {
       updateProfile: "{% url 'profiles:update_profile' %}",
@@ -334,7 +332,6 @@
     },
     csrfToken: "{{ csrf_token }}"
   };
-
 </script>
 <script src="{% static 'js/profile/CSRFManager.js' %}"></script>
 <script src="{% static 'js/profile/TabManager.js' %}"></script>

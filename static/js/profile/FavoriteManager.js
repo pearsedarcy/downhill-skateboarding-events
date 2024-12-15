@@ -10,7 +10,7 @@ class FavoriteManager {
     static async confirmRemoval() {
         if (!this.currentId) return;
 
-        const response = await fetch(`/profile/api/favorites/${this.currentId}/remove/`, {
+        const response = await fetch(`/profiles/api/favorites/${this.currentId}/remove/`, {
             method: 'POST',
             headers: CSRFManager.getHeaders()
         });
