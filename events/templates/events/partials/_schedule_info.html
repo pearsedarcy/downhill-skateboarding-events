@@ -1,0 +1,15 @@
+<h2 class="card-title text-xl">📅 Event Schedule</h2>
+<div class="space-y-2">
+  <p>
+    <i class="fas fa-calendar-day"></i> 
+    <span class="font-semibold">Start:</span> 
+    {{ event.start_date|date:"F j, Y" }}
+  </p>
+  {% if event.end_date %}
+  <p>
+    <i class="fas fa-calendar-check"></i> 
+    <span class="font-semibold">End:</span> 
+    {{ event.end_date|date:"F j, Y" }}
+  </p>
+  {% endif %}
+</div>

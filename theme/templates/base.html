@@ -49,8 +49,8 @@
             tabindex="0"
             class="menu menu-sm dropdown-content bg-base-300 rounded-box z-[1] mt-3 w-52 p-2 shadow"
           >
-          <!-- TODO UPDATE TO REAL LINKS -->
-            <li><a href="#" aria-label="Browse events">Events</a></li>
+            <li><a href="{% url 'events:event_list' %}" aria-label="Browse events">Events</a></li>
+            <li><a href="{% url 'events:submit' %}" aria-label="Submit event">Submit Event</a></li>
             <li><a href="#" aria-label="View organisers">Organisers</a></li>
             <li><a href="#" aria-label="About us">About</a></li>
           </ul>

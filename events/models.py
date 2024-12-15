@@ -3,6 +3,7 @@ from django.utils import timezone
 from django_countries.fields import CountryField
 from profiles.models import UserProfile
 from cloudinary.models import CloudinaryField
+from django.utils.text import slugify
 
 
 class Event(models.Model):
@@ -58,6 +59,26 @@ class Event(models.Model):
         max_digits=6, decimal_places=2, null=True, blank=True, default=0.00
     )
     max_attendees = models.IntegerField(null=True, blank=True, default=0)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            # Generate initial slug from title
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            
+            # Keep trying until we find a unique slug
+            while Event.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_missing_slugs(cls):
+        for event in cls.objects.filter(slug__isnull=True):
+            event.save()  # This will trigger the save method to generate a slug
 
     def __str__(self):
         return self.title

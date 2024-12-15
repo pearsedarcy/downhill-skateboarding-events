@@ -1,0 +1,28 @@
+{% load static %}
+<div class="flex flex-col md:flex-row items-start gap-4 bg-base-200 rounded-lg p-4 mt-4">
+  <div class="avatar">
+    <div class="w-24 h-24 rounded-full">
+      <img src="{% if event.organizer.avatar %}{{ event.organizer.avatar.url }}{% else %}{% static 'images/default-profile.webp' %}{% endif %}"
+           alt="{{ event.organizer.user.username }}'s avatar" />
+    </div>
+  </div>
+  <div class="flex-1">
+    <a href="{% url 'profiles:user_profile' event.organizer.user.username %}">
+      <h2 class="text-xl font-bold mb-2">Event Organizer</h2>
+      <h3 class="text-lg font-semibold">{{ event.organizer.user.username }}</h3>
+      {% if event.organizer.bio %}
+        <p class="mt-2">{{ event.organizer.bio|truncatewords:50 }}</p>
+      {% endif %}
+      <div class="mt-4">
+        {% if event.organizer.instagram %}
+          <a href="https://instagram.com/{{ event.organizer.instagram }}" class="btn btn-sm btn-outline gap-2" target="_blank">
+            <i class="fab fa-instagram"></i> Instagram
+          </a>
+        {% endif %}
+        <a href="mailto:{{ event.organizer.user.email }}" class="btn btn-sm btn-outline gap-2 ml-2">
+          <i class="fas fa-envelope"></i> Contact
+        </a>
+      </div>
+    </a>
+  </div>
+</div>

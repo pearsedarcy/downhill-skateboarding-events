@@ -1,0 +1,61 @@
+<div class="dropdown">
+  <button id="rsvpBtn" 
+          class="btn {% if rsvp_status %}
+            {% if rsvp_status == 'Going' %}btn-primary
+            {% elif rsvp_status == 'Not interested' %}btn-error
+            {% else %}btn-secondary{% endif %}
+          {% else %}btn-ghost{% endif %} 
+          btn-md gap-2"
+          data-url="{% url 'events:toggle_rsvp' event.slug %}"
+          {% if not user.is_authenticated %}
+          onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23rsvpBtn'"
+          {% endif %}
+  >
+    <i class="fas {% if rsvp_status == 'Going' %}fa-check-circle
+              {% elif rsvp_status == 'Not interested' %}fa-times-circle
+              {% else %}fa-calendar-check{% endif %}"></i>
+    <span id="rsvpBtnText">
+      {{ rsvp_status|default:"RSVP" }}
+    </span>
+    {% if user.is_authenticated %}
+    <i class="fas fa-chevron-down"></i>
+    {% endif %}
+  </button>
+  {% if user.is_authenticated %}
+  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+    <li>
+      <a onclick="updateRSVP('Going')" class="flex justify-between items-center py-2">
+        <span class="flex items-center gap-2">
+          <i class="fas fa-check-circle w-4"></i>
+          <span>Going</span>
+        </span>
+        {% if rsvp_status == 'Going' %}
+        <i class="fas fa-check text-success"></i>
+        {% endif %}
+      </a>
+    </li>
+    <li>
+      <a onclick="updateRSVP('Interested')" class="flex justify-between items-center py-2">
+        <span class="flex items-center gap-2">
+          <i class="fas fa-star w-4"></i>
+          <span>Interested</span>
+        </span>
+        {% if rsvp_status == 'Interested' %}
+        <i class="fas fa-check text-success"></i>
+        {% endif %}
+      </a>
+    </li>
+    <li class="border-t border-base-200 mt-2 pt-2">
+      <a onclick="updateRSVP('Not interested')" class="flex justify-between items-center py-2 text-error">
+        <span class="flex items-center gap-2">
+          <i class="fas fa-times-circle w-4"></i>
+          <span>Not interested</span>
+        </span>
+        {% if rsvp_status == 'Not interested' %}
+        <i class="fas fa-check text-success"></i>
+        {% endif %}
+      </a>
+    </li>
+  </ul>
+  {% endif %}
+</div>
