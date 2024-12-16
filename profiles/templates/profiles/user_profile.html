@@ -101,10 +101,16 @@
 
     <!-- Tab Navigation -->
     <div class="tabs tabs-boxed mb-6" id="profile-tabs">
-      <a class="tab" data-tab="organized" data-content="organized-content">Organized Events</a>
+
+      {% if organized_events %}
+      <a class="tab" data-tab="organized" data-content="organized-content">Your Events</a>
+      {% endif %}
       <a class="tab" data-tab="attending" data-content="attending-content">Attending</a>
       <a class="tab" data-tab="reviews" data-content="reviews-content">Reviews</a>
-      <a class="tab" data-tab="favorites" data-content="favorites-content">Favorites</a>
+      <a class="tab" data-tab="favorites" data-content="favorites-content">
+        <i class="fas fa-bookmark mr-2"></i>
+        Bookmarked
+      </a>
     </div>
 
     <!-- Tab Content Sections -->
@@ -263,7 +269,7 @@
       {% endfor %}
     </div>
 
-    <!-- Favorites Tab -->
+    <!-- Saved Tab -->
     <div id="favorites-content" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for favorite in favorites %}
       <div class="card bg-base-100 shadow-xl" data-favorite-id="{{ favorite.id }}">
@@ -282,7 +288,7 @@
                             </button>
             {% endif %}
             <div class="btn btn-circle btn-sm btn-primary hover:none">
-              <i class="fas fa-heart"></i>
+              <i class="fas fa-bookmark"></i>
             </div>
           </div>
         </div>
@@ -312,7 +318,8 @@
   <dialog id="confirm_modal" class="modal">
     <div class="modal-box">
       <h3 class="font-bold text-lg">Remove from Favorites</h3>
-      <p class="py-4">Are you sure you want to remove this event from your favorites?</p>
+      <p class="py-4">Are you sure you want to remove this event from your saved
+      events?</p>
       <div class="modal-action">
         <button class="btn" onclick="closeModal()">Cancel</button>
         <button class="btn btn-error" onclick="confirmRemoveFavorite()">Remove</button>

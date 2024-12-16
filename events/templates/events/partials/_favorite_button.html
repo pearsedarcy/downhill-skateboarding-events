@@ -1,14 +1,14 @@
 <button 
   id="favoriteBtn" 
-  class="btn {% if is_favorited %}btn-primary{% else %}btn-ghost{% endif %} btn-md gap-2" 
+  class="btn {% if is_favorited %}btn-primary{% else %}btn-ghost{% endif %} btn-sm gap-2" 
   aria-label="Add {{ event.title }} to favorites"
   data-url="{% url 'events:toggle_favorite' event.slug %}"
   {% if not user.is_authenticated %}
   onclick="window.location.href='{% url 'account_login' %}?next={{ request.path|urlencode }}%23favoriteBtn'"
   {% endif %}
 >
-  <i class="fas fa-heart"></i>
+  <i class="fas fa-bookmark"></i>
   <span id="favoriteBtnText">
-    {% if is_favorited %}Favorited{% else %}Add to Favorites{% endif %}
+    {% if is_favorited %}Saved{% else %}Save{% endif %}
   </span>
 </button>
