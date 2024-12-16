@@ -8,12 +8,12 @@
     {% csrf_token %}
     
     <!-- Header Section with Image Preview -->
-    <div class="hero min-h-[70vh] bg-base-100">
-      <div class="max-w-[1200px] w-full mx-auto relative">
+    <div class="hero bg-base-200">
+      <div class="max-w-[900px] w-full mx-auto relative">
         <div class="hero-content p-0">
           <img id="coverPreview" 
                src="{% if edit_mode and event.cover_image %}{{ event.cover_image.url }}{% else %}{% static 'images/default_cover_image.jpg' %}{% endif %}" 
-               class="w-full h-[70vh] object-cover" 
+               class="w-full object-cover" 
                alt="Event Cover Preview">
           <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-50 transition-all">
             <label class="flex flex-col items-center cursor-pointer">
@@ -45,9 +45,9 @@
     </div>
 
     <!-- Main Form Container -->
-    <div class="max-w-[1200px] mx-auto px-4 -mt-20 mb-20">
+    <div class="max-w-[1100px] mx-auto px-1 -mt-5 mb-20">
       <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
+        <div class="card-body p-2 sm:px-4">
           {% if edit_mode %}
             <h1 class="text-2xl font-bold mb-6">Edit Event: {{ event.title }}</h1>
           {% endif %}
@@ -284,26 +284,31 @@
               </div>
             </div>
 
-            <div class="mt-8 flex justify-end gap-4">
+            <div class="mt-8 flex  justify-center sm:justify-end gap-2">
               {% if edit_mode and event.slug %}
-              <button type="button" class="btn btn-error btn-lg gap-2" onclick="openDeleteModal()">
+              <button type="button" class="btn btn-error btn-sm sm:btn-md gap-2" onclick="openDeleteModal()">
                 <i class="fas fa-trash"></i>
-                Delete Event
+                Delete
               </button>
               {% endif %}
-              <button type="reset" class="btn btn-ghost btn-lg gap-2">
+                <button type="button" class="btn btn-secondary btn-sm sm:btn-md gap-2" onclick="window.location.href='{% if edit_mode %}{% url 'events:event_details' event.slug %}{% else %}{% url 'events:event_list' %}{% endif %}'">
+                <i class="fas fa-times"></i>
+                Cancel
+                </button>
+              <button type="reset" class="btn btn-ghost btn-sm sm:btn-md gap-2">
                 <i class="fas fa-undo"></i>
                 Reset
               </button>
+
               {% if user.is_authenticated %}
-              <button type="submit" class="btn btn-primary btn-lg gap-2">
+              <button type="submit" class="btn btn-primary btn-sm sm:btn-md gap-2">
                 <i class="fas fa-save"></i>
-                {% if edit_mode %}Save Changes{% else %}Submit Event{% endif %}
+                {% if edit_mode %}Save{% else %}Submit{% endif %}
               </button>
               {% else %}
-              <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn btn-primary btn-lg gap-2">
+              <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn btn-primary btn-sm sm:btn-md gap-2">
                 <i class="fas fa-paper-plane"></i>
-                Submit Event
+                Submit
               </a>
               {% endif %}
             </div>
