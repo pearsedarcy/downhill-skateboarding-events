@@ -1,10 +1,10 @@
-<div class="dropdown">
+<div class="dropdown ">
   <button id="rsvpBtn" 
-          class="btn {% if rsvp_status %}
-            {% if rsvp_status == 'Going' %}btn-primary
-            {% elif rsvp_status == 'Not interested' %}btn-error
-            {% else %}btn-secondary{% endif %}
-          {% else %}btn-ghost{% endif %} 
+          class="btn flex-nowrap whitespace-nowrap {% if rsvp_status %}
+            {% if rsvp_status == 'Going' %}btn-primary flex-nowrap whitespace-nowrap
+            {% elif rsvp_status == 'Not interested' %}btn-error flex-nowrap whitespace-nowrap
+            {% else %}btn-secondary flex-nowrap whitespace-nowrap{% endif %}
+          {% else %}btn-ghost flex-nowrap whitespace-nowrap{% endif %} 
           btn-sm gap-2"
           data-url="{% url 'events:toggle_rsvp' event.slug %}"
           {% if not user.is_authenticated %}

@@ -9,14 +9,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-base-200">
+<div class="min-h-screen bg-base-300">
   {# UNPUBLISHED EVENT WARNING #}
   {% if not event.published %}
     {% include "events/partials/_unpublished_warning.html" %}
   {% endif %}
 
   {# HERO SECTION #}
-  <div class="hero bg-base-100">
+  <div class="hero bg-base-200">
     <div class="max-w-[900px] w-full mx-auto">
       <div class="hero-content p-0">
         <div class="w-full aspect-video">
@@ -33,11 +33,11 @@
   {# MAIN CONTENT CONTAINER #}
   <div class="max-w-[1100px] mx-auto px-1 -mt-5 mb-20">
     <div class="card bg-base-100 shadow-xl">
-      <div class="card-body md:px-4 px-1">
+      <div class="card-body px-1 sm:px-4">
         {# EVENT HEADER #}
         <div class="flex flex-col md:flex-row justify-between items-start gap-4">
           <div>
-            <h1 class="card-title text-3xl font-bold mb-2">
+            <h1 class="card-title text-3xl font-bold mb-2 whitespace-nowrap">
               {{ event.title }}
               {% if not event.published %}
               <div class="badge badge-warning gap-2 ml-2">
@@ -51,13 +51,13 @@
           </div>
           
           {# ACTION BUTTONS #}
-          <div class="card-actions justify-end mt-1">
+            <div class="card-actions justify-end mt-1 flex-nowrap">
             {% include "events/partials/_event_actions.html" %}
-          </div>
+            </div>
         </div>
 
         {# EVENT DESCRIPTION #}
-        <div class="prose max-w-none mt-4">
+        <div class="prose max-w-none mt-4 px-2">
           {{ event.description|linebreaks }}
         </div>
 

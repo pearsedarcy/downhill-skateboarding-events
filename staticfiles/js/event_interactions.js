@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.is_favorited) {
                     favoriteBtn.classList.remove('btn-ghost');
                     favoriteBtn.classList.add('btn-primary');
-                    btnText.textContent = 'Favorited';
+                    btnText.textContent = 'Saved';
                 } else {
                     favoriteBtn.classList.remove('btn-primary');
                     favoriteBtn.classList.add('btn-ghost');
-                    btnText.textContent = 'Add to Favorites';
+                    btnText.textContent = 'Save';
                 }
             });
         });
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update button state
                 if (data.status) {
-                    rsvpBtn.className = `btn btn-md gap-2 ${
+                    rsvpBtn.className = `btn btn-sm gap-2 ${
                         data.status === 'Going' ? 'btn-primary' : 
                         data.status === 'Not interested' ? 'btn-error' : 
                         'btn-secondary'
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'fa-star'
                     }`;
                 } else {
-                    rsvpBtn.className = 'btn btn-ghost btn-md gap-2';
+                    rsvpBtn.className = 'btn btn-ghost btn-sm gap-2';
                     btnText.textContent = 'RSVP';
                 }
                 
