@@ -216,3 +216,15 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+
+# Google Maps API settings
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+
+GOOGLE_MAPS_API_SERVICES = [
+    'directions',
+    'maps',
+    'places',
+    'geometry',
+    'geocoding',
+]

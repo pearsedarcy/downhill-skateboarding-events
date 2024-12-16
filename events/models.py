@@ -85,11 +85,14 @@ class Event(models.Model):
 
 
 class Location(models.Model):
-    start_line = models.CharField(max_length=200, null=True, blank=True)
-    finish_line = models.CharField(max_length=200, null=True, blank=True)
+    location_title = models.CharField(max_length=50, null=True, blank=True)
+    start_latitude = models.DecimalField(max_digits=20, decimal_places=17, null=True, blank=True)
+    start_longitude = models.DecimalField(max_digits=20, decimal_places=17, null=True, blank=True)
+    finish_latitude = models.DecimalField(max_digits=20, decimal_places=17, null=True, blank=True)
+    finish_longitude = models.DecimalField(max_digits=20, decimal_places=17, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
     country = CountryField(blank_label="(select country)", null=True, blank=True)
-    city = models.CharField(max_length=200, null=True, blank=True)
+    city = models.CharField(max_length=50, null=True, blank=True)
 
 
 class RSVP(models.Model):

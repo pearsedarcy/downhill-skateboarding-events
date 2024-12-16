@@ -52,7 +52,8 @@
             <h1 class="text-2xl font-bold mb-6">Edit Event: {{ event.title }}</h1>
           {% endif %}
           
-          {% if form.non_field_errors or location_form.non_field_errors %}
+          <!-- Form-wide Error Messages -->
+          {% if form.non_field_errors or location_form.non_field_errors or form.errors or location_form.errors %}
           <div class="alert alert-error shadow-lg mb-6">
             <div>
               <i class="fas fa-exclamation-circle"></i>
@@ -64,6 +65,16 @@
                   {% endfor %}
                   {% for error in location_form.non_field_errors %}
                     <li>{{ error }}</li>
+                  {% endfor %}
+                  {% for field, errors in form.errors.items %}
+                    {% if field != '__all__' %}
+                      <li>{{ field|title }}: {{ errors|join:", " }}</li>
+                    {% endif %}
+                  {% endfor %}
+                  {% for field, errors in location_form.errors.items %}
+                    {% if field != '__all__' %}
+                      <li>{{ field|title }}: {{ errors|join:", " }}</li>
+                    {% endif %}
                   {% endfor %}
                 </ul>
               </div>
@@ -78,7 +89,7 @@
                 <label class="label">
                   <span class="label-text flex items-center gap-2 text-primary">
                     <i class="fas fa-heading"></i>
-                    Event Title
+                    Event Title*
                   </span>
                 </label>
                 {{ form.title }}
@@ -92,7 +103,7 @@
                 <label class="label">
                   <span class="label-text flex items-center gap-2 text-primary">
                     <i class="fas fa-tag"></i>
-                    Event Type
+                    Event Type*
                   </span>
                 </label>
                 {{ form.event_type }}
@@ -108,7 +119,7 @@
               <label class="label">
                 <span class="label-text flex items-center gap-2 text-primary">
                   <i class="fas fa-align-left"></i>
-                  Description
+                  Description*
                 </span>
               </label>
               {{ form.description }}
@@ -119,12 +130,12 @@
               {% endif %}
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div class="form-control">
                 <label class="label">
                   <span class="label-text flex items-center gap-2 text-primary">
                     <i class="fas fa-calendar-day"></i>
-                    Start Date
+                    Start Date*
                   </span>
                 </label>
                 {{ form.start_date }}
@@ -152,7 +163,7 @@
                 <label class="label">
                   <span class="label-text flex items-center gap-2 text-primary">
                     <i class="fas fa-layer-group"></i>
-                    Skill Level
+                    Skill Level*
                   </span>
                 </label>
                 {{ form.skill_level }}
@@ -178,6 +189,9 @@
                   <span class="label-text-alt text-error">{{ form.cost.errors|join:", " }}</span>
                 </label>
                 {% endif %}
+                <label class="label">
+                  <span class="label-text-alt">Leave empty for free events</span>
+                </label>
               </div>
               <div class="form-control">
                 <label class="label">
@@ -192,16 +206,34 @@
                   <span class="label-text-alt text-error">{{ form.max_attendees.errors|join:", " }}</span>
                 </label>
                 {% endif %}
+                <label class="label">
+                  <span class="label-text-alt">Leave empty for unlimited spots</span>
+                </label>
               </div>
             </div>
 
             <div class="divider">
               <i class="fas fa-map-marked-alt text-primary text-xl"></i>
-              <span class="mx-2 text-primary font-bold">Location Details</span>
+              <span class="mx-2 text-primary font-bold">Location Details*</span>
             </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text flex items-center gap-2 text-primary">
+                  <i class="fas fa-map-pin"></i>
+                  Location Name*
+                </span>
+              </label>
+              {{ location_form.location_title }}
+              {% if location_form.location_title.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ location_form.location_title.errors|join:", " }}</span>
+              </label>
+              {% endif %}
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="form-control">
-                <label class="label"><span class="label-text">City</span></label>
+                <label class="label"><span class="label-text flex items-center gap-2 text-primary"><i class="fas fa-city"></i>City*</span></label>
                 {{ location_form.city }}
                 {% if location_form.city.errors %}
                 <label class="label">
@@ -210,7 +242,7 @@
                 {% endif %}
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text">Country</span></label>
+                <label class="label"><span class="label-text flex items-center gap-2 text-primary"><i class="fas fa-globe"></i>Country*</span></label>
                 {{ location_form.country }}
                 {% if location_form.country.errors %}
                 <label class="label">
@@ -220,7 +252,7 @@
               </div>
             </div>
             <div class="form-control">
-              <label class="label"><span class="label-text">Address</span></label>
+              <label class="label"><span class="label-text flex items-center gap-2 text-primary"><i class="fas fa-map-marked"></i>Address</span></label>
               {{ location_form.address }}
               {% if location_form.address.errors %}
               <label class="label">
@@ -230,20 +262,32 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="form-control">
-                <label class="label"><span class="label-text">Start Line</span></label>
-                {{ location_form.start_line }}
-                {% if location_form.start_line.errors %}
+                <label class="label"><span class="label-text flex items-center gap-2 text-primary"><i class="fas fa-flag-checkered"></i>Start Coordinates</span></label>
+                <div class="grid grid-cols-2 gap-2">
+                  {{ location_form.start_latitude }}
+                  {{ location_form.start_longitude }}
+                </div>
+                {% if location_form.start_latitude.errors or location_form.start_longitude.errors %}
                 <label class="label">
-                  <span class="label-text-alt text-error">{{ location_form.start_line.errors|join:", " }}</span>
+                  <span class="label-text-alt text-error">
+                    {{ location_form.start_latitude.errors|join:", " }}
+                    {{ location_form.start_longitude.errors|join:", " }}
+                  </span>
                 </label>
-              {% endif %}
+                {% endif %}
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text">Finish Line</span></label>
-                {{ location_form.finish_line }}
-                {% if location_form.finish_line.errors %}
+                <label class="label"><span class="label-text flex items-center gap-2 text-primary"><i class="fas fa-flag"></i>Finish Coordinates</span></label>
+                <div class="grid grid-cols-2 gap-2">
+                  {{ location_form.finish_latitude }}
+                  {{ location_form.finish_longitude }}
+                </div>
+                {% if location_form.finish_latitude.errors or location_form.finish_longitude.errors %}
                 <label class="label">
-                  <span class="label-text-alt text-error">{{ location_form.finish_line.errors|join:", " }}</span>
+                  <span class="label-text-alt text-error">
+                    {{ location_form.finish_latitude.errors|join:", " }}
+                    {{ location_form.finish_longitude.errors|join:", " }}
+                  </span>
                 </label>
                 {% endif %}
               </div>

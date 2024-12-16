@@ -2,6 +2,8 @@
   <i class="fas fa-map-marker-alt"></i>
   Location
 </h2>
+
+
 <div class="space-y-2">
   <p class="flex items-center gap-2">
     <i class="fas fa-city"></i>
@@ -15,15 +17,294 @@
       {{ country.name }}
     {% endwith %}
   </p>
-  <div class="w-full h-48 mt-4 rounded-lg overflow-hidden">
-    <iframe
-      title="Event Location Map"
-      width="100%"
-      height="100%"
-      frameborder="0"
-      style="border:0"
-      src="https://www.google.com/maps/embed/v1/place?key={{ maps_api_key }}&q={{ event.location.city }},{{ event.location.country.name }}"
-      allowfullscreen>
-    </iframe>
+  <div class="w-full h-96 mt-4 rounded-lg overflow-hidden" id="map">
+    {% if not maps_api_key %}
+    <div class="w-full h-full flex items-center justify-center bg-gray-100">
+      <p class="text-gray-500">Map configuration error. Please contact support.</p>
+    </div>
+    {% endif %}
   </div>
-</div>
+  
+  {% if maps_api_key and event.location.start_latitude %}
+  <button onclick="openInGoogleMaps()" class="mt-2 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800">
+    <i class="fas fa-external-link-alt"></i>
+    Open in Google Maps
+  </button>
+  {% endif %}
+
+  <script>
+  {% if maps_api_key %}
+  // Add function to open in Google Maps
+  function openInGoogleMaps() {
+    const start = `{{ event.location.start_latitude }},{{ event.location.start_longitude }}`;
+    const finish = `{{ event.location.finish_latitude }},{{ event.location.finish_longitude }}`;
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${start}&destination=${finish}&travelmode=cycling`;
+    window.open(url, '_blank');
+  }
+  
+  // Declare global function for Maps callback
+  window.initMap = function() {};
+
+  // Load map when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+      // Create a promise to load Google Maps
+      const loadGoogleMaps = new Promise((resolve, reject) => {
+          window.initMap = resolve;
+          
+          // Add timeout for script loading
+          setTimeout(() => {
+              reject(new Error('Google Maps failed to load'));
+          }, 10000); // 10 second timeout
+      });
+
+      // Load the Google Maps script with error handling
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key={{ maps_api_key }}&callback=initMap&libraries=geometry,places`;
+      script.async = true;
+      script.onerror = () => {
+          document.getElementById('map').innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gray-100"><p class="text-gray-500">Failed to load map. Please try again later.</p></div>';
+      };
+      document.head.appendChild(script);
+
+      // Initialize map once Google Maps is loaded
+      loadGoogleMaps.then(() => {
+          const hasCoordinates = {{ event.location.start_latitude|default_if_none:"0"|yesno:"true,false" }} && {{ event.location.finish_latitude|default_if_none:"0"|yesno:"true,false" }};
+          
+          // Define icons
+          const startFlag = {
+              url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' width='24' viewBox='0 0 24 24'%3E%3Cpath fill='%2334D399' d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/%3E%3C/svg%3E",
+              scaledSize: new google.maps.Size(24, 24),
+              anchor: new google.maps.Point(12, 24)
+          };
+
+          const finishFlag = {
+              url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' width='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23EF4444' d='M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z'/%3E%3C/svg%3E",
+              scaledSize: new google.maps.Size(24, 24),
+              anchor: new google.maps.Point(12, 24)
+          };
+
+          if (hasCoordinates) {
+              // Route map with start/finish coordinates
+              const start = { 
+                  lat: {{ event.location.start_latitude}}, 
+                  lng: {{ event.location.start_longitude }}
+              };
+              const finish = {
+                  lat: {{ event.location.finish_latitude }},
+                  lng: {{ event.location.finish_longitude }}
+              };
+
+              // Calculate center point between start and finish
+              const center = {
+                  lat: (start.lat + finish.lat) / 2,
+                  lng: (start.lng + finish.lng) / 2
+              };
+
+              const map = new google.maps.Map(document.getElementById('map'), {
+                  styles: [
+                      {
+                          featureType: 'all',
+                          elementType: 'labels',
+                          stylers: [{ visibility: 'off' }]
+                      },
+                      {
+                          featureType: 'road.arterial',
+                          elementType: 'labels.text',
+                          stylers: [
+                              { visibility: 'on' },
+                              { lightness: 50 },
+                              { weight: 0.5 }
+                          ]
+                      },
+                      {
+                          featureType: 'administrative.locality',
+                          elementType: 'labels.text',
+                          stylers: [
+                              { visibility: 'on' },
+                              { lightness: 50 },
+                              { weight: 0.3 }
+                          ]
+                      },
+                      {
+                          featureType: 'road',
+                          elementType: 'geometry',
+                          stylers: [
+                              { visibility: 'on' },
+                              { color: '#ffffff' },
+                              { weight: 0.5 }
+                          ]
+                      },
+                      {
+                          featureType: 'landscape',
+                          elementType: 'geometry',
+                          stylers: [{ visibility: 'on' }]
+                      },
+                      {
+                          featureType: 'terrain',
+                          elementType: 'geometry',
+                          stylers: [{ visibility: 'on' }]
+                      }
+                  ],
+                  mapTypeId: 'terrain'
+              });
+
+              // Add markers and route
+              new google.maps.Marker({
+                  position: start,
+                  map: map,
+                  icon: startFlag,
+                  title: 'Start Line',
+                  zIndex: 2
+              });
+
+              new google.maps.Marker({
+                  position: finish,
+                  map: map,
+                  icon: finishFlag,
+                  title: 'Finish Line',
+                  zIndex: 2
+              });
+
+              const directionsService = new google.maps.DirectionsService();
+              const directionsRenderer = new google.maps.DirectionsRenderer({
+                  map: map,
+                  suppressMarkers: true,
+                  polylineOptions: {
+                      strokeColor: '#4338ca',
+                      strokeWeight: 4
+                  },
+                  preserveViewport: true  // Prevent auto-zooming when route is displayed
+              });
+
+              // Try different travel modes in order of preference
+              const tryRoute = (modes) => {
+                  if (modes.length === 0) return; // All modes failed
+
+                  directionsService.route({
+                      origin: start,
+                      destination: finish,
+                      travelMode: modes[0],
+                  }, (response, status) => {
+                      if (status === 'OK') {
+                          // Set initial bounds and zoom before displaying route
+                          const bounds = new google.maps.LatLngBounds();
+                          bounds.extend(start);
+                          bounds.extend(finish);
+                          map.fitBounds(bounds, { padding: { top: 50, right: 50, bottom: 50, left: 50 } });
+                          directionsRenderer.setDirections(response);
+                      } else {
+                          // Try next travel mode
+                          tryRoute(modes.slice(1));
+                      }
+                  });
+              };
+
+              // Try modes in order: WALKING, DRIVING
+              tryRoute([
+                  google.maps.TravelMode.WALKING,
+                  google.maps.TravelMode.DRIVING
+              ]);
+
+              // Fit bounds to include both markers with minimal padding
+              const bounds = new google.maps.LatLngBounds();
+              bounds.extend(start);
+              bounds.extend(finish);
+              map.fitBounds(bounds, { padding: { top: 0, right: 0, bottom: 0, left: 0 } });
+
+              // Add a listener to adjust zoom for better route visibility
+              google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
+                  const zoom = map.getZoom();
+                  if (zoom > 19) {
+                      map.setZoom(19); // Maximum zoom level
+                  }
+                  if (zoom < 15) {
+                      map.setZoom(15); // Minimum zoom level for route visibility
+                  }
+              });
+          } 
+else {
+              // Simple city-based map
+              const geocoder = new google.maps.Geocoder();
+              const city = `{{ event.location.city|escapejs }}`;
+              const country = `{{ event.location.country.name|escapejs }}`;
+              
+              if (!city || !country) {
+                  document.getElementById('map').innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gray-100"><p class="text-gray-500">Location information incomplete</p></div>';
+                  return;
+              }
+
+              const cityCountry = `${city}, ${country}`;
+              
+              geocoder.geocode({ address: cityCountry }, (results, status) => {
+                  if (status === 'OK' && results && results.length > 0) {
+                      const map = new google.maps.Map(document.getElementById('map'), {
+                          zoom: 12,
+                          center: results[0].geometry.location,
+                          styles: [
+                              {
+                                  featureType: 'all',
+                                  elementType: 'labels',
+                                  stylers: [{ visibility: 'off' }]
+                              },
+                              {
+                                  featureType: 'road.arterial',
+                                  elementType: 'labels.text',
+                                  stylers: [
+                                      { visibility: 'on' },
+                                      { lightness: 50 },
+                                      { weight: 0.5 }
+                                  ]
+                              },
+                              {
+                                  featureType: 'administrative.locality',
+                                  elementType: 'labels.text',
+                                  stylers: [
+                                      { visibility: 'on' },
+                                      { lightness: 50 },
+                                      { weight: 0.3 }
+                                  ]
+                              },
+                              {
+                                  featureType: 'road',
+                                  elementType: 'geometry',
+                                  stylers: [
+                                      { visibility: 'on' },
+                                      { color: '#ffffff' },
+                                      { weight: 0.5 }
+                                  ]
+                              },
+                              {
+                                  featureType: 'landscape',
+                                  elementType: 'geometry',
+                                  stylers: [{ visibility: 'on' }]
+                              },
+                              {
+                                  featureType: 'terrain',
+                                  elementType: 'geometry',
+                                  stylers: [{ visibility: 'on' }]
+                              }
+                          ],
+                          mapTypeId: 'terrain'
+                      });
+
+                      // Add marker with custom icon
+                      new google.maps.Marker({
+                          map: map,
+                          position: results[0].geometry.location,
+                          title: cityCountry,
+                          icon: {
+                              url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' width='24' viewBox='0 0 24 24'%3E%3Cpath fill='%234338ca' d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z'/%3E%3C/svg%3E",
+                              scaledSize: new google.maps.Size(32, 32),
+                              anchor: new google.maps.Point(16, 32)
+                          }
+                      });
+                  } else {
+                      document.getElementById('map').innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gray-100"><p class="text-gray-500">Could not load location map</p></div>';
+                      console.error('Geocoding failed:', status);
+                  }
+              });
+          }
+      });
+  });
+  {% endif %}
+  </script>

@@ -5,8 +5,12 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Case, When, Value, BooleanField
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.conf import settings
+import logging
 from .models import Event, Favorite, RSVP
 from .forms import EventForm, LocationForm
+
+logger = logging.getLogger(__name__)
 
 def event_list(request):
     today = timezone.now().date()
@@ -104,6 +108,10 @@ def event_details(request, slug):
         if rsvp:
             rsvp_status = rsvp.status
 
+    maps_api_key = settings.GOOGLE_MAPS_API_KEY
+    if not maps_api_key:
+        logger.error("Google Maps API key is not configured")
+
     return render(
         request,
         "events/event_details.html",
@@ -112,6 +120,7 @@ def event_details(request, slug):
             "is_favorited": is_favorited,
             "rsvp_status": rsvp_status,
             "rsvp_count": event.rsvps.count(),
+            "maps_api_key": maps_api_key,
         },
     )
 
@@ -223,4 +232,12 @@ def event_delete(request, slug):
         return redirect('events:event_list')
     
     raise Http404("Invalid request method")
+
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    context = {
+        'event': event,
+        'maps_api_key': settings.GOOGLE_MAPS_API_KEY,
+    }
+    return render(request, 'events/event_detail.html', context)
 

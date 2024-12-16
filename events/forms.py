@@ -4,31 +4,48 @@ from .models import Event, Location
 from django.core.exceptions import ValidationError
 
 class LocationForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['start_line'].required = False
-        self.fields['finish_line'].required = False
+    def clean_location_title(self):
+        location_title = self.cleaned_data.get('location_title')
+        if not location_title:
+            raise forms.ValidationError("Location name is required.")
+        return location_title
 
-    def clean(self):
-        cleaned_data = super().clean()
-        city = cleaned_data.get('city')
-        country = cleaned_data.get('country')
-        address = cleaned_data.get('address')
-        
-        if not all([city, country, address]):
-            raise ValidationError('City, country and address are required for event location.')
-        
-        return cleaned_data
+    def clean_city(self):
+        city = self.cleaned_data.get('city')
+        if not city:
+            raise forms.ValidationError("City is required.")
+        return city
+
+    def clean_country(self):
+        country = self.cleaned_data.get('country')
+        if not country:
+            raise forms.ValidationError("Country is required.")
+        return country
 
     class Meta:
         model = Location
-        fields = ['city', 'country', 'address', 'start_line', 'finish_line']
+        fields = [
+            'location_title',
+            'start_latitude',
+            'start_longitude',
+            'finish_latitude',
+            'finish_longitude',
+            'address',
+            'country',
+            'city',
+        ]
         widgets = {
-            'city': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
-            'country': forms.Select(attrs={'class': 'select select-bordered select-primary border-primary w-full'}),
+            'location_title': forms.TextInput(attrs={
+                'class': 'input input-bordered input-primary w-full',
+                'placeholder': 'Enter a name for this location'
+            }),
+            'start_latitude': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 'any', 'placeholder': 'Latitude'}),
+            'start_longitude': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 'any', 'placeholder': 'Longitude'}),
+            'finish_latitude': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 'any', 'placeholder': 'Latitude'}),
+            'finish_longitude': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 'any', 'placeholder': 'Longitude'}),
             'address': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
-            'start_line': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
-            'finish_line': forms.TextInput(attrs={'class': 'input input-bordered w-full'})
+            'country': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'city': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
         }
 
 class EventForm(forms.ModelForm):
@@ -44,10 +61,10 @@ class EventForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         
-        # Required fields
+        # Required fields specific to event
         required_fields = {
             'title': 'Event title',
-            'description': 'Event description',
+            'description': 'Event description', 
             'event_type': 'Event type',
             'skill_level': 'Skill level',
             'start_date': 'Start date',
@@ -89,27 +106,49 @@ class EventForm(forms.ModelForm):
             'cost', 'max_attendees', 'published'
         ]
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
-            'description': forms.Textarea(attrs={'class': 'textarea textarea-bordered textarea-primary border-primary w-full focus:outline-primary', 'rows': 6}),
-            'event_type': forms.Select(attrs={'class': 'select select-bordered select-primary border-primary w-full'}),
-            'skill_level': forms.Select(attrs={'class': 'select select-bordered select-primary border-primary w-full'}),
-            'start_date': forms.DateInput(attrs={'class': 'input input-bordered w-full', 'type': 'date', 'onchange': 'updateEndDateMin(this.value)'}),
-            'end_date': forms.DateInput(attrs={'class': 'input input-bordered w-full', 'type': 'date'}),
-            'tickets_link': forms.URLInput(attrs={'class': 'input input-bordered w-full'}),
-            'cover_image': forms.FileInput(attrs={'class': 'file-input file-input-bordered w-full'}),
+            'title': forms.TextInput(attrs={
+                'class': 'input input-bordered input-primary w-full',
+                'placeholder': 'Enter event title'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered textarea-primary w-full h-32',
+                'placeholder': 'Describe your event'
+            }),
+            'event_type': forms.Select(attrs={
+                'class': 'select select-bordered select-primary w-full'
+            }),
+            'skill_level': forms.Select(attrs={
+                'class': 'select select-bordered select-primary w-full'
+            }),
+            'start_date': forms.DateInput(attrs={
+                'class': 'input input-bordered input-primary w-full',
+                'type': 'date',
+                'onchange': 'updateEndDateMin(this.value)'
+            }),
+            'end_date': forms.DateInput(attrs={
+                'class': 'input input-bordered input-primary w-full',
+                'type': 'date'
+            }),
+            'tickets_link': forms.URLInput(attrs={
+                'class': 'input input-bordered input-primary w-full',
+                'placeholder': 'https://'
+            }),
+            'cover_image': forms.FileInput(attrs={
+                'class': 'file-input file-input-bordered file-input-primary w-full'
+            }),
             'cost': forms.NumberInput(attrs={
-                'class': 'input input-bordered w-full', 
-                'min': '0', 
+                'class': 'input input-bordered input-primary w-full',
+                'min': '0',
                 'step': '0.01',
-                'placeholder': '0.00',
-                'onfocus': 'this.value=""'
+                'placeholder': 'Leave empty for free event'
             }),
             'max_attendees': forms.NumberInput(attrs={
-                'class': 'input input-bordered w-full', 
-                'min': '0',
-                'placeholder': '0',
-                'onfocus': 'this.value=""'
+                'class': 'input input-bordered input-primary w-full',
+                'min': '1',
+                'placeholder': 'Leave empty for unlimited spots'
             }),
-            'published': forms.CheckboxInput(attrs={'class': 'toggle toggle-primary', 'onchange': 'this.blur()'}),
-            'slug': forms.HiddenInput()
+            'published': forms.CheckboxInput(attrs={
+                'class': 'toggle toggle-primary',
+                'role': 'switch'
+            })
         }
