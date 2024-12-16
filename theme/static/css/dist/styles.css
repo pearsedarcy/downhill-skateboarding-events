@@ -4925,6 +4925,10 @@ details.collapse summary::-webkit-details-marker {
   margin-top: 2rem;
 }
 
+.-mt-5 {
+  margin-top: -1.25rem;
+}
+
 .block {
   display: block;
 }
@@ -4993,6 +4997,14 @@ details.collapse summary::-webkit-details-marker {
   height: 100vh;
 }
 
+.h-full {
+  height: 100%;
+}
+
+.h-40 {
+  height: 10rem;
+}
+
 .min-h-\[70vh\] {
   min-height: 70vh;
 }
@@ -5059,6 +5071,18 @@ details.collapse summary::-webkit-details-marker {
 
 .max-w-2xl {
   max-width: 42rem;
+}
+
+.max-w-\[1000px\] {
+  max-width: 1000px;
+}
+
+.max-w-\[900px\] {
+  max-width: 900px;
+}
+
+.max-w-\[1100px\] {
+  max-width: 1100px;
 }
 
 .flex-1 {
@@ -5202,6 +5226,10 @@ details.collapse summary::-webkit-details-marker {
   overflow-x: visible;
 }
 
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
 .rounded {
   border-radius: 0.25rem;
 }
@@ -5307,6 +5335,11 @@ details.collapse summary::-webkit-details-marker {
 
 .stroke-info {
   stroke: var(--fallback-in,oklch(var(--in)/1));
+}
+
+.object-contain {
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 
 .object-cover {

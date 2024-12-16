@@ -16,22 +16,24 @@
   {% endif %}
 
   {# HERO SECTION #}
-  <div class="hero min-h-[70vh] bg-base-100">
-    <div class="max-w-[1200px] w-full mx-auto">
+  <div class="hero bg-base-100">
+    <div class="max-w-[900px] w-full mx-auto">
       <div class="hero-content p-0">
-        <img 
-          src="{% if event.cover_image %}{{ event.cover_image.url }}{% else %}{% static 'images/default_cover_image.jpg' %}{% endif %}" 
-          class="w-full h-[70vh] object-cover" 
-          alt="{{ event.title|default:'Default' }} Event Cover"
-        >
+        <div class="w-full aspect-video">
+          <img 
+            src="{% if event.cover_image %}{{ event.cover_image.url }}{% else %}{% static 'images/default_cover_image.jpg' %}{% endif %}" 
+            class="w-full h-100 object-cover" 
+            alt="{{ event.title|default:'Default' }} Event Cover"
+          >
+        </div>
       </div>
     </div>
   </div>
 
   {# MAIN CONTENT CONTAINER #}
-  <div class="max-w-[1200px] mx-auto px-1 -mt-20 mb-20">
+  <div class="max-w-[1100px] mx-auto px-1 -mt-5 mb-20">
     <div class="card bg-base-100 shadow-xl">
-      <div class="card-body px-4">
+      <div class="card-body md:px-4 px-1">
         {# EVENT HEADER #}
         <div class="flex flex-col md:flex-row justify-between items-start gap-4">
           <div>
@@ -49,7 +51,7 @@
           </div>
           
           {# ACTION BUTTONS #}
-          <div class="card-actions justify-end">
+          <div class="card-actions justify-end mt-1">
             {% include "events/partials/_event_actions.html" %}
           </div>
         </div>
