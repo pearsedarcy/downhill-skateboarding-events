@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Page Not Found - Downhill Skateboarding Events{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center">
+    <div class="text-center p-8 max-w-2xl">
+        <h1 class="text-8xl font-bold mb-4">404</h1>
+        <div class="divider before:bg-primary after:bg-primary">Oops! Wipeout!</div>
+        <p class="text-xl mb-6">Looks like you've taken a wrong turn on this run!</p>
+        
+        <div class="flex flex-col items-center gap-4">
+            <img src="{% static 'images/404-skater.webp' %}" alt="Falling skater" class="w-64 mx-auto mb-4">
+            
+            <p class="text-lg">Taking you back to the previous page in <span id="countdown" class="font-bold text-primary">5</span> seconds...</p>
+            
+            <div class="flex gap-4 mt-4">
+                <a href="/" class="btn btn-primary">Go Home</a>
+                <button onclick="history.back()" class="btn btn-ghost">Go Back</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Countdown and redirect
+    let timeLeft = 5;
+    const countdownElement = document.getElementById('countdown');
+    
+    const countdown = setInterval(() => {
+        timeLeft--;
+        countdownElement.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            history.back();
+        }
+    }, 1000);
+</script>
+{% endblock %}
