@@ -67,10 +67,10 @@
             </a>
         </div>
         <!-- Breadcrumb Navigation -->
-        <div class="breadcrumbs overflow-x-visible" >
+        <div class="breadcrumbs hidden sm:block overflow-x-visible ml-2">
           <ul>
             {% block breadcrumbs %}
-            <li style="display: none;"><a href="/">Home</a></li>
+            <li><a href="/">Events</a></li>
             {% if request.path != '/' %}
             <li>{{ request.path|split }}</li>
             {% endif %} {% endblock breadcrumbs %} 
@@ -78,10 +78,10 @@
         </div>
       </div>
       <!-- Right side of navbar: Search and User Menu -->
-      <div class="navbar-end">
+      <div class="navbar-end z-[12]">
         <div class="dropdown dropdown-end">
           <!-- Add Post Button -->
-          <div tabindex="0" role="button" class="btn m-1 btn-sm " aria-label="Add post">
+          <div tabindex="0" role="button" class="btn m-1 btn-sm btn-bordered border-accent" aria-label="Add post">
             <i class="fas fa-plus"></i>
             <i class="fas fa-arrow-down"></i>
           </div>
