@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta name="description" content="{% block meta_description %}Find and join downhill skateboarding events worldwide. The ultimate platform for downhill skateboarders to discover competitions and meetups.{% endblock %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/sdh-favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/sdh-favicon.ico' %}">
     {% tailwind_css %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <script src="{% static 'js/theme-init.js' %}"></script>
@@ -24,7 +26,8 @@
 
   <body class="bg-base-100 text-base-content font-sans">
     <!-- Navigation Header: Contains logo, menu, and user controls -->
-    <header class="navbar bg-base-100 z-11">
+    <header class="navbar bg-base-100/80 backdrop-blur  sticky top-0 z-30
+    border-b border-base-300 p-0">
       <!-- Left side of navbar: Menu, Logo, and Breadcrumbs -->
       <div class="navbar-start ">
         <!-- Navigation Menu -->
@@ -57,12 +60,12 @@
         </div>
         <!-- Site Logo -->
         <div>
-            <a class="" href="/" aria-label="Home" style="display: inline-block; width: 80px;">
+            <a class="" href="/" aria-label="Home Icon">
               <img
-                src="{% static 'images/sdh-logo.webp' %}"
+                src="{% static 'images/sdh-icon.webp' %}"
                 alt="SDH Logo"
                 class="logo-light"
-                style="width: 100%; height: auto;"
+                style="width: 50px; height: auto;"
               />
             </a>
         </div>
@@ -70,7 +73,7 @@
         <div class="breadcrumbs hidden sm:block overflow-x-visible ml-2">
           <ul>
             {% block breadcrumbs %}
-            <li><a href="/">Events</a></li>
+            <li><a href="/">Home</a></li>
             {% if request.path != '/' %}
             <li>{{ request.path|split }}</li>
             {% endif %} {% endblock breadcrumbs %} 
@@ -81,7 +84,7 @@
       <div class="navbar-end z-[12]">
         <div class="dropdown dropdown-end">
           <!-- Add Post Button -->
-          <div tabindex="0" role="button" class="btn m-1 btn-sm btn-bordered border-accent" aria-label="Add post">
+          <div tabindex="0" role="button" class="btn m-1 btn-sm btn-bordered border-base-300" aria-label="Add post">
             <i class="fas fa-plus"></i>
             <i class="fas fa-arrow-down"></i>
           </div>
