@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Downhill Skateboarding Events - Find & Join Skateboarding Events Worldwide{% endblock %}
+
+{% block meta_description %}Discover downhill skateboarding events worldwide. Join competitions, meetups, and freeride sessions. Connect with the global downhill skateboarding community.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero min-h-[90vh] bg-base-200 relative overflow-hidden -mt-1">
+  <div class="absolute inset-0 z-0">
+    <img src="{% static 'images/hero-bg.webp' %}" alt="" class="w-full h-full object-cover opacity-20">
+  </div>
+  <div class="hero-content text-center relative z-10 py-16">
+    <div class="max-w-3xl px-4">
+      <h1 class="text-3xl sm:text-5xl font-bold mb-8">Discover<br> Downhill Skateboarding<br> Events Worldwide</h1>
+      <p class="text-xl mb-8 max-w-2xl mx-auto">Your ultimate platform to find, join, and organize downhill skateboarding events. From competitions to casual sessions.</p>
+      <div class="flex gap-4 justify-center">
+        <a href="{% url 'events:event_list' %}" class="btn btn-primary btn-lg">Browse Events</a>
+        <a href="{% url 'events:submit' %}" class="btn btn-secondary btn-lg">Host Event</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-10 bg-base-100">
+  <div class="container mx-auto px-4">
+    <h2 class="text-4xl font-bold text-center mb-12">Why Choose Our Platform?</h2>
+    <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div class="card bg-base-200 hover:shadow-lg transition-shadow duration-300">
+        <div class="card-body items-center text-center p-6">
+          <i class="fas fa-globe text-4xl mb-4 text-primary"></i>
+          <h3 class="card-title text-2xl mb-3">Global Community</h3>
+          <p class="text-lg">Connect with downhill skateboarders from around the world</p>
+        </div>
+      </div>
+      <div class="card bg-base-200 hover:shadow-lg transition-shadow duration-300">
+        <div class="card-body items-center text-center p-6">
+          <i class="fas fa-calendar-alt text-4xl mb-4 text-primary"></i>
+          <h3 class="card-title text-2xl mb-3">Easy Event Management</h3>
+          <p class="text-lg">Create and manage your events with our intuitive tools</p>
+        </div>
+      </div>
+      <div class="card bg-base-200 hover:shadow-lg transition-shadow duration-300">
+        <div class="card-body items-center text-center p-6">
+          <i class="fas fa-users text-4xl mb-4 text-primary"></i>
+          <h3 class="card-title text-2xl mb-3">Active Community</h3>
+        <span class="badge badge-secondary absolute top-2 right-2">Coming Soon</span>
+          <p class="text-lg">Join discussions and share experiences with fellow riders</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="py-16 bg-primary text-primary-content">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6 text-center">Ready to Join the Community?</h2>
+    <p class="text-xl mb-8 text-center">Start exploring events or create your own today!</p>
+    <div class="flex gap-4 justify-center">
+      <a href="{% url 'account_signup' %}" class="btn btn-secondary btn-lg">Sign Up Now</a>
+      <a href="{% url 'events:event_list' %}" class="btn btn-accent btn-lg">Browse Events</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

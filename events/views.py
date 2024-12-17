@@ -241,3 +241,6 @@ def event_detail(request, event_id):
     }
     return render(request, 'events/event_detail.html', context)
 
+def index(request):
+    return render(request, 'index.html')
+

@@ -60,7 +60,7 @@
         </div>
         <!-- Site Logo -->
         <div>
-            <a class="" href="/" aria-label="Home Icon">
+            <a class="" href="events/" aria-label="Home Icon">
               <img
                 src="{% static 'images/sdh-icon.webp' %}"
                 alt="SDH Logo"
@@ -75,8 +75,19 @@
             {% block breadcrumbs %}
             <li><a href="/">Home</a></li>
             {% if request.path != '/' %}
-            <li>{{ request.path|split }}</li>
-            {% endif %} {% endblock breadcrumbs %} 
+              {% with segments=request.path|split %}
+          {% for segment in segments %}
+            {% if forloop.last %}
+              <li>{{ segment }}</li>
+            {% else %}
+              <li>
+                <a href="{% url 'events:event_list' %}">{{ segment }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+              {% endwith %}
+            {% endif %}
+            {% endblock breadcrumbs %} 
           </ul>
         </div>
       </div>

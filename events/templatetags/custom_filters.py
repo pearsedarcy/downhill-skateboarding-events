@@ -3,22 +3,17 @@ from django.utils.text import capfirst
 
 register = template.Library()
 
-
 @register.filter
 def split(path):
     """
-    Convert URL path to readable text
-    Example: "/events/2024/" -> "2024"
+    Convert URL path to readable segments
+    Example: "/events/2024/" -> ["Events", "2024"]
     """
     # Remove leading/trailing slashes and split
     segments = [s for s in path.strip("/").split("/") if s]
-
-    # Return last segment if exists, otherwise empty string
-    if segments:
-        # Replace hyphens with spaces and capitalize
-        return capfirst(segments[-1].replace("-", " "))
-    return ""
-
+    
+    # Convert segments to readable format
+    return [capfirst(segment.replace("-", " ")) for segment in segments]
 
 @register.filter(name="get_item")
 def get_item(dictionary, key):
