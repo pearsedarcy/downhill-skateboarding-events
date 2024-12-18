@@ -6,7 +6,7 @@
 
 {% block content %}
 <!-- Main container with responsive grid layout -->
-<div class="container mx-auto mt-2 mb-8 px-4 max-w-[1200px]"> 
+<div class="container mx-auto mt-4 mb-8 px-1 max-w-[1000px]"> 
   {% if events %}
   <!-- Responsive grid for event cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -53,16 +53,16 @@
                 {% endif %}
                 <div class="px-4 mb-4">
                   <div class="flex justify-between items-center">
-                    <h2 class="card-title text-secondary">{{ event.title }}</h2>
+                    <h2 class="card-title text-sm sm:text-l text-secondary">{{ event.title }}</h2>
                     <div class="badge badge-primary">{{ event.event_type }}</div>
                   </div>
                   <div class="flex items-center space-x-2 mb-2 mt-2">
                     {% with country=event.location.country %}
                     <img src="/static/flags/{{ country.code|lower }}.gif" alt="{{ country.name }} flag" class="w-6 h-4 object-cover rounded-sm">
-                    <span class="text-sm text-300">{{ event.location.city }}</span>
+                    <span class="text-xs text-300">{{ event.location.city }}</span>
                     {% endwith %}
                   </div>
-                  <p class="text-sm text-300">
+                  <p class="text-xs text-300">
                       <span class="text-lg mr-1">📅</span> {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
                   </p>
                 </div>
