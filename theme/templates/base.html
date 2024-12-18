@@ -33,7 +33,7 @@
         <!-- Left side of navbar: Menu, Logo, and Breadcrumbs -->
         <div class="navbar-start ">
           <!-- Left Navigation Menu -->
-          <div class="dropdown z-[99]">
+          <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle xl:pointer-events-none" aria-label="Navigation menu">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -54,7 +54,7 @@
               tabindex="0"
             class="menu menu-sm dropdown-content
              w-52 p-2 h-screen mt-1 py-4 gap-3  border-r
-            border-base-300 bg-base-100 z-[40] fixed left-0 xl:pointer-events-none"
+            border-base-300 bg-base-100 z-[99] fixed left-0 xl:pointer-events-none"
             >
               <li><a href="/" aria-label="Home"><i class="fas fa-home"></i> Home</a></li>
               <li><a href="{% url 'events:event_list' %}" aria-label="Browse events"><i class="fas fa-calendar-alt"></i> Events</a></li>
@@ -98,7 +98,7 @@
         </div>
         <!-- Right side of navbar: User Menu -->
         <div class="navbar-end ">
-          <div class="dropdown dropdown-end z-[99]">
+          <div class="dropdown dropdown-end">
             <!-- Add Post Button -->
             <div tabindex="0" role="button" class="btn m-1 btn-sm btn-bordered border-base-300" aria-label="Add post">
               <i class="fas fa-plus"></i>
@@ -106,7 +106,7 @@
             </div>
             <ul
               tabindex="0"
-              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow xl:pointer-events-none"
+              class="dropdown-content menu bg-base-100 rounded-box z-[99] w-52 p-2 shadow xl:pointer-events-none"
             >
               {% if user.is_authenticated %}
               <li>
