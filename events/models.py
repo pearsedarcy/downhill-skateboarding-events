@@ -59,6 +59,7 @@ class Event(models.Model):
         max_digits=6, decimal_places=2, null=True, blank=True, default=0.00
     )
     max_attendees = models.IntegerField(null=True, blank=True, default=0)
+    featured = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.slug:

@@ -17,6 +17,13 @@ logger = logging.getLogger(__name__)
 def event_list(request):
     today = timezone.now().date()
     
+    # Get featured events
+    featured_events = Event.objects.filter(
+        published=True,
+        featured=True,
+        start_date__gte=today
+    ).order_by('start_date')[:5]
+    
     # Base query
     event_list = Event.objects.annotate(
         is_future=Case(
@@ -76,6 +83,7 @@ def event_list(request):
 
     context = {
         'events': events,
+        'featured_events': featured_events,
         'event_types': Event._meta.get_field('event_type').choices,
         'countries': list(countries),
     }
