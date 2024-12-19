@@ -9,6 +9,8 @@ from django.conf import settings
 import logging
 from .models import Event, Favorite, RSVP
 from .forms import EventForm, LocationForm
+from django_countries import countries
+from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,7 @@ def event_list(request):
     today = timezone.now().date()
     
     # Base query
-    events_list = Event.objects.annotate(
+    event_list = Event.objects.annotate(
         is_future=Case(
             When(start_date__gte=today, then=Value(True)),
             default=Value(False),
@@ -26,21 +28,58 @@ def event_list(request):
     
     # Filter logic
     if request.user.is_authenticated:
-        # Show published events + user's own unpublished events
-        events_list = events_list.filter(
-            Q(published=True) | 
-            Q(organizer=request.user.profile)
-        )
+        event_list = event_list.filter(Q(published=True) | Q(organizer=request.user.profile))
     else:
-        # Show only published events
-        events_list = events_list.filter(published=True)
+        event_list = event_list.filter(published=True)
     
-    events_list = events_list.order_by("-is_future", "start_date", "-created")
+    # Apply filters from request
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    event_type = request.GET.get('event_type')
+    country = request.GET.get('country')
+
+    if start_date:
+        event_list = event_list.filter(start_date__gte=start_date)
+    if end_date:
+        event_list = event_list.filter(start_date__lte=end_date)
+    if event_type:
+        event_list = event_list.filter(event_type=event_type)
+    if country:
+        event_list = event_list.filter(location__country=country)
     
-    paginator = Paginator(events_list, 6)
-    page_number = request.GET.get("page")
+    # Ordering
+    event_list = event_list.order_by("-is_future", "start_date", "-created")
+    
+    # Pagination
+    paginator = Paginator(event_list, 6)
+    page_number = request.GET.get("page", 1)
     events = paginator.get_page(page_number)
-    return render(request, "events/event_list.html", {"events": events})
+    
+    # Return JSON for AJAX requests
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            event_cards_html = ''
+            for event in events:
+                event_cards_html += render_to_string(
+                    'events/partials/_event_card.html',
+                    {'event': event},  # Change: pass single event instead of events queryset
+                    request=request
+                )
+            return JsonResponse({
+                'html': event_cards_html,
+                'has_next': events.has_next(),
+                'next_page': events.next_page_number() if events.has_next() else None,
+            })
+        except Exception as e:
+            print(f"AJAX Error: {str(e)}")  # Debug print
+            return JsonResponse({'error': str(e)}, status=500)
+
+    context = {
+        'events': events,
+        'event_types': Event._meta.get_field('event_type').choices,
+        'countries': list(countries),
+    }
+    return render(request, "events/event_list.html", context)
 
 
 @login_required
@@ -129,7 +168,7 @@ def event_details(request, slug):
 def event_submission(request, slug=None):
     event = None
     location = None
-    if slug:
+    if (slug):
         event = get_object_or_404(Event, slug=slug)
         if event.organizer != request.user.profile:
             return redirect('events:event_list')

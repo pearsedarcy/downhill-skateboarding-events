@@ -1,0 +1,76 @@
+{% load static %}
+{% load countries %}
+{% load i18n %}
+
+{% block meta_description %}
+
+{% endblock %}
+<div class="card bg-base-100 shadow-xl">
+    {% if not event.published %}
+    <div class="absolute top-2 left-2 z-10">
+      <div class="badge badge-warning gap-2">
+        <i class="fas fa-eye-slash"></i>
+        Unpublished
+      </div>
+    </div>
+    {% endif %}
+    <!-- Show if published or if user is organizer -->
+    {% if event.published or event.organizer.user == user %}
+      <!-- Event card with hover effects -->
+      <div class="card bg-base-100 shadow-xl">
+        <!-- Unpublished badge -->
+        {% if not event.published %}
+        <div class="absolute top-2 left-2 z-10">
+          <div class="badge badge-warning gap-2">
+            <i class="fas fa-eye-slash"></i>
+            Unpublished
+          </div>
+        </div>
+        {% endif %}
+        
+        <!-- Edit button -->
+        {% if event.organizer.user == user and event.slug %}
+        <div class="absolute top-2 right-2 z-10">
+          <a href="{% url 'events:edit_event' event.slug %}" class="btn btn-circle btn-sm btn-secondary" title="Edit Event">
+            <i class="fas fa-edit"></i>
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Event card content -->
+        <a href="{% url 'events:event_details' event.slug|default:'no-slug' %}" aria-label="View details for {{ event.title }}">
+          <div class="card-body p-0">
+            <div class="relative h-[200px]">
+              <div class="skeleton w-full h-[200px] rounded-lg"></div>
+              {% if event.cover_image %}
+                <img src="{{ event.cover_image.url }}" 
+                     alt="event poster" 
+                     class="rounded-t-lg absolute top-0 left-0 w-full h-[200px] object-cover"
+                     onload="this.parentElement.querySelector('.skeleton').style.display='none'">
+              {% else %}
+                <img src="{% static 'images/default_cover_image.jpg' %}"
+                     alt="Default Event Poster" 
+                     class="rounded-t-lg absolute top-0 left-0 w-full h-[200px] object-cover"
+                     onload="this.parentElement.querySelector('.skeleton').style.display='none'">
+              {% endif %}
+            </div>
+            <div class="px-4 mb-4">
+              <div class="flex justify-between items-center">
+                <h2 class="card-title text-sm sm:text-l text-secondary">{{ event.title }}</h2>
+                <div class="badge badge-primary">{{ event.event_type }}</div>
+              </div>
+              <div class="flex items-center space-x-2 mb-2 mt-2">
+                {% with country=event.location.country %}
+                <img src="/static/flags/{{ country.code|lower }}.gif" alt="{{ country.name }} flag" class="w-6 h-4 object-cover rounded-sm">
+                <span class="text-xs text-300">{{ event.location.city }}</span>
+                {% endwith %}
+              </div>
+              <p class="text-xs text-300">
+                  <span class="text-lg mr-1">📅</span> {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    {% endif %}
+  </div>

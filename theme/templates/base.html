@@ -105,17 +105,18 @@
             </div>
             <ul
               tabindex="0"
-              class="dropdown-content menu bg-base-100 rounded-box z-[99] w-52 p-2 shadow xl:pointer-events-none"
+              class="dropdown-content menu bg-base-100 rounded-box z-[201] w-52 p-2 shadow xl:pointer-events-none"
             >
               {% if user.is_authenticated %}
               <li>
-                <a href="{% url 'events:submit' %}" class="btn btn-secondary"
+                <a href="{% url 'events:submit' %}" class="btn btn-secondary z-[201]"
                   >Add Event</a
                 >
               </li>
               {% else %}
               <li>
-                  <a href="{% url 'account_login' %}?next={% url 'events:submit' %}" class="btn btn-secondary"
+                  <a href="{% url 'account_login' %}?next={% url 'events:submit'
+                  %}" class="btn btn-secondary z-[201]"
                   >Add Event</a
                 >
               {% endif %}
@@ -246,5 +247,6 @@
       <!-- Theme Control Script -->
       <script src="{% static 'js/theme-control.js' %}"></script>
     </div>
+    {% block extra_js %}{% endblock %}
   </body>
 </html>

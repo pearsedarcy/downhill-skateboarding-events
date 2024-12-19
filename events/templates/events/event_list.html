@@ -1,94 +1,61 @@
 <!-- Base template extension and page metadata -->
 {% extends 'base.html' %}
 {% load static %}
+{% load countries %}
+{% load i18n %}
 {% block title %}{{ block.super }} - Event List{% endblock %}
 {% block meta_description %}Browse upcoming downhill skateboarding events, races, and competitions. Find events near you and connect with the downhill skating community.{% endblock %}
 
 {% block content %}
 <!-- Main container with responsive grid layout -->
 <div class="container mx-auto mt-4 mb-8 px-1 max-w-[1000px]"> 
+  <!-- Filter Form -->
+  <form method="get" class="flex flex-wrap gap-2 items-center mb-4 rounded-lg">
+    <div class="flex-1 flex flex-wrap gap-2 items-center">
+      <input type="text" id="daterange" name="daterange" 
+        class="input input-sm input-bordered w-28 sm:w-40 text-xs placeholder:text-xs" 
+        placeholder="📅 Date Range"
+        readonly>
+      <input type="hidden" id="start_date" name="start_date">
+      <input type="hidden" id="end_date" name="end_date">
+      <select id="event_type" name="event_type" class="select select-sm select-bordered w-26 sm:w-32 text-xs">
+        <option value="">All Types</option>
+        {% for type in event_types %}
+          <option value="{{ type.0 }}" {% if request.GET.event_type == type.0 %}selected{% endif %}>{{ type.1 }}</option>
+        {% endfor %}
+      </select>
+      <select id="country" name="country" class="select select-sm select-bordered w-28 sm:w-40 text-xs">
+        <option value="">All Countries</option>
+        {% for code, name in countries %}
+          <option value="{{ code }}" {% if request.GET.country == code %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-primary text-xs">Filter</button>
+      <a href="{% url 'events:event_list' %}" class="btn btn-sm btn-ghost text-xs">Clear</a>
+    </div>
+  </form>
+
   {% if events %}
   <!-- Responsive grid for event cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div id="events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     <!-- Event card loop -->
     {% for event in events %}
-      <div class="card bg-base-300 shadow-lg hover:shadow-2xl transition-all duration-300">
-        {% if not event.published %}
-        <div class="absolute top-2 left-2 z-10">
-          <div class="badge badge-warning gap-2">
-            <i class="fas fa-eye-slash"></i>
-            Unpublished
-          </div>
-        </div>
-        {% endif %}
-        <!-- Show if published or if user is organizer -->
-        {% if event.published or event.organizer.user == user %}
-          <!-- Event card with hover effects -->
-          <div class="card bg-base-300 shadow-lg hover:shadow-2xl transition-all duration-300">
-            <!-- Unpublished badge -->
-            {% if not event.published %}
-            <div class="absolute top-2 left-2 z-10">
-              <div class="badge badge-warning gap-2">
-                <i class="fas fa-eye-slash"></i>
-                Unpublished
-              </div>
-            </div>
-            {% endif %}
-            
-            <!-- Edit button -->
-            {% if event.organizer.user == user and event.slug %}
-            <div class="absolute top-2 right-2 z-10">
-              <a href="{% url 'events:edit_event' event.slug %}" class="btn btn-circle btn-sm btn-secondary" title="Edit Event">
-                <i class="fas fa-edit"></i>
-              </a>
-            </div>
-            {% endif %}
-            <a href="{% url 'events:event_details' event.slug|default:'no-slug' %}" aria-label="View details for {{ event.title }}">
-              <div class="card-body p-0">
-                {% if event.cover_image %}
-                  <img src="{{ event.cover_image.url }}" alt="event poster" class="rounded-t-lg" width="100%">
-                  {% else %}
-                  <img src="{% static 'images/default_cover_image.jpg' %}"
-                  alt="Default Event Poster" class="rounded-t-lg" width="100%">
-                {% endif %}
-                <div class="px-4 mb-4">
-                  <div class="flex justify-between items-center">
-                    <h2 class="card-title text-sm sm:text-l text-secondary">{{ event.title }}</h2>
-                    <div class="badge badge-primary">{{ event.event_type }}</div>
-                  </div>
-                  <div class="flex items-center space-x-2 mb-2 mt-2">
-                    {% with country=event.location.country %}
-                    <img src="/static/flags/{{ country.code|lower }}.gif" alt="{{ country.name }} flag" class="w-6 h-4 object-cover rounded-sm">
-                    <span class="text-xs text-300">{{ event.location.city }}</span>
-                    {% endwith %}
-                  </div>
-                  <p class="text-xs text-300">
-                      <span class="text-lg mr-1">📅</span> {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
-                  </p>
-                </div>
-              </div>
-            </a>
-          </div>
-        {% endif %}
-      </div>
+     {% include "events/partials/_event_card.html" %}
     {% endfor %}
   </div>
   
-  <!-- Pagination controls -->
-  <div class="flex justify-start mt-4">
-    <span class="btn-group">
-      {% if events.has_previous %}
-      <a href="?page={{ events.previous_page_number }}" class="btn" aria-label="Go to previous page">Previous</a>
-      {% else %}
-      <button class="btn" disabled aria-label="Previous page (disabled)">Previous</button>
-      {% endif %}
-      <span class="btn">Page {{ events.number }} of {{ events.paginator.num_pages }}</span>
-      {% if events.has_next %}
-      <a href="?page={{ events.next_page_number }}" class="btn" aria-label="Go to next page">Next</a>
-      {% else %}
-      <button class="btn" disabled aria-label="Next page (disabled)">Next</button>
-      {% endif %}
-    </span>
+  <!-- Loading spinner and sentinel div -->
+  <div id="scroll-sentinel" class="h-4 mt-4">
+    <div id="loading-spinner" class="hidden flex justify-center">
+      <div class="loading loading-spinner loading-md"></div>
+    </div>
+  </div>
+  
+  <!-- Hidden next page info -->
+  <div id="pagination-data" 
+    data-has-next="{{ events.has_next|lower }}" 
+    data-next-page="{% if events.has_next %}{{ events.next_page_number }}{% else %}null{% endif %}"
+    data-current-filters="{{ request.GET.urlencode }}">
   </div>
   {% else %}
     <div class="alert alert-info shadow-lg">
@@ -103,4 +70,43 @@
     </div>
   {% endif %}
 </div>
+{% endblock %}
+
+
+{% block extra_js %}
+<!-- Add Litepicker library -->
+<script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+<script>
+// Date picker initialization
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const picker = new Litepicker({
+            element: document.getElementById('daterange'),
+            singleMode: false,
+            numberOfMonths: 1,
+            numberOfColumns: 1,
+            format: 'DD/MM/YY',
+            delimiter: ' - ',
+            startDate: '{{ request.GET.start_date|default:"" }}' || null,
+            endDate: '{{ request.GET.end_date|default:"" }}' || null,
+            setup: (picker) => {
+                picker.on('selected', (date1, date2) => {
+                    if (date1 && date2) {
+                        document.getElementById('start_date').value = date1.format('YYYY-MM-DD');
+                        document.getElementById('end_date').value = date2.format('YYYY-MM-DD');
+                    }
+                });
+                picker.on('clear', () => {
+                    document.getElementById('start_date').value = '';
+                    document.getElementById('end_date').value = '';
+                });
+            }
+        });
+    } catch (e) {
+        console.error('Error initializing Litepicker:', e);
+    }
+});
+</script>
+<!-- Add Infinite Scroll -->
+<script src="{% static 'js/infinite_scroll.js' %}"></script>
 {% endblock %}
