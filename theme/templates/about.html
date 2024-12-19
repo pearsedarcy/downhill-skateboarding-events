@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Downhill Skateboarding Events{% endblock %}
+
+{% block meta_description %}Learn about downhill skateboarding, its history, and our mission to connect the global downhill skateboarding community through events and competitions.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero min-h-[40vh] bg-base-200 relative overflow-hidden">
+    <div class="absolute inset-0 z-0">
+        <img src="{% static 'images/hero-bg.webp' %}" alt="" class="w-full h-full object-cover opacity-20">
+    </div>
+    <div class="hero-content text-center relative z-10">
+        <div class="max-w-3xl">
+            <h1 class="text-4xl font-bold mb-4">About Downhill Skateboarding Events</h1>
+            <p class="text-xl">Connecting Speed Enthusiasts Worldwide</p>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mx-auto px-4 py-12">
+    <!-- What is Downhill Skateboarding -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold mb-6">What is Downhill Skateboarding?</h2>
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="prose max-w-none">
+                <p class="text-lg">Downhill skateboarding is an extreme sport where riders navigate down steep hills and mountain roads at high speeds. Using specialized longboards equipped with precision trucks and wheels, riders can reach speeds exceeding 60 mph (97 km/h).</p>
+                <p class="text-lg mt-4">The sport combines technical skill, strategic thinking, and nerves of steel. Riders must master techniques like sliding, drafting, and cornering while maintaining control at high speeds.</p>
+            </div>
+            <div class="bg-base-200 p-6 rounded-lg">
+                <h3 class="text-xl font-bold mb-4">Key Elements</h3>
+                <ul class="space-y-3">
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-tachometer-alt text-primary"></i>
+                        <span>High-speed racing and freeriding</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-road text-primary"></i>
+                        <span>Technical mountain roads</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-shield-alt text-primary"></i>
+                        <span>Safety gear and protection</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-users text-primary"></i>
+                        <span>Worldwide community</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Mission -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold mb-6">Our Mission</h2>
+        <div class="bg-primary text-primary-content p-8 rounded-lg">
+            <p class="text-lg">We're dedicated to growing the sport of downhill skateboarding by connecting riders, organizers, and enthusiasts worldwide. Our platform makes it easy to discover events, share experiences, and build lasting connections within the community.</p>
+        </div>
+    </section>
+
+    <!-- Community Features -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold mb-8">What We Offer</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="card bg-base-200">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-alt text-primary"></i>
+                        Event Discovery
+                    </h3>
+                    <p>Find competitions, freeride sessions, and meetups happening worldwide.</p>
+                </div>
+            </div>
+            <div class="card bg-base-200">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-tools text-primary"></i>
+                        Organizer Tools
+                    </h3>
+                    <p>Comprehensive tools for event creation, management, and promotion.</p>
+                </div>
+            </div>
+            <div class="card bg-base-200">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-users text-primary"></i>
+                        Community Network
+                    </h3>
+                    <p>Connect with riders and organizers from around the globe.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section>
+        <div class="text-center">
+            <h2 class="text-3xl font-bold mb-6">Join Our Community</h2>
+            <p class="text-lg mb-8">Be part of the global downhill skateboarding movement</p>
+            <div class="flex gap-4 justify-center">
+                <a href="{% url 'account_signup' %}" class="btn btn-primary">Sign Up Now</a>
+                <a href="{% url 'events:event_list' %}" class="btn btn-secondary">Browse Events</a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

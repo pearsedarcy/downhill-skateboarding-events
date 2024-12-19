@@ -58,9 +58,8 @@
             >
               <li><a href="/" aria-label="Home"><i class="fas fa-home"></i> Home</a></li>
               <li><a href="{% url 'events:event_list' %}" aria-label="Browse events"><i class="fas fa-calendar-alt"></i> Events</a></li>
-              <li><a href="{% url 'events:submit' %}" aria-label="Submit event"><i class="fas fa-plus-circle"></i> Submit Event</a></li>
               <li class="-ml-1"><a href="#" aria-label="View organisers"><i class="fas fa-users"></i> Organisers</a></li>
-              <li><a href="#" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
+              <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
           </div>
           <!-- Site Logo -->
