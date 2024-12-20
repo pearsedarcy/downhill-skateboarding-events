@@ -7,7 +7,7 @@ django-countries==7.6.1
 django-cloudinary-storage==0.3.0
 cloudinary==1.41.0
 gunicorn==23.0.0
-psycopg2-binary
+psycopg2-binary==2.9.10
 whitenoise==6.8.2
 dj-database-url==2.3.0
 asgiref==3.8.1

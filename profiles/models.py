@@ -8,9 +8,10 @@ with additional skateboarding-specific information.
 from django.db import models
 from django.contrib.auth.models import User
 from cloudinary.models import CloudinaryField
+from search.models import SearchableModel
 
 
-class UserProfile(models.Model):
+class UserProfile(SearchableModel):
     """
     Extended user profile model with additional fields for skateboarders.
     
@@ -39,6 +40,14 @@ class UserProfile(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    search_fields = ['user__username', 'bio', 'location', 'skills']
+    search_field_weights = {
+        'user__username': 'A',
+        'bio': 'B',
+        'location': 'C',
+        'skills': 'C'
+    }
 
     def __str__(self):
         return f"{self.user.username}'s profile"

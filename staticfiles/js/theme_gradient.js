@@ -23,4 +23,20 @@ document.addEventListener('DOMContentLoaded', function() {
     attributes: true,
     attributeFilter: ['data-theme']
   });
+
+  // Add slide content sync
+  if (document.querySelector('.hero-slider')) {
+    const swiper = document.querySelector('.swiper').swiper;
+    const contents = document.querySelectorAll('.hero-content');
+    
+    // Show initial content
+    contents[0].classList.add('active');
+    
+    // Update content on slide change
+    swiper.on('slideChange', function () {
+      contents.forEach(content => content.classList.remove('active'));
+      const activeIndex = swiper.realIndex;
+      contents[activeIndex]?.classList.add('active');
+    });
+  }
 });

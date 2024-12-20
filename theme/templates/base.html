@@ -59,7 +59,7 @@
             >
               <li><a href="/" aria-label="Home"><i class="fas fa-home"></i> Home</a></li>
               <li><a href="{% url 'events:event_list' %}" aria-label="Browse events"><i class="fas fa-calendar-alt"></i> Events</a></li>
-              <li class="-ml-1"><a href="#" aria-label="View organisers"><i class="fas fa-users"></i> Organisers</a></li>
+              <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li>
               <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
           </div>
@@ -97,29 +97,76 @@
           </div>
         </div>
         <!-- Right side of navbar: User Menu -->
-        <div class="navbar-end ">
+        <div class="navbar-end gap-2">
+          <!-- Mobile Search Button -->
+          <button class="btn btn-ghost btn-circle sm:hidden" onclick="document.getElementById('mobile-search-modal').showModal()">
+            <i class="fas fa-search"></i>
+          </button>
+
+          <!-- Desktop Search Form -->
+          <form class="form-control flex-row hidden sm:block" action="{% url 'search:global-search' %}" method="GET">
+            <div class="join relative">
+              <input 
+                type="text" 
+                id="global-search"
+                name="q" 
+                placeholder="Search..." 
+                value="{{ request.GET.q }}" 
+                class="input input-sm input-bordered join-item pr-16" 
+              />
+              <div class="absolute top-1/2 -translate-y-1/2 right-12 pointer-events-none opacity-50">
+                <kbd class="kbd kbd-sm">Alt</kbd>
+                <kbd class="kbd kbd-sm">S</kbd>
+              </div>
+              <button type="submit" class="btn btn-sm join-item input-bordered">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </form>
+
+          <!-- Mobile Search Modal -->
+          <dialog id="mobile-search-modal" class="modal modal-bottom sm:hidden">
+            <div class="modal-box">
+              <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+              </form>
+              <form class="form-control" action="{% url 'search:global-search' %}" method="GET">
+                <div class="join w-full">
+                  <input 
+                    type="text" 
+                    name="q" 
+                    placeholder="Search..." 
+                    value="{{ request.GET.q }}" 
+                    class="input input-bordered join-item w-full" 
+                  />
+                  <button type="submit" class="btn join-item">
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+              <button>close</button>
+            </form>
+          </dialog>
+          <!-- Add Post Button -->
           <div class="dropdown dropdown-end">
-            <!-- Add Post Button -->
-            <div tabindex="0" role="button" class="btn m-1 btn-sm btn-bordered border-base-300" aria-label="Add post">
+            <div tabindex="0" role="button" class="btn btn-sm btn-bordered border-base-300" aria-label="Add post">
               <i class="fas fa-plus"></i>
               <i class="fas fa-arrow-down"></i>
             </div>
             <ul
               tabindex="0"
-              class="dropdown-content menu bg-base-100 rounded-box z-[201] w-52 p-2 shadow xl:pointer-events-none"
+              class="dropdown-content menu bg-base-100 rounded-box z-[201] w-52 p-2 shadow"
             >
               {% if user.is_authenticated %}
               <li>
-                <a href="{% url 'events:submit' %}" class="btn btn-secondary z-[201]"
-                  >Add Event</a
-                >
+                <a href="{% url 'events:submit' %}" class="btn btn-secondary">Add Event</a>
               </li>
               {% else %}
               <li>
-                  <a href="{% url 'account_login' %}?next={% url 'events:submit'
-                  %}" class="btn btn-secondary z-[201]"
-                  >Add Event</a
-                >
+                <a href="{% url 'account_login' %}?next={% url 'events:submit' %}" class="btn btn-secondary">Add Event</a>
+              </li>
               {% endif %}
             </ul>
           </div>
@@ -183,8 +230,7 @@
         <div class="flex flex-col gap-2">
           <a href="/" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="Home"><i class="fas fa-home mr-4"></i>Home</a>
           <a href="{% url 'events:event_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-calendar-alt mr-4"></i>Events</a>
-          <a href="{% url 'events:submit' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-plus-circle mr-4"></i>Submit Event</a>
-          <a href="#" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i>Organisers</a>
+          <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i>Users</a>
           <a href="#" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i>About</a>
         </div>
       </aside>
@@ -247,6 +293,15 @@
 
       <!-- Theme Control Script -->
       <script src="{% static 'js/theme-control.js' %}"></script>
+      <script>
+        document.addEventListener('keydown', function(e) {
+          // Check for Alt + S
+          if (e.altKey && e.key.toLowerCase() === 's') {
+            e.preventDefault(); // Prevent default behavior
+            document.getElementById('global-search').focus();
+          }
+        });
+      </script>
     </div>
     {% block extra_js %}{% endblock %}
   </body>

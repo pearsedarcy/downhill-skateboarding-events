@@ -26,6 +26,7 @@ urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),
     path("profiles/", include("profiles.urls", namespace="profiles")),  # Changed from profile/ to profiles/
     path("", include("events.urls", namespace="events")),
+    path("search/", include("search.urls", namespace="search")),
 ]
 
 if settings.DEBUG:

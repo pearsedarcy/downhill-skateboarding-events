@@ -4,9 +4,10 @@ from django_countries.fields import CountryField
 from profiles.models import UserProfile
 from cloudinary.models import CloudinaryField
 from django.utils.text import slugify
+from search.models import SearchableModel
 
 
-class Event(models.Model):
+class Event(SearchableModel):
     organizer = models.ForeignKey(
         UserProfile,
         on_delete=models.CASCADE,
@@ -60,6 +61,14 @@ class Event(models.Model):
     )
     max_attendees = models.IntegerField(null=True, blank=True, default=0)
     featured = models.BooleanField(default=False)
+
+    search_fields = ['title', 'description', 'location', 'event_type']
+    search_field_weights = {
+        'title': 'A',
+        'description': 'B',
+        'location': 'C',
+        'event_type': 'D'
+    }
 
     def save(self, *args, **kwargs):
         if not self.slug:

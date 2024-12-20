@@ -9,6 +9,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from events.models import RSVP, Favorite
+from profiles.models import UserProfile
 from .forms import UserProfileForm
 from typing import Optional
 from django.http import JsonResponse
@@ -19,6 +20,7 @@ import base64
 from django.core.files.base import ContentFile
 import re
 import cloudinary.uploader
+from django.core.paginator import Paginator
 
 
 def user_profile(request, username: Optional[str] = None):
@@ -61,6 +63,24 @@ def user_profile(request, username: Optional[str] = None):
     }
     return render(request, "profiles/user_profile.html", context)
 
+def users_list(request):
+    """
+    Display a paginated list of all users with optional search filtering.
+    """
+    query = request.GET.get('q', '')
+    users = UserProfile.objects.all().order_by('user__username')
+    
+    if query:
+        users = users.search(query)
+    
+    paginator = Paginator(users, 12)  # Show 12 users per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'profiles/users_list.html', {
+        'page_obj': page_obj,
+        'query': query
+    })
 
 @login_required
 def edit_profile(request):
@@ -180,3 +200,5 @@ def delete_profile(request):
     user = request.user
     user.delete()
     return redirect('')
+
+

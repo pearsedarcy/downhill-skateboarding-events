@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.postgres",
     "allauth",
     "allauth.account",
     "events",
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     "django_countries",
     "cloudinary",
     "cloudinary_storage",
+    "search",
 ]
 
 
