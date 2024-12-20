@@ -63,17 +63,17 @@
               <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
           </div>
-          <!-- Site Logo -->
-          <div>
+            <!-- Site Logo -->
+            <div>
               <a class="" href="{% url 'events:event_list' %}" aria-label="Home Icon">
-                <img
-                  src="{% static 'images/sdh-icon.webp' %}"
-                  alt="SDH Logo"
-                  class="logo-light"
-                  style="width: 50px; height: auto;"
-                />
+              <img
+                src="{% static 'images/sdh-icon.webp' %}"
+                alt="SDH Logo"
+                class="logo-light"
+                style="width: 50px; height: auto; min-width: 50px;"
+              />
               </a>
-          </div>
+            </div>
           <!-- Breadcrumb Navigation -->
           <div class="breadcrumbs hidden sm:block overflow-x-visible ml-2">
             <ul>
@@ -99,7 +99,7 @@
         <!-- Right side of navbar: User Menu -->
         <div class="navbar-end gap-2">
           <!-- Mobile Search Button -->
-          <button class="btn btn-ghost btn-circle sm:hidden" onclick="document.getElementById('mobile-search-modal').showModal()">
+          <button class=" sm:hidden btn btn-ghost btn-circle" onclick="document.getElementById('mobile-search-modal').showModal()">
             <i class="fas fa-search"></i>
           </button>
 
@@ -114,7 +114,7 @@
                 value="{{ request.GET.q }}" 
                 class="input input-sm input-bordered join-item pr-16" 
               />
-              <div class="absolute top-1/2 -translate-y-1/2 right-12 pointer-events-none opacity-50">
+              <div class="hidden sm:block absolute top-1/2 -translate-y-1/2 right-12 pointer-events-none opacity-50">
                 <kbd class="kbd kbd-sm">Alt</kbd>
                 <kbd class="kbd kbd-sm">S</kbd>
               </div>
@@ -151,7 +151,8 @@
           </dialog>
           <!-- Add Post Button -->
           <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button" class="btn btn-sm btn-bordered border-base-300" aria-label="Add post">
+            <div tabindex="0" role="button" class="btn btn-sm btn-bordered
+            border-base-300 flex flex-nowrap" aria-label="Add post">
               <i class="fas fa-plus"></i>
               <i class="fas fa-arrow-down"></i>
             </div>

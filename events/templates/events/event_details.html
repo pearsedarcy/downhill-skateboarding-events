@@ -39,22 +39,23 @@
           <div>
             <h1 class="card-title text-3xl font-bold mb-2">
               {{ event.title }}
-              {% if not event.published %}
-
             </h1>
-            <div class="badge badge-warning gap-2">
-              <i class="fas fa-eye-slash"></i>
-              Unpublished
+            <div class="flex gap-2 mb-2">
+              {% if not event.published %}
+              <div class="badge badge-warning gap-2">
+                <i class="fas fa-eye-slash"></i>
+                Unpublished
+              </div>
+              {% endif %}
+              <div class="badge badge-primary">{{ event.event_type }}</div>
+              <div class="badge badge-secondary">{{ event.skill_level }}</div>
             </div>
-            {% endif %}
-            <div class="badge badge-primary">{{ event.event_type }}</div>
-            <div class="badge badge-secondary ml-2">{{ event.skill_level }}</div>
           </div>
           
           {# ACTION BUTTONS #}
-            <div class="card-actions justify-end">
+          <div class="card-actions justify-end">
             {% include "events/partials/_event_actions.html" %}
-            </div>
+          </div>
         </div>
 
         {# EVENT DESCRIPTION #}
