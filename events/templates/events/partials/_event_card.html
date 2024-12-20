@@ -40,17 +40,17 @@
         <!-- Event card content -->
         <a href="{% url 'events:event_details' event.slug|default:'no-slug' %}" aria-label="View details for {{ event.title }}">
           <div class="card-body p-0">
-            <div class="relative h-[200px]">
-              <div class="skeleton w-full h-[200px] rounded-lg"></div>
+            <div class="relative h-[240px]">
+              <div class="skeleton w-full h-[240px] rounded-lg"></div>
               {% if event.cover_image %}
                 <img src="{{ event.cover_image.url }}" 
                      alt="event poster" 
-                     class="rounded-t-lg absolute top-0 left-0 w-full h-[200px] object-cover"
+                     class="rounded-t-lg absolute top-0 left-0 w-full h-[240px] object-cover"
                      onload="this.parentElement.querySelector('.skeleton').style.display='none'">
               {% else %}
                 <img src="{% static 'images/default_cover_image.jpg' %}"
                      alt="Default Event Poster" 
-                     class="rounded-t-lg absolute top-0 left-0 w-full h-[200px] object-cover"
+                     class="rounded-t-lg absolute top-0 left-0 w-full h-[240px] object-cover"
                      onload="this.parentElement.querySelector('.skeleton').style.display='none'">
               {% endif %}
             </div>
@@ -65,8 +65,13 @@
                 <span class="text-xs text-300">{{ event.location.city }}</span>
                 {% endwith %}
               </div>
-              <p class="text-xs text-300">
-                  <span class="text-lg mr-1">📅</span> {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
+                <p class="text-xs text-300">
+                  <span class="text-lg mr-1">📅</span> 
+                  {% if event.end_date %}
+                  {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
+                  {% else %}
+                  {{ event.start_date|date:"F j, Y" }}
+                  {% endif %}
               </p>
             </div>
           </div>
