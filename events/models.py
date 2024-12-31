@@ -61,6 +61,7 @@ class Event(SearchableModel):
     )
     max_attendees = models.IntegerField(null=True, blank=True, default=0)
     featured = models.BooleanField(default=False)
+    has_results = models.BooleanField(default=False)
 
     search_fields = ['title', 'description', 'location', 'event_type']
     search_field_weights = {
@@ -92,6 +93,12 @@ class Event(SearchableModel):
 
     def __str__(self):
         return self.title
+
+    def has_time_trial_results(self):
+        return self.results.filter(result_type='TIME_TRIAL').exists()
+
+    def has_knockout_results(self):
+        return self.results.filter(result_type='KNOCKOUT').exists()
 
 
 class Location(models.Model):

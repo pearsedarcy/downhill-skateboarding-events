@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">Results: {{ event.title }}</h2>
+          <a href="{% url 'events:event_details' event.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Event
+          </a>
+        </div>
+
+        {% if time_trial_results %}
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold mb-4">Time Trial Results</h3>
+          {% for result in time_trial_results %}
+            <div class="card bg-base-200 mb-4">
+              <div class="card-body">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-sm opacity-70">
+                    Uploaded {{ result.uploaded_at|date:"M d, Y" }}
+                  </span>
+                  {% if result.is_final %}
+                    <div class="badge badge-success">Final Results</div>
+                  {% endif %}
+                </div>
+                {% include "results/partials/_time_trial_results.html" with result=result %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if knockout_results %}
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold mb-4">Knockout Results</h3>
+          {% for result in knockout_results %}
+            <div class="card bg-base-200 mb-4">
+              <div class="card-body">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-sm opacity-70">
+                    Uploaded {{ result.uploaded_at|date:"M d, Y" }}
+                  </span>
+                  {% if result.is_final %}
+                    <div class="badge badge-success">Final Results</div>
+                  {% endif %}
+                </div>
+                {% include "results/partials/_knockout_results.html" with result=result %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

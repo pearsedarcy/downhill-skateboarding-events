@@ -1,0 +1,34 @@
+
+
+<div class="overflow-x-auto">
+  <table class="table w-full">
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Competitor</th>
+        <th>Time</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for trial in result.time_trials.all %}
+        <tr>
+          <td>{{ trial.position }}</td>
+          <td>
+            <div class="flex items-center space-x-3">
+              <div class="avatar">
+                <div class="mask mask-squircle w-8 h-8">
+                  <img src="{{ trial.competitor.avatar_url|default:'/static/images/default-profile.webp' }}" 
+                       alt="{{ trial.competitor.user.username }}">
+                </div>
+              </div>
+              <div>{{ trial.competitor.user.username }}</div>
+            </div>
+          </td>
+          <td>{{ trial.time }}</td>
+          <td>{{ trial.points }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

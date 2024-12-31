@@ -1,0 +1,83 @@
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title">Knockout Results</h2>
+        
+        {% regroup knockouts by round as rounds %}
+        <div class="flex overflow-x-auto gap-4 p-4">
+            {% for round in rounds %}
+            <div class="flex-none w-72">
+                <div class="card bg-base-200">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ round.grouper }}</h3>
+                        {% for match in round.list %}
+                        <div class="card bg-base-100 shadow-sm mb-4">
+                            <div class="card-body p-4">
+                                <div class="badge badge-ghost mb-2">Match #{{ match.match_number }}</div>
+                                
+                                <!-- Winner -->
+                                <div class="flex items-center gap-3 p-2 bg-success/10 rounded-box mb-2">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-8 h-8">
+                                            <img src="{{ match.winner.avatar.url|default:'/static/images/default-profile.webp' }}" 
+                                                 alt="{{ match.winner.user.get_full_name }}" />
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'profiles:detail' match.winner.user.username %}" 
+                                       class="link link-primary font-bold">
+                                        {{ match.winner.user.get_full_name }}
+                                    </a>
+                                    <div class="badge badge-success">Winner</div>
+                                </div>
+
+                                <!-- Loser -->
+                                <div class="flex items-center gap-3 p-2 rounded-box">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-8 h-8">
+                                            <img src="{{ match.loser.avatar.url|default:'/static/images/default-profile.webp' }}" 
+                                                 alt="{{ match.loser.user.get_full_name }}" />
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'profiles:detail' match.loser.user.username %}" 
+                                       class="link">
+                                        {{ match.loser.user.get_full_name }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .knockout-bracket {
+        overflow-x: auto;
+    }
+    
+    .round-container {
+        display: inline-block;
+        vertical-align: top;
+        min-width: 300px;
+    }
+    
+    .matches-container {
+        padding: 10px;
+    }
+    
+    .match-card {
+        border: 1px solid #e2e8f0;
+        transition: transform 0.2s;
+    }
+    
+    .match-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .rider-container {
+        border: 1px solid #e2e8f0;
+    }
+</style>

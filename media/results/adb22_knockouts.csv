@@ -1,0 +1,9 @@
+
+match_number,round,winner_id,winner_name,loser_id,loser_name
+1,FINAL,3,Sarah Smith,4,Mike Johnson
+2,SEMI,3,Sarah Smith,5,Lisa Wong
+3,SEMI,4,Mike Johnson,6,John Doe
+4,QUARTER,3,Sarah Smith,7,Jane Wilson
+5,QUARTER,5,Lisa Wong,8,Bob Brown
+6,QUARTER,4,Mike Johnson,9,Alice Green
+7,QUARTER,6,John Doe,10,Tom White

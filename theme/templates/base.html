@@ -59,6 +59,9 @@
             >
               <li><a href="/" aria-label="Home"><i class="fas fa-home"></i> Home</a></li>
               <li><a href="{% url 'events:event_list' %}" aria-label="Browse events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+              <li><a href="{% url 'results:results_list' %}" aria-label="View
+              results"><i class="fas fa-trophy"></i>Results</a></li>
+              <li><a href="{% url 'results:league_list' %}" aria-label="View Leagues"><i class="fas fa-ranking-star"></i>Leagues</a></li>
               <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li>
               <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
@@ -229,10 +232,12 @@
       <!-- Left Sidebar - Navigation (XL+) -->
       <aside class="hidden xl:block fixed left-0 top-[64px] h-[calc(100vh-64px)] w-48 border-r border-base-300 bg-base-100/95 backdrop-blur p-4">
         <div class="flex flex-col gap-2">
-          <a href="/" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="Home"><i class="fas fa-home mr-4"></i>Home</a>
-          <a href="{% url 'events:event_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-calendar-alt mr-4"></i>Events</a>
-          <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i>Users</a>
-          <a href="#" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i>About</a>
+          <a href="/" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="Home"><i class="fas fa-home mr-4"></i> Home</a>
+          <a href="{% url 'events:event_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-calendar-alt mr-4"></i> Events</a>
+          <a href="{% url 'results:results_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-trophy mr-3"></i> Results</a>
+          <a href="{% url 'results:league_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="View Leagues"><i class="fas fa-ranking-star mr-3"></i> Leagues</a>
+          <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i> Users</a>
+          <a href="{% url 'events:about' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i> About</a>
         </div>
       </aside>
 
@@ -246,7 +251,9 @@
               fa-user-shield mr-3"></i>Admin</a>
             {% endif %}
             <a href="{% url 'profiles:user_profile' username=user.username %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-user mr-4"></i>My Profile</a>
-            <a href="{% url 'account_logout' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-sign-out-alt mr-4"></i>Log Out</a>
+            <a href="{% url 'account_logout' %}" class="menu-item btn-ghost p-2
+            hover:bg-base-200 rounded-lg"><i class="fas fa-sign-out-alt
+            mr-4"></i>Log Out</a>
           {% else %}
             <a href="{% url 'account_login' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-sign-in-alt mr-4"></i>Login</a>
             <a href="{% url 'account_signup' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-user-plus mr-4"></i>Sign Up</a>

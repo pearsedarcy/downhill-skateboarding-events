@@ -55,6 +55,15 @@
           {# ACTION BUTTONS #}
           <div class="card-actions justify-end">
             {% include "events/partials/_event_actions.html" %}
+            {% if user.is_authenticated and event.organizer == user.profile %}
+              <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-neutral">Manage Event</div>
+                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                  <li><a href="{% url 'events:edit_event' event.slug %}">Edit Event</a></li>
+                  <li><a href="{% url 'results:upload_results' event.id %}">Upload Results</a></li>
+                </ul>
+              </div>
+            {% endif %}
           </div>
         </div>
 
@@ -85,6 +94,48 @@
             </div>
           </div>
         </div>
+
+        {# RESULTS SECTION #}
+        {% if event.has_results %}
+        <div class="divider"></div>
+        <div class="card bg-base-200 mt-4">
+          <div class="card-body">
+            <h2 class="card-title">Results</h2>
+            
+            {% if event.has_time_trial_results %}
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold">Time Trial Results</h3>
+                {% with result=event.results.filter.time_trial_results.first %}
+                    {% include "results/partials/_time_trial_results.html" %}
+                {% endwith %}
+            </div>
+            {% endif %}
+            
+            {% if event.has_knockout_results %}
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold">Knockout Results</h3>
+                {% with result=event.results.filter.knockout_results.first %}
+                    {% include "results/partials/_knockout_results.html" %}
+                {% endwith %}
+            </div>
+            {% endif %}
+            
+            <div class="card-actions justify-end">
+                <a href="{% url 'results:view_results' event.id %}" class="btn btn-primary">
+                    View Full Results
+                </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if user.profile == event.organizer and not event.has_results %}
+        <div class="mt-4">
+          <a href="{% url 'results:upload_results' event.id %}" class="btn btn-primary">
+            Upload Results
+          </a>
+        </div>
+        {% endif %}
 
         {# ORGANIZER PROFILE #}
         {% include "events/partials/_organizer_profile.html" %}
