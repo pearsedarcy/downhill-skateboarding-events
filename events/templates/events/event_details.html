@@ -99,13 +99,13 @@
         {% if event.has_results %}
         <div class="divider"></div>
         <div class="card bg-base-200 mt-4">
-          <div class="card-body">
+          <div class="card-body px-2">
             <h2 class="card-title">Results</h2>
             
             {% if event.has_time_trial_results %}
             <div class="mb-4">
                 <h3 class="text-lg font-semibold">Time Trial Results</h3>
-                {% with result=event.results.filter.time_trial_results.first %}
+                {% with result=event.get_time_trial_results %}
                     {% include "results/partials/_time_trial_results.html" %}
                 {% endwith %}
             </div>
@@ -114,8 +114,8 @@
             {% if event.has_knockout_results %}
             <div class="mb-4">
                 <h3 class="text-lg font-semibold">Knockout Results</h3>
-                {% with result=event.results.filter.knockout_results.first %}
-                    {% include "results/partials/_knockout_results.html" %}
+                {% with knockout_result=event.results.knockout_results.first %}
+                    {% include "results/partials/_knockout_results.html" with result=knockout_result only %}
                 {% endwith %}
             </div>
             {% endif %}

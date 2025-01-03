@@ -97,8 +97,14 @@ class Event(SearchableModel):
     def has_time_trial_results(self):
         return self.results.filter(result_type='TIME_TRIAL').exists()
 
+    def get_time_trial_results(self):
+        return self.results.filter(result_type='TIME_TRIAL').first()
+
     def has_knockout_results(self):
         return self.results.filter(result_type='KNOCKOUT').exists()
+
+    def get_knockout_results(self):
+        return self.results.filter(result_type='KNOCKOUT').first()
 
 
 class Location(models.Model):
