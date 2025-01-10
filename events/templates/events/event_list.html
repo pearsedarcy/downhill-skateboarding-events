@@ -18,6 +18,7 @@
 
 <div class="hero-container z-10">
   <div class="hero-slider swiper">
+    
     <div class="swiper-wrapper">
       {% if featured_events %}
         {% for event in featured_events %}
@@ -26,7 +27,7 @@
             {% if event.cover_image %}
             <img src="{{ event.cover_image.url }}" alt="{{ event.title }}" class="hero-image">
             {% else %}
-            <img src="{% static 'images/hero-bg.webp' %}" alt="{{ event.title }}" class="hero-image">
+            <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}" alt="{{ event.title }}" class="hero-image">
             {% endif %}
             <div class="hero-content">
               <h2 class="hero-title text-2xl md:text-3xl font-bold mb-2">{{ event.title }}</h2>
@@ -39,7 +40,7 @@
         {% endfor %}
       {% else %}
         <div class="swiper-slide hero-slide">
-          <img src="{% static 'images/hero-bg.webp' %}" alt="Welcome to Events" class="hero-image">
+          <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}" alt="Welcome to Events" class="hero-image">
           <div class="hero-content">
             <h2 class="hero-title text-2xl md:text-3xl font-bold mb-2">Check out
             Upcoming Events</h2>

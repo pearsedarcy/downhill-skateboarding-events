@@ -102,8 +102,8 @@ def view_results(request, event_id):
     
     return render(request, 'results/view_results.html', context)
 
-def league_standings(request, league_id):
-    league = get_object_or_404(League, id=league_id)
+def league_standings(request, slug):
+    league = get_object_or_404(League, slug=slug)
     standings = league.standings.all()
     
     return render(request, 'results/league_standings.html', {
