@@ -45,7 +45,7 @@
     padding-bottom: 7rem;
    
     color: white;
-    z-index: 3; /* Increased to sit above the fade */
+    z-index: 99; /* Increased to sit above the fade */
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -56,7 +56,7 @@
     width: 100%;
     line-height: 1.2;
     margin: 0;
-    z-index: 4; /* Ensure text is always on top */
+    z-index: 100; /* Ensure text is always on top */
   }
   .hero-info {
     width: 100%;
