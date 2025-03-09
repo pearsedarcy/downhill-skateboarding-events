@@ -202,7 +202,9 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'https://*.herokuapp.com',
-    'https://events.downhill-skateboarding.com',
+    'https://events.downhill-skateboarding.com'
+    'https://www.skatedownhills.com'
+    'https://skatedownhills.com',
 ])
 
 CSRF_USE_SESSIONS = False       # Store CSRF token in cookie, not session
