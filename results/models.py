@@ -3,11 +3,25 @@ from events.models import Event
 from profiles.models import UserProfile
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField
+from django_countries.fields import CountryField
 
 class League(models.Model):
+    CLASS_CHOICES = [
+        ('LOCAL', 'Local'),
+        ('REGIONAL', 'Regional'),
+        ('NATIONAL', 'National'),
+        ('CONTINENTAL', 'Continental'),
+        ('WORLD', 'World'),
+    ]
+
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, null=True)
     description = models.TextField(blank=True)
+    banner = CloudinaryField("banner", null=True, blank=True, help_text="Banner image for the league")
+    logo = CloudinaryField("logo", null=True, blank=True, help_text="Logo image for the league")
+    league_class = models.CharField(max_length=20, choices=CLASS_CHOICES, default='LOCAL', verbose_name="League Class")
+    country = CountryField(blank_label="(select country)", null=True, blank=True)
     events = models.ManyToManyField(Event, related_name='leagues')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
