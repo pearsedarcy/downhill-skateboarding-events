@@ -8,6 +8,16 @@ from search.models import SearchableModel
 
 
 class Event(SearchableModel):
+    CONTINENT_CHOICES = [
+        ('AF', 'Africa'),
+        ('AS', 'Asia'),
+        ('EU', 'Europe'),
+        ('NA', 'North America'),
+        ('SA', 'South America'),
+        ('OC', 'Oceania'),
+        ('AN', 'Antarctica'),
+    ]
+    
     organizer = models.ForeignKey(
         UserProfile,
         on_delete=models.CASCADE,
@@ -38,6 +48,12 @@ class Event(SearchableModel):
             ("Other", "Other"),
         ],
         default=None,
+    )
+    continent = models.CharField(
+        max_length=2,
+        choices=CONTINENT_CHOICES,
+        null=True,
+        blank=True,
     )
     skill_level = models.CharField(
         max_length=50,

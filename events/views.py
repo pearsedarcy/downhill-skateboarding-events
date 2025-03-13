@@ -44,6 +44,7 @@ def event_list(request):
     end_date = request.GET.get('end_date')
     event_type = request.GET.get('event_type')
     country = request.GET.get('country')
+    continent = request.GET.get('continent')
 
     if start_date:
         event_list = event_list.filter(start_date__gte=start_date)
@@ -53,6 +54,8 @@ def event_list(request):
         event_list = event_list.filter(event_type=event_type)
     if country:
         event_list = event_list.filter(location__country=country)
+    if continent:
+        event_list = event_list.filter(continent=continent)
     
     # Ordering
     event_list = event_list.order_by("-is_future", "start_date", "-created")
@@ -86,6 +89,7 @@ def event_list(request):
         'featured_events': featured_events,
         'event_types': Event._meta.get_field('event_type').choices,
         'countries': list(countries),
+        'continents': Event.CONTINENT_CHOICES,
     }
     return render(request, "events/event_list.html", context)
 

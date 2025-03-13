@@ -173,6 +173,10 @@ def league_list(request):
     if country_filter:
         leagues_queryset = leagues_queryset.filter(country=country_filter)
     
+    continent_filter = request.GET.get('continent')
+    if continent_filter:
+        leagues_queryset = leagues_queryset.filter(continent=continent_filter)
+    
     events_count_filter = request.GET.get('events_count')
     if events_count_filter:
         leagues_queryset = leagues_queryset.annotate(
@@ -193,5 +197,6 @@ def league_list(request):
     
     return render(request, 'results/league_list.html', {
         'leagues': leagues,
-        'countries': countries_list
+        'countries': countries_list,
+        'continents': League.CONTINENT_CHOICES
     })

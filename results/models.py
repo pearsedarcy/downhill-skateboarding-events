@@ -14,6 +14,16 @@ class League(models.Model):
         ('CONTINENTAL', 'Continental'),
         ('WORLD', 'World'),
     ]
+    
+    CONTINENT_CHOICES = [
+        ('AF', 'Africa'),
+        ('AS', 'Asia'),
+        ('EU', 'Europe'),
+        ('NA', 'North America'),
+        ('SA', 'South America'),
+        ('OC', 'Oceania'),
+        ('AN', 'Antarctica'),
+    ]
 
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, null=True)
@@ -22,6 +32,7 @@ class League(models.Model):
     logo = CloudinaryField("logo", null=True, blank=True, help_text="Logo image for the league")
     league_class = models.CharField(max_length=20, choices=CLASS_CHOICES, default='LOCAL', verbose_name="League Class")
     country = CountryField(blank_label="(select country)", null=True, blank=True)
+    continent = models.CharField(max_length=2, choices=CONTINENT_CHOICES, null=True, blank=True)
     events = models.ManyToManyField(Event, related_name='leagues')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -78,6 +78,13 @@
           <option value="{{ code }}" {% if request.GET.country == code %}selected{% endif %}>{{ name }}</option>
         {% endfor %}
       </select>
+
+      <select id="continent" name="continent" class="select select-sm select-bordered w-full sm:w-auto text-xs p-0 pl-2">
+        <option value="">Continent</option>
+        {% for code, name in continents %}
+          <option value="{{ code }}" {% if request.GET.continent == code %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
       
       <select id="events_count" name="events_count" class="select select-sm select-bordered w-full sm:w-auto text-xs p-0 pl-2">
         <option value="">Events Count</option>
