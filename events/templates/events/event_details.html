@@ -48,7 +48,7 @@
               </div>
               {% endif %}
               <div class="badge badge-primary">{{ event.event_type }}</div>
-              <div class="badge badge-secondary">{{ event.skill_level }}</div>
+              <!-- <div class="badge badge-secondary">{{ event.skill_level }}</div> -->
             </div>
           </div>
           
@@ -73,7 +73,7 @@
         </div>
 
         {# EVENT STATS #}
-        <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200 mt-4">
+        <!-- <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200 mt-4">
           {% include "events/partials/_event_stats.html" %}
           {% if event.league %}
           <div class="stat">
@@ -86,10 +86,10 @@
             <div class="stat-desc">{{ event.get_event_class_display }}</div>
           </div>
           {% endif %}
-        </div>
+        </div> -->
 
         {# EVENT DETAILS GRID #}
-        <div class="divider"></div>
+        <!-- <div class="divider"></div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {# SCHEDULE CARD #}
           <div class="card bg-base-200">
@@ -104,7 +104,7 @@
               {% include "events/partials/_location_info.html" %}
             </div>
           </div>
-        </div>
+        </div> -->
 
         {# RESULTS SECTION #}
         {% if event.has_results %}

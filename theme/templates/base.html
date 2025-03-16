@@ -61,7 +61,7 @@
               <li><a href="{% url 'events:event_list' %}" aria-label="Browse events"><i class="fas fa-calendar-alt"></i> Events</a></li>
               <!-- <li><a href="{% url 'results:results_list' %}" aria-label="View
               results"><i class="fas fa-trophy"></i>Results</a></li> -->
-              <li><a href="{% url 'results:league_list' %}" aria-label="View Leagues"><i class="fas fa-ranking-star"></i>Leagues</a></li>
+              <!-- <li><a href="{% url 'results:league_list' %}" aria-label="View Leagues"><i class="fas fa-ranking-star"></i>Leagues</a></li> -->
               <!-- <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li> -->
               <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
@@ -235,7 +235,7 @@
           <a href="/" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="Home"><i class="fas fa-home mr-4"></i> Home</a>
           <a href="{% url 'events:event_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-calendar-alt mr-4"></i> Events</a>
           <!-- <a href="{% url 'results:results_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-trophy mr-3"></i> Results</a> -->
-          <a href="{% url 'results:league_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="View Leagues"><i class="fas fa-ranking-star mr-3"></i> Leagues</a>
+          <!-- <a href="{% url 'results:league_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="View Leagues"><i class="fas fa-ranking-star mr-3"></i> Leagues</a> -->
           <!-- <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i> Users</a> -->
           <a href="{% url 'events:about' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i> About</a>
         </div>
@@ -268,7 +268,7 @@
       </div>
 
       <!-- Theme Toggle Button: Fixed position in bottom right -->
-      <div class="fixed bottom-4 right-4 z-50">
+      <!-- <div class="fixed bottom-4 right-4 z-50">
         <label class="relative inline-grid grid-cols-2 cursor-pointer rounded-lg">
           <input
             type="checkbox"
@@ -297,7 +297,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
         </label>
-      </div>
+      </div> -->
 
       <!-- Theme Control Script -->
       <script src="{% static 'js/theme-control.js' %}"></script>
