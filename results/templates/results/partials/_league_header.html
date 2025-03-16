@@ -1,0 +1,44 @@
+{% comment %}
+This partial displays the league header with:
+- Banner image (if exists)
+- League logo
+- League name and metadata badges based on league class
+{% endcomment %}
+
+<div class="relative">
+    <div class="h-48 sm:h-64 w-full overflow-hidden bg-base-300">
+        {% if league.banner %}
+        <img src="{{ league.banner.url }}" alt="{{ league.name }} banner" class="w-full h-full object-cover opacity-30">
+        {% endif %}
+        <div class="absolute inset-0 bg-gradient-to-t from-base-300 to-transparent"></div>
+    
+        <!-- League logo positioned at far right to avoid overlap -->
+        <div class="absolute bottom-4 sm:bottom-6 right-4 sm:right-8">
+            {% if league.logo %}
+            <img src="{{ league.logo.url }}" alt="{{ league.name }} logo" class="w-20 sm:w-28 h-20 sm:h-28 object-contain">
+            {% else %}
+            <div class="w-20 sm:w-28 h-20 sm:h-28 flex items-center justify-center">
+                <i class="fas fa-trophy text-4xl sm:text-5xl text-primary"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- League name and info with improved padding -->
+        <div class="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 pr-28 sm:pr-40">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-base-content drop-shadow-lg mb-2">{{ league.name }}</h1>
+            <div class="flex flex-wrap gap-2 sm:gap-3 mt-2 sm:mt-3">
+                <div class="badge badge-primary">{{ league.get_league_class_display }}</div>
+                {% if league.league_class == 'LOCAL' or league.league_class == 'REGIONAL' or league.league_class == 'NATIONAL' %}
+                    {% if league.country %}
+                    <div class="badge badge-secondary">{{ league.country.name }}</div>
+                    {% endif %}
+                {% elif league.league_class == 'CONTINENTAL' %}
+                    {% if league.continent %}
+                    <div class="badge badge-secondary">{{ league.get_continent_display }}</div>
+                    {% endif %}
+                {% endif %}
+                <div class="badge badge-ghost">{{ league.events.count }} Events</div>
+            </div>
+        </div>
+    </div>
+</div>

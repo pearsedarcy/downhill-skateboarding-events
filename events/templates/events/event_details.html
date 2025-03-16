@@ -75,6 +75,17 @@
         {# EVENT STATS #}
         <div class="stats stats-vertical lg:stats-horizontal shadow bg-base-200 mt-4">
           {% include "events/partials/_event_stats.html" %}
+          {% if event.league %}
+          <div class="stat">
+            <div class="stat-title">League</div>
+            <div class="stat-value text-primary">
+              <a href="{% url 'results:league_standings' event.league.slug %}" class="link link-hover">
+                {{ event.league.name }}
+              </a>
+            </div>
+            <div class="stat-desc">{{ event.get_event_class_display }}</div>
+          </div>
+          {% endif %}
         </div>
 
         {# EVENT DETAILS GRID #}

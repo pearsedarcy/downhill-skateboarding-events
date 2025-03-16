@@ -17,6 +17,14 @@ class Event(SearchableModel):
         ('OC', 'Oceania'),
         ('AN', 'Antarctica'),
     ]
+
+    CLASS_CHOICES = [
+        ('LOCAL', 'Local'),
+        ('REGIONAL', 'Regional'),
+        ('NATIONAL', 'National'),
+        ('CONTINENTAL', 'Continental'),
+        ('WORLD', 'World'),
+    ]
     
     organizer = models.ForeignKey(
         UserProfile,
@@ -49,6 +57,12 @@ class Event(SearchableModel):
         ],
         default=None,
     )
+    event_class = models.CharField(
+        max_length=20,
+        choices=CLASS_CHOICES,
+        default='LOCAL',
+        verbose_name="Event Class"
+    )
     continent = models.CharField(
         max_length=2,
         choices=CONTINENT_CHOICES,
@@ -63,6 +77,14 @@ class Event(SearchableModel):
             ("Advanced", "Advanced"),
             ("Professional", "Professional"),
         ],
+    )
+    league = models.ForeignKey(
+        'results.League',
+        on_delete=models.SET_NULL,
+        related_name='league_events',
+        null=True,
+        blank=True,
+        help_text="The league this event belongs to"
     )
     tickets_link = models.URLField(null=True, blank=True)
     cover_image = CloudinaryField("image", null=True, blank=True)

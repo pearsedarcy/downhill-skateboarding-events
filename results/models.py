@@ -7,14 +7,6 @@ from cloudinary.models import CloudinaryField
 from django_countries.fields import CountryField
 
 class League(models.Model):
-    CLASS_CHOICES = [
-        ('LOCAL', 'Local'),
-        ('REGIONAL', 'Regional'),
-        ('NATIONAL', 'National'),
-        ('CONTINENTAL', 'Continental'),
-        ('WORLD', 'World'),
-    ]
-    
     CONTINENT_CHOICES = [
         ('AF', 'Africa'),
         ('AS', 'Asia'),
@@ -30,10 +22,9 @@ class League(models.Model):
     description = models.TextField(blank=True)
     banner = CloudinaryField("banner", null=True, blank=True, help_text="Banner image for the league")
     logo = CloudinaryField("logo", null=True, blank=True, help_text="Logo image for the league")
-    league_class = models.CharField(max_length=20, choices=CLASS_CHOICES, default='LOCAL', verbose_name="League Class")
+    league_class = models.CharField(max_length=20, choices=Event.CLASS_CHOICES, default='LOCAL', verbose_name="League Class")
     country = CountryField(blank_label="(select country)", null=True, blank=True)
     continent = models.CharField(max_length=2, choices=CONTINENT_CHOICES, null=True, blank=True)
-    events = models.ManyToManyField(Event, related_name='leagues')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -44,6 +35,10 @@ class League(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def events(self):
+        return self.league_events.all()
 
 class Result(models.Model):
     RESULT_TYPES = [

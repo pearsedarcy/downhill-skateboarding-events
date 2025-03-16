@@ -1,0 +1,179 @@
+{% comment %}
+This partial displays the league standings table with:
+- Current standings if they exist
+- Example standings with placeholder data if no standings exist
+- Medal emojis for top 3 positions
+{% endcomment %}
+
+<div class="mb-4 sm:mb-8">
+    <div class="overflow-x-auto bg-base-100 p-3 sm:p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-2 sm:mb-4">Standings</h2>
+        <table class="table table-zebra w-full [&_td]:px-2 [&_td]:py-2 sm:[&_td]:p-4 [&_th]:px-2 [&_th]:py-2 sm:[&_th]:p-4">
+            <thead>
+                <tr>
+                    <th class="text-start">Position</th>
+                    <th class="text-start">Rider</th>
+                    <th class="text-end">Points</th>
+                    <th class="text-center">Events</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if standings %}
+                    {% for standing in standings %}
+                    <tr>
+                        <td class="whitespace-nowrap text-center">
+                            {% if standing.position == 1 %}
+                                <span title="Gold" class="text-base sm:text-xl">🥇</span>
+                            {% elif standing.position == 2 %}
+                                <span title="Silver" class="text-base sm:text-xl">🥈</span>
+                            {% elif standing.position == 3 %}
+                                <span title="Bronze" class="text-base sm:text-xl">🥉</span>
+                            {% else %}
+                                {{ standing.position }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'profiles:user_profile' standing.competitor.user.username %}" 
+                               class="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity">
+                                <div class="avatar">
+                                    <div class="mask mask-squircle w-8 h-8 sm:w-12 sm:h-12">
+                                        <img src="{{ standing.competitor.avatar.url|default:'/static/images/default-profile.webp' }}" 
+                                             alt="{{ standing.competitor.user.get_full_name }}" />
+                                    </div>
+                                </div>
+                                <div class="text-sm sm:text-base">{{ standing.competitor.user.get_full_name }}</div>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <div class="badge badge-primary">{{ standing.points }}</div>
+                        </td>
+                        <td class="text-center">
+                            <div class="badge badge-ghost">{{ standing.events_competed }}</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <div class="alert alert-info shadow-lg mb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <h3 class="font-bold">No Results Yet</h3>
+                        </div>
+                        <div class="text-sm mt-1">Once events in this league have results, the standings will appear here.</div>
+                    </div>
+                </div>
+                <div class="text-sm text-base-content/70 mb-4">Example of how standings will look:</div>
+                    <tr>
+                        <td colspan="4">
+                            <table class="table table-zebra w-full opacity-70">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center">
+                                            <span title="Gold" class="text-base sm:text-xl">🥇</span>
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center space-x-2 sm:space-x-3">
+                                                <div class="avatar">
+                                                    <div class="mask mask-squircle w-8 h-8 sm:w-12 sm:h-12">
+                                                        <img src="/static/images/default-profile.webp" alt="Example Rider" />
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm sm:text-base">Example Rider</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-primary">100</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-ghost">2</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center">
+                                            <span title="Silver" class="text-base sm:text-xl">🥈</span>
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center space-x-2 sm:space-x-3">
+                                                <div class="avatar">
+                                                    <div class="mask mask-squircle w-8 h-8 sm:w-12 sm:h-12">
+                                                        <img src="/static/images/default-profile.webp" alt="Another Rider" />
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm sm:text-base">Another Rider</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-primary">85</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-ghost">2</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center">
+                                            <span title="Bronze" class="text-base sm:text-xl">🥉</span>
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center space-x-2 sm:space-x-3">
+                                                <div class="avatar">
+                                                    <div class="mask mask-squircle w-8 h-8 sm:w-12 sm:h-12">
+                                                        <img src="/static/images/default-profile.webp" alt="Third Rider" />
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm sm:text-base">Third Rider</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-primary">70</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-ghost">2</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center">4</td>
+                                        <td>
+                                            <div class="flex items-center space-x-2 sm:space-x-3">
+                                                <div class="avatar">
+                                                    <div class="mask mask-squircle w-8 h-8 sm:w-12 sm:h-12">
+                                                        <img src="/static/images/default-profile.webp" alt="Fourth Rider" />
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm sm:text-base">Fourth Rider</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-primary">55</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-ghost">1</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center">5</td>
+                                        <td>
+                                            <div class="flex items-center space-x-2 sm:space-x-3">
+                                                <div class="avatar">
+                                                    <div class="mask mask-squircle w-8 h-8 sm:w-12 sm:h-12">
+                                                        <img src="/static/images/default-profile.webp" alt="Fifth Rider" />
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm sm:text-base">Fifth Rider</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-primary">40</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="badge badge-ghost">1</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>

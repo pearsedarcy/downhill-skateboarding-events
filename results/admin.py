@@ -4,9 +4,14 @@ from unfold.admin import ModelAdmin
 
 @admin.register(League)
 class LeagueAdmin(ModelAdmin):
-    list_display = ('name', 'created_at')
-    filter_horizontal = ('events',)
+    list_display = ('name', 'league_class', 'country', 'continent', 'event_count', 'created_at')
+    list_filter = ('league_class', 'country', 'continent')
     search_fields = ('name',)
+    readonly_fields = ('event_count',)
+    
+    def event_count(self, obj):
+        return obj.league_events.count()
+    event_count.short_description = 'Events'
 
 @admin.register(Result)
 class ResultAdmin(ModelAdmin):

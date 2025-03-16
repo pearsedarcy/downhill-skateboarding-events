@@ -57,6 +57,26 @@ class EventForm(forms.ModelForm):
         self.fields['cost'].required = False
         self.fields['max_attendees'].required = False
         self.fields['published'].initial = True
+        self.fields['continent'].required = False
+        self.fields['league'].required = False
+        
+        # Add league_class data to league choices
+        if 'league' in self.fields:
+            choices = []
+            for league in self.fields['league'].queryset:
+                choices.append((
+                    league.id,
+                    league.name,
+                    {'data-league-class': league.league_class}
+                ))
+            self.fields['league'].widget.choices = [('', '--------')] + [
+                (id_, name) for id_, name, _ in choices
+            ]
+            # Add data attributes to the option elements
+            self.fields['league'].widget.attrs['data-league-classes'] = {
+                str(id_): attrs['data-league-class']
+                for id_, _, attrs in choices
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -101,9 +121,9 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = [
-            'title', 'description', 'event_type', 'skill_level',
+            'title', 'description', 'event_type', 'event_class', 'skill_level',
             'start_date', 'end_date', 'tickets_link', 'cover_image',
-            'cost', 'max_attendees', 'published'
+            'cost', 'max_attendees', 'published', 'league', 'continent'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -115,6 +135,9 @@ class EventForm(forms.ModelForm):
                 'placeholder': 'Describe your event'
             }),
             'event_type': forms.Select(attrs={
+                'class': 'select select-bordered select-primary w-full'
+            }),
+            'event_class': forms.Select(attrs={
                 'class': 'select select-bordered select-primary w-full'
             }),
             'skill_level': forms.Select(attrs={
@@ -150,5 +173,11 @@ class EventForm(forms.ModelForm):
             'published': forms.CheckboxInput(attrs={
                 'class': 'toggle toggle-primary',
                 'role': 'switch'
+            }),
+            'league': forms.Select(attrs={
+                'class': 'select select-bordered select-primary w-full'
+            }),
+            'continent': forms.Select(attrs={
+                'class': 'select select-bordered select-primary w-full'
             })
         }
