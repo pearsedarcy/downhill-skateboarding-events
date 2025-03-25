@@ -4,7 +4,7 @@ window.addEventListener('load', function() {
     const swiper = new Swiper('.hero-slider', {
       loop: true,
       autoplay: {
-        delay: 5000,
+        delay: 3000,
         disableOnInteraction: false,
       },
       effect: 'fade',
