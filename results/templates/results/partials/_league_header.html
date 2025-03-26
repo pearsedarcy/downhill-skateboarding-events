@@ -4,11 +4,17 @@ This partial displays the league header with:
 - League logo
 - League name and metadata badges based on league class
 {% endcomment %}
+<!-- Base template extension and static files loading -->
+{% load static %}
+{% load countries %}
+{% load i18n %}
 
 <div class="relative">
     <div class="h-48 sm:h-64 w-full overflow-hidden bg-base-300">
         {% if league.banner %}
         <img src="{{ league.banner.url }}" alt="{{ league.name }} banner" class="w-full h-full object-cover opacity-30">
+        {% else %}
+        <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}" alt="Default League Banner" class="w-full h-full object-cover opacity-30">
         {% endif %}
         <div class="absolute inset-0 bg-gradient-to-t from-base-300 to-transparent"></div>
     

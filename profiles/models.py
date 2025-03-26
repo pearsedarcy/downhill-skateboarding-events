@@ -9,6 +9,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from cloudinary.models import CloudinaryField
 from search.models import SearchableModel
+from django_countries.fields import CountryField
 
 
 class UserProfile(SearchableModel):
@@ -38,13 +39,20 @@ class UserProfile(SearchableModel):
         blank=True,
         help_text="Your Instagram handle"
     )
+    country = CountryField(
+        blank_label="(select country)", 
+        null=True, 
+        blank=True,
+        help_text="Your country of residence"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    search_fields = ['user__username', 'bio', 'location', 'skills']
+    search_fields = ['user__username', 'bio', 'country', 'location', 'skills']
     search_field_weights = {
         'user__username': 'A',
         'bio': 'B',
+        'country': 'C',
         'location': 'C',
         'skills': 'C'
     }

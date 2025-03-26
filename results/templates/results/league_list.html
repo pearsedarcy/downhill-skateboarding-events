@@ -56,47 +56,53 @@
 <!-- Main container -->
 <div class="container mx-auto px-4 max-w-[1400px] relative z-20">
   <!-- Filter Form -->
-  <!-- <form method="get" class="flex flex-wrap gap-2 items-center mb-4 rounded-lg">
+  <form method="get" class="flex flex-wrap gap-2 items-center mb-4 rounded-lg">
     <div class="flex-1 flex flex-wrap gap-2 items-center">
-      <input type="text" id="name" name="name" 
-        class="input input-sm input-bordered w-full sm:w-auto text-xs placeholder:text-xs p-0 pl-2" 
-        placeholder="League name"
-        value="{{ request.GET.name|default:'' }}">
-      
-      <select id="league_class" name="league_class" class="select select-sm select-bordered w-full sm:w-auto text-xs p-0 pl-2">
-        <option value="">League Class</option>
-        <option value="LOCAL" {% if request.GET.league_class == 'LOCAL' %}selected{% endif %}>Local</option>
-        <option value="REGIONAL" {% if request.GET.league_class == 'REGIONAL' %}selected{% endif %}>Regional</option>
-        <option value="NATIONAL" {% if request.GET.league_class == 'NATIONAL' %}selected{% endif %}>National</option>
-        <option value="CONTINENTAL" {% if request.GET.league_class == 'CONTINENTAL' %}selected{% endif %}>Continental</option>
-        <option value="WORLD" {% if request.GET.league_class == 'WORLD' %}selected{% endif %}>World</option>
-      </select>
+        <select id="year" name="year" class="select select-sm select-bordered w-20 sm:w-20 text-xs p-0 pl-2">
+            {% for year in available_years %}
+                <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+        </select>
 
-      <select id="country" name="country" class="select select-sm select-bordered w-full sm:w-auto text-xs p-0 pl-2">
-        <option value="">Country</option>
-        {% for code, name in countries %}
-          <option value="{{ code }}" {% if request.GET.country == code %}selected{% endif %}>{{ name }}</option>
-        {% endfor %}
-      </select>
+        <input type="text" id="name" name="name" 
+            class="input input-sm input-bordered w-24 sm:w-40 text-xs placeholder:text-xs p-0 pl-2" 
+            placeholder="League name"
+            value="{{ request.GET.name|default:'' }}">
+        
+        <select id="league_class" name="league_class" class="select select-sm select-bordered w-20 sm:w-40 text-xs p-0 pl-2">
+            <option value="">League Class</option>
+            <option value="LOCAL" {% if request.GET.league_class == 'LOCAL' %}selected{% endif %}>Local</option>
+            <option value="REGIONAL" {% if request.GET.league_class == 'REGIONAL' %}selected{% endif %}>Regional</option>
+            <option value="NATIONAL" {% if request.GET.league_class == 'NATIONAL' %}selected{% endif %}>National</option>
+            <option value="CONTINENTAL" {% if request.GET.league_class == 'CONTINENTAL' %}selected{% endif %}>Continental</option>
+            <option value="WORLD" {% if request.GET.league_class == 'WORLD' %}selected{% endif %}>World</option>
+        </select>
 
-      <select id="continent" name="continent" class="select select-sm select-bordered w-full sm:w-auto text-xs p-0 pl-2">
-        <option value="">Continent</option>
-        {% for code, name in continents %}
-          <option value="{{ code }}" {% if request.GET.continent == code %}selected{% endif %}>{{ name }}</option>
-        {% endfor %}
-      </select>
-      
-      <select id="events_count" name="events_count" class="select select-sm select-bordered w-full sm:w-auto text-xs p-0 pl-2">
-        <option value="">Events Count</option>
-        <option value="1" {% if request.GET.events_count == '1' %}selected{% endif %}>At least 1</option>
-        <option value="5" {% if request.GET.events_count == '5' %}selected{% endif %}>At least 5</option>
-        <option value="10" {% if request.GET.events_count == '10' %}selected{% endif %}>At least 10</option>
-      </select>
-      
-      <button type="submit" class="btn btn-sm btn-primary text-xs">Filter</button>
-      <a href="{% url 'results:league_list' %}" class="btn btn-sm btn-ghost text-xs">Clear</a>
+        <select id="country" name="country" class="select select-sm select-bordered w-20 sm:w-40 text-xs p-0 pl-2">
+            <option value="">Country</option>
+            {% for code, name in countries %}
+                <option value="{{ code }}" {% if request.GET.country == code %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+
+        <select id="continent" name="continent" class="select select-sm select-bordered w-20 sm:w-40 text-xs p-0 pl-2">
+            <option value="">Continent</option>
+            {% for code, name in continents %}
+                <option value="{{ code }}" {% if request.GET.continent == code %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+        
+        <select id="events_count" name="events_count" class="select select-sm select-bordered w-20 sm:w-40 text-xs p-0 pl-2">
+            <option value="">Events Count</option>
+            <option value="1" {% if request.GET.events_count == '1' %}selected{% endif %}>At least 1</option>
+            <option value="5" {% if request.GET.events_count == '5' %}selected{% endif %}>At least 5</option>
+            <option value="10" {% if request.GET.events_count == '10' %}selected{% endif %}>At least 10</option>
+        </select>
+        
+        <button type="submit" class="btn btn-sm btn-primary text-xs">Filter</button>
+        <a href="{% url 'results:league_list' %}" class="btn btn-sm btn-ghost text-xs">Clear</a>
     </div>
-  </form> -->
+</form>
 
   <!-- League Cards -->
   {% if leagues %}

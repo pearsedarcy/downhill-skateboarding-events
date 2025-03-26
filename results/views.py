@@ -5,6 +5,7 @@ from django.contrib import messages
 import csv
 import io
 from datetime import datetime
+from django.utils import timezone
 from .models import Result, TimeTrialResult, KnockoutResult, League, LeagueStanding
 from events.models import Event
 from profiles.models import UserProfile
@@ -129,13 +130,35 @@ def view_results(request, event_id):
     
     return render(request, 'results/view_results.html', context)
 
+def get_default_years():
+    current_year = timezone.now().year
+    return range(current_year, current_year - 10, -1)
+
 def league_standings(request, slug):
     league = get_object_or_404(League, slug=slug)
-    standings = league.standings.all()
+    
+    # Get the year from query params or default to current year
+    year = request.GET.get('year', timezone.now().year)
+    try:
+        year = int(year)
+    except (TypeError, ValueError):
+        year = timezone.now().year
+    
+    # Get all years that have standings for this league
+    db_years = LeagueStanding.objects.filter(
+        league=league
+    ).values_list('year', flat=True).distinct()
+    
+    # Combine database years with default years
+    available_years = sorted(set(list(db_years) + list(get_default_years())), reverse=True)
+    
+    standings = league.standings.filter(year=year)
     
     return render(request, 'results/league_standings.html', {
         'league': league,
-        'standings': standings
+        'standings': standings,
+        'current_year': year,
+        'available_years': available_years
     })
 
 def results_list(request):
@@ -159,6 +182,13 @@ def results_list(request):
 def league_list(request):
     # Start with all leagues
     leagues_queryset = League.objects.all()
+    
+    # Get the year from query params or default to current year
+    year = request.GET.get('year', timezone.now().year)
+    try:
+        year = int(year)
+    except (TypeError, ValueError):
+        year = timezone.now().year
     
     # Apply filters if provided
     name_filter = request.GET.get('name')
@@ -188,9 +218,17 @@ def league_list(request):
         'standings__competitor__user'
     )
     
-    # Add top 3 standings to each league
+    # Add top 3 standings for the selected year to each league
     for league in leagues:
-        league.top_standings = league.standings.all()[:3]
+        league.top_standings = league.standings.filter(year=year)[:3]
+    
+    # Get all years that have standings plus default years
+    db_years = LeagueStanding.objects.values_list(
+        'year', flat=True
+    ).distinct()
+    
+    # Combine database years with default years
+    available_years = sorted(set(list(db_years) + list(get_default_years())), reverse=True)
     
     # Get all countries for the filter dropdown
     countries_list = list(countries)
@@ -198,5 +236,7 @@ def league_list(request):
     return render(request, 'results/league_list.html', {
         'leagues': leagues,
         'countries': countries_list,
-        'continents': League.CONTINENT_CHOICES
+        'continents': League.CONTINENT_CHOICES,
+        'current_year': year,
+        'available_years': available_years
     })

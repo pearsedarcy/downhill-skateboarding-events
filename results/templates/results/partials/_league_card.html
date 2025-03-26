@@ -10,6 +10,10 @@
         <div class="absolute inset-0 z-0">
           <img src="{{ league.banner.url }}" alt="" class="w-full h-full object-cover opacity-70">
         </div>
+        {% else %}
+        <div class="absolute inset-0 z-0">
+          <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}" alt="Default League Card" class="w-full h-full object-cover opacity-70">
+        </div>
         {% endif %}
 
         <!-- League logo positioned at bottom right of image -->
@@ -37,7 +41,7 @@
 
           <div class="flex-1 overflow-auto px-4 pb-4">
             <table class="table table-sm w-full">
-              <thead class="sticky top-0 bg-base-200 bg-opacity-90">
+              <thead class="sticky top-0 ">
                 <tr>
                   <th class="w-8">#</th>
                   <th>Rider</th>

@@ -101,11 +101,20 @@ WSGI_APPLICATION = "downhill_skateboarding_events.wsgi.application"
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=env('DATABASE_URL', default='sqlite:///db.sqlite3'),
+        default=env('NEON_DB'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    ),
+    'testing': dj_database_url.config(
+        default=env('NEON_DB'),
         conn_max_age=600,
         conn_health_checks=True,
     )
 }
+
+# Use the testing database when DEBUG is True
+if DEBUG:
+    DATABASES['default'] = DATABASES['testing']
 
 # Tailwind Configuration
 TAILWIND_APP_NAME = 'theme'

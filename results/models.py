@@ -3,8 +3,12 @@ from events.models import Event
 from profiles.models import UserProfile
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
+from django.utils import timezone
 from cloudinary.models import CloudinaryField
 from django_countries.fields import CountryField
+
+def current_year():
+    return timezone.now().year
 
 class League(models.Model):
     CONTINENT_CHOICES = [
@@ -93,6 +97,11 @@ class LeagueStanding(models.Model):
     points = models.IntegerField(default=0)
     position = models.PositiveIntegerField(null=True, blank=True)
     events_competed = models.PositiveIntegerField(default=0)
+    year = models.PositiveIntegerField(default=current_year)  # Using callable instead of lambda
 
     class Meta:
         ordering = ['-points', 'position']
+        unique_together = ['league', 'competitor', 'year']  # Add unique constraint
+
+    def __str__(self):
+        return f"{self.competitor} - {self.league} ({self.year}): {self.points}pts"

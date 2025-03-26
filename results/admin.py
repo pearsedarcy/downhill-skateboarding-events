@@ -34,7 +34,7 @@ class KnockoutResultAdmin(ModelAdmin):
 
 @admin.register(LeagueStanding)
 class LeagueStandingAdmin(ModelAdmin):
-    list_display = ('league', 'competitor', 'points', 'position', 'events_competed')
-    list_filter = ('league',)
+    list_display = ('league', 'competitor', 'points', 'position', 'events_competed', 'year')
+    list_filter = ('league', 'year')
     search_fields = ('competitor__user__username',)
-    ordering = ('-points',)
+    ordering = ('year', '-points')
