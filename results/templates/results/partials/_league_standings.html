@@ -6,9 +6,10 @@ This partial displays the league standings table with:
 {% endcomment %}
 
 <div class="mb-4 sm:mb-8">
-    <div class="overflow-x-auto bg-base-100 p-3 sm:p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-2 sm:mb-4">Standings</h2>
-        <table class="table table-zebra w-full [&_td]:px-2 [&_td]:py-2 sm:[&_td]:p-4 [&_th]:px-2 [&_th]:py-2 sm:[&_th]:p-4">
+    <!-- <div class="overflow-x-auto bg-base-100 p-3 sm:p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-2 sm:mb-4">Standings</h2> -->
+                        {% include "results/partials/_eurotour_25_standings.html" %}
+        <!-- <table class="table table-zebra w-full [&_td]:px-2 [&_td]:py-2 sm:[&_td]:p-4 [&_th]:px-2 [&_th]:py-2 sm:[&_th]:p-4">
             <thead>
                 <tr>
                     <th class="text-start">Position</th>
@@ -52,8 +53,9 @@ This partial displays the league standings table with:
                         </td>
                     </tr>
                     {% endfor %}
-                {% else %}
-                <div class="alert alert-info shadow-lg mb-4">
+                {% else %} -->
+
+                <!-- <div class="alert alert-info shadow-lg mb-4">
                     <div>
                         <div class="flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -174,6 +176,6 @@ This partial displays the league standings table with:
                     </tr>
                 {% endif %}
             </tbody>
-        </table>
-    </div>
+        </table> -->
+    <!-- </div> -->
 </div>
