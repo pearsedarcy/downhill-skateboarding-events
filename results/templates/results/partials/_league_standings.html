@@ -6,9 +6,21 @@ This partial displays the league standings table with:
 {% endcomment %}
 
 <div class="mb-4 sm:mb-8">
-    <!-- <div class="overflow-x-auto bg-base-100 p-3 sm:p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-2 sm:mb-4">Standings</h2> -->
-                        {% include "results/partials/_eurotour_25_standings.html" %}
+    <!-- Filter Form -->
+    <form method="get" id="divisionForm" class="flex flex-wrap gap-2 items-center mb-4 rounded-lg">
+        <div class="flex-1 flex flex-wrap gap-2 items-center">
+            <select id="division" name="division" class="select select-sm select-bordered w-40 text-xs p-0 pl-2" onchange="this.form.submit()">
+                <option value="open" {% if request.GET.division != 'womens' %}selected{% endif %}>Open Skate</option>
+                <option value="womens" {% if request.GET.division == 'womens' %}selected{% endif %}>Women's Skate</option>
+            </select>
+        </div>
+    </form>
+
+    {% if request.GET.division == 'womens' %}
+        {% include "results/partials/_eurotour_25_womens_standings.html" %}
+    {% else %}
+        {% include "results/partials/_eurotour_25_standings.html" %}
+    {% endif %}
         <!-- <table class="table table-zebra w-full [&_td]:px-2 [&_td]:py-2 sm:[&_td]:p-4 [&_th]:px-2 [&_th]:py-2 sm:[&_th]:p-4">
             <thead>
                 <tr>
