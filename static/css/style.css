@@ -1,20 +1,58 @@
-.input input {
-  border: none !important;
-  outline: none !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  box-shadow: none !important;
-  background: none;
+input input {
+    background-color: transparent !important;
+    color: hsl(var(--bc)) !important;
+    border: none !important;
+    border-width: 0 !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
 }
 
+/* Theme-aware autofill styles */
 .input input:-webkit-autofill,
 .input input:-webkit-autofill:hover,
-.input input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #282a36 inset !important;
+.input input:-webkit-autofill:focus,
+.input input:-webkit-autofill:active {
+    -webkit-text-fill-color: hsl(var(--bc)) !important;
+    -webkit-box-shadow: 0 0 0px 1000px hsl(var(--b1)) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: hsl(var(--bc));
+    border: none !important;
+    border-width: 0 !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: transparent !important;
 }
 
+/* Dark theme specific styles */
+[data-theme]:not([data-theme="light"]) .input input:-webkit-autofill,
+[data-theme]:not([data-theme="light"]) .input input:-webkit-autofill:hover,
+[data-theme]:not([data-theme="light"]) .input input:-webkit-autofill:focus,
+[data-theme]:not([data-theme="light"]) .input input:-webkit-autofill:active {
+    -webkit-text-fill-color: hsl(var(--bc)) !important;
+    -webkit-box-shadow: 0 0 0px 1000px hsl(var(--b1)) inset !important;
+}
+
+/* Ensure input styling matches theme */
+.input {
+    background-color: hsl(var(--b1));
+    color: hsl(var(--bc));
+}
+
+.input:focus {
+    outline-color: hsl(var(--p)) !important;
+}
+
+/* Ensure placeholder text has proper contrast */
+.input::placeholder {
+    color: hsl(var(--bc) / 0.5);
+}
+
+
+
 .checkbox {
-  background-color: #282a36 !important;
+      background-color: hsl(var(--b1));
 }
 
 .logo-light {
