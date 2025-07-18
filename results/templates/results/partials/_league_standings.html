@@ -9,18 +9,48 @@ This partial displays the league standings table with:
     <!-- Filter Form -->
     <form method="get" id="divisionForm" class="flex flex-wrap gap-2 items-center mb-4 rounded-lg">
         <div class="flex-1 flex flex-wrap gap-2 items-center">
-            <select id="division" name="division" class="select select-sm select-bordered w-40 text-xs p-0 pl-2" onchange="this.form.submit()">
-                <option value="open" {% if request.GET.division != 'womens' %}selected{% endif %}>Open Skate</option>
-                <option value="womens" {% if request.GET.division == 'womens' %}selected{% endif %}>Women's Skate</option>
+            <select id="discipline" name="discipline" class="select select-sm select-bordered w-40 text-xs p-0 pl-2" onchange="document.getElementById('class').value='open'; this.form.submit()">
+                <option value="skate" {% if request.GET.discipline == 'skate' or not request.GET.discipline %}selected{% endif %}>Skate</option>
+                <option value="luge" {% if request.GET.discipline == 'luge' %}selected{% endif %}>Luge</option>
+                <option value="inline" {% if request.GET.discipline == 'inline' %}selected{% endif %}>Inline</option>
+                <option value="trike" {% if request.GET.discipline == 'trike' %}selected{% endif %}>Trike</option>
+                <option value="adaptive" {% if request.GET.discipline == 'adaptive' %}selected{% endif %}>Adaptive</option>
+            </select>
+            <select id="class" name="class" class="select select-sm select-bordered w-40 text-xs p-0 pl-2" onchange="this.form.submit()">
+                <option value="open" {% if request.GET.class == 'open' or not request.GET.class %}selected{% endif %}>Open</option>
+                <option value="womens" {% if request.GET.class == 'womens' %}selected{% endif %}>Women's</option>
+                <option value="masters" {% if request.GET.class == 'masters' %}selected{% endif %}>Masters</option>
             </select>
         </div>
     </form>
 
-    {% if request.GET.division == 'womens' %}
-        {% include "results/partials/_eurotour_25_womens_standings.html" %}
-    {% else %}
-        {% include "results/partials/_eurotour_25_standings.html" %}
-    {% endif %}
+    {% with discipline=request.GET.discipline|default:'skate' class=request.GET.class|default:'open' %}
+        {% if discipline == 'skate' %}
+            {% if class == 'womens' %}
+                {% include "results/partials/_eurotour_25_womens_standings.html" %}
+            {% elif class == 'masters' %}
+                {% include "results/partials/_eurotour_25_masters_skate_standings.html" %}
+            {% else %}
+                {% include "results/partials/_eurotour_25_standings.html" %}
+            {% endif %}
+        {% elif discipline == 'luge' %}
+            {% if class == 'womens' %}
+                {% include "results/partials/_eurotour_25_womens_luge_standings.html" %}
+            {% elif class == 'masters' %}
+                {% include "results/partials/_eurotour_25_masters_luge_standings.html" %}
+            {% else %}
+                {% include "results/partials/_eurotour_25_luge_standings.html" %}
+            {% endif %}
+        {% elif discipline == 'inline' %}
+            {% include "results/partials/_eurotour_25_inline_standings.html" %}
+        {% elif discipline == 'trike' %}
+            {% include "results/partials/_eurotour_25_trike_standings.html" %}
+        {% elif discipline == 'adaptive' %}
+            {% include "results/partials/_eurotour_25_adaptive_standings.html" %}
+        {% else %}
+            {% include "results/partials/_eurotour_25_standings.html" %}
+        {% endif %}
+    {% endwith %}
         <!-- <table class="table table-zebra w-full [&_td]:px-2 [&_td]:py-2 sm:[&_td]:p-4 [&_th]:px-2 [&_th]:py-2 sm:[&_th]:p-4">
             <thead>
                 <tr>
