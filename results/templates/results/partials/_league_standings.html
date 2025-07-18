@@ -6,6 +6,7 @@ This partial displays the league standings table with:
 {% endcomment %}
 
 <div class="mb-4 sm:mb-8">
+    {% with discipline=request.GET.discipline|default:'skate' class=request.GET.class|default:'open' %}
     <!-- Filter Form -->
     <form method="get" id="divisionForm" class="flex flex-wrap gap-2 items-center mb-4 rounded-lg">
         <div class="flex-1 flex flex-wrap gap-2 items-center">
@@ -16,15 +17,17 @@ This partial displays the league standings table with:
                 <option value="trike" {% if request.GET.discipline == 'trike' %}selected{% endif %}>Trike</option>
                 <option value="adaptive" {% if request.GET.discipline == 'adaptive' %}selected{% endif %}>Adaptive</option>
             </select>
+            {% if discipline == 'skate' or discipline == 'luge' %}
             <select id="class" name="class" class="select select-sm select-bordered w-40 text-xs p-0 pl-2" onchange="this.form.submit()">
                 <option value="open" {% if request.GET.class == 'open' or not request.GET.class %}selected{% endif %}>Open</option>
                 <option value="womens" {% if request.GET.class == 'womens' %}selected{% endif %}>Women's</option>
                 <option value="masters" {% if request.GET.class == 'masters' %}selected{% endif %}>Masters</option>
             </select>
+            {% else %}
+            <input type="hidden" id="class" name="class" value="open">
+            {% endif %}
         </div>
     </form>
-
-    {% with discipline=request.GET.discipline|default:'skate' class=request.GET.class|default:'open' %}
         {% if discipline == 'skate' %}
             {% if class == 'womens' %}
                 {% include "results/partials/_eurotour_25_womens_standings.html" %}
