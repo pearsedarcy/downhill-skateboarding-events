@@ -1,8 +1,15 @@
 {% load static tailwind_tags custom_filters %}
 <!DOCTYPE html>
-<html lang="en" data-theme="">
+<html lang="en">
   <!-- Head Section: Meta tags, CSS, and initial scripts -->
   <head>
+    <script>
+      // Immediately set the theme before the page renders
+      (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <title>{% block title %}Downhill Skateboarding Events{% endblock %}</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

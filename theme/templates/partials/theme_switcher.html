@@ -32,15 +32,12 @@
   
 // DaisyUI theme swapper logic for checkmark visibility and theme persistence
 // Define dark themes that need light logo
-const darkThemes = ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'night', 'coffee', 'aqua',];
+const darkThemes = ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'night', 'coffee', 'aqua'];
 
-function setTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
-  
-  // Update logo based on theme
+function updateLogoForTheme(theme) {
   const logo = document.querySelector('img[alt="SDH Logo"]');
   if (logo) {
+    // Set the initial class based on the current theme
     if (darkThemes.includes(theme)) {
       logo.classList.remove('logo-dark');
       logo.classList.add('logo-light');
@@ -51,10 +48,22 @@ function setTheme(theme) {
   }
 }
 
+function setTheme(theme) {
+  // Update theme attribute and storage
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  
+  // Update logo classes
+  updateLogoForTheme(theme);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const savedTheme = localStorage.getItem('theme') || 'light';
-  setTheme(savedTheme);
-  // Hide all checkmarks, show the one for the saved theme
+  // Don't need to call setTheme here since theme is already set in <head>,
+  // just need to update the logo and checkmarks
+  updateLogoForTheme(savedTheme);
+  
+  // Update checkmarks to match current theme
   document.querySelectorAll('[data-set-theme]').forEach(btn => {
     btn.querySelector('[data-theme-checkmark]').style.display = 'none';
     if (btn.getAttribute('data-set-theme') === savedTheme) {
