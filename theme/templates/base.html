@@ -12,15 +12,16 @@
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/sdh-favicon.ico' %}">
     {% tailwind_css %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <script src="{% static 'js/theme-init.js' %}"></script>
+    <!-- <script src="{% static 'js/theme-init.js' %}"></script> -->
     <style>
       .logo-light {
-        filter: invert(1);
+        filter: brightness(0) invert(1); /* Makes the logo white */
       }
       .logo-dark {
-        filter: invert(0);
+        filter: brightness(0) invert(0); /* Makes the logo black */
       }
     </style>
+    
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -82,7 +83,7 @@
               <img
                 src="{% static 'images/sdh-icon.webp' %}"
                 alt="SDH Logo"
-                class="logo-light"
+                class="logo-dark"
                 style="width: 50px; height: auto; min-width: 50px;"
               />
               </a>
@@ -162,6 +163,8 @@
               <button>close</button>
             </form>
           </dialog> -->
+          <!-- DaisyUI Theme Swapper Dropdown -->
+          {% include "partials/theme_switcher.html" %}
           <!-- Add Post Button -->
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-sm btn-bordered
@@ -310,7 +313,35 @@
       </div> -->
 
       <!-- Theme Control Script -->
-      <script src="{% static 'js/theme-control.js' %}"></script>
+      <!-- <script src="{% static 'js/theme-control.js' %}"></script> -->
+      <!-- DaisyUI Theme Switcher Script  -->
+      <script>
+      const darkThemes = ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'night', 'coffee', 'dim', 'sunset'];
+      
+      function updateLogoTheme(theme) {
+        const logo = document.querySelector('img[alt="SDH Logo"]');
+        if (logo) {
+          if (darkThemes.includes(theme)) {
+            logo.classList.remove('logo-dark');
+            logo.classList.add('logo-light');
+          } else {
+            logo.classList.remove('logo-light');
+            logo.classList.add('logo-dark');
+          }
+        }
+      }
+
+      function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        updateLogoTheme(theme);
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+      });
+      </script>
       <script>
         document.addEventListener('keydown', function(e) {
           // Check for Alt + S
