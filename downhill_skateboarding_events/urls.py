@@ -28,6 +28,7 @@ urlpatterns = [
     path("", include("events.urls", namespace="events")),
     path("search/", include("search.urls", namespace="search")),
     path('results/', include('results.urls', namespace='results')),
+    path('crews/', include('crews.urls', namespace='crews')),
 ]
 
 if settings.DEBUG:

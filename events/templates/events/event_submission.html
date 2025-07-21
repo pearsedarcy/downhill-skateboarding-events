@@ -130,16 +130,19 @@
               <div class="form-control">
                 <label class="label">
                   <span class="label-text flex items-center gap-2 text-primary">
-                    <i class="fas fa-tag"></i>
-                    League
+                    <i class="fas fa-users"></i>
+                    Organizing Crew
                   </span>
                 </label>
-                {{ form.league }}
-                {% if form.league.errors %}
+                {{ form.created_by_crew }}
+                {% if form.created_by_crew.errors %}
                 <label class="label">
-                  <span class="label-text-alt text-error">{{ form.league.errors|join:", " }}</span>
+                  <span class="label-text-alt text-error">{{ form.created_by_crew.errors|join:", " }}</span>
                 </label>
                 {% endif %}
+                <label class="label">
+                  <span class="label-text-alt">{{ form.created_by_crew.help_text }}</span>
+                </label>
               </div>
             </div>
 
@@ -591,34 +594,6 @@ document.addEventListener('DOMContentLoaded', function() {
         countrySelect.addEventListener('change', updateContinent);
         // Set initial continent if country is already selected
         updateContinent();
-    }
-});
-
-// Function to update event class based on selected league
-function updateEventClass() {
-    const leagueSelect = document.getElementById('{{ form.league.id_for_label }}');
-    const eventClassSelect = document.getElementById('{{ form.event_class.id_for_label }}');
-    
-    if (leagueSelect && eventClassSelect) {
-        const selectedLeague = leagueSelect.value;
-        const leagueClasses = JSON.parse(leagueSelect.getAttribute('data-league-classes') || '{}');
-        
-        if (selectedLeague && leagueClasses[selectedLeague]) {
-            eventClassSelect.value = leagueClasses[selectedLeague];
-            eventClassSelect.disabled = true;  // Lock the event class when league is selected
-        } else {
-            eventClassSelect.disabled = false; // Enable event class selection when no league is selected
-        }
-    }
-}
-
-// Add event listener to league select
-document.addEventListener('DOMContentLoaded', function() {
-    const leagueSelect = document.getElementById('{{ form.league.id_for_label }}');
-    if (leagueSelect) {
-        leagueSelect.addEventListener('change', updateEventClass);
-        // Set initial event class if league is already selected
-        updateEventClass();
     }
 });
 </script>

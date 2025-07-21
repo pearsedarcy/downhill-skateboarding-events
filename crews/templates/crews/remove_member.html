@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Remove {{ member_to_remove.user.get_full_name|default:member_to_remove.user.username }} - {{ crew.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'crews:list' %}">Crews</a></li>
+            <li><a href="{% url 'crews:detail' crew.slug %}">{{ crew.name }}</a></li>
+            <li><a href="{% url 'crews:members' crew.slug %}">Members</a></li>
+            <li>Remove {{ member_to_remove.user.get_full_name|default:member_to_remove.user.username }}</li>
+        </ul>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card bg-base-100 shadow-lg border border-error/20">
+        <div class="card-body">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <div class="text-6xl text-error mb-4">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-error mb-2">
+                    Remove Member
+                </h1>
+                <p class="text-base-content/70">
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <!-- Member Info -->
+            <div class="bg-base-200/50 rounded-lg p-4 mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="avatar">
+                        <div class="w-16 h-16 rounded-full">
+                            {% if member_to_remove.user.profile.avatar %}
+                                <img src="{{ member_to_remove.user.profile.avatar.url }}" alt="{{ member_to_remove.user.get_full_name|default:member_to_remove.user.username }}">
+                            {% else %}
+                                <div class="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center">
+                                    <span class="text-xl font-bold">
+                                        {{ member_to_remove.user.first_name|first|default:member_to_remove.user.username|first|upper }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold">{{ member_to_remove.user.get_full_name|default:member_to_remove.user.username }}</h3>
+                        <p class="text-base-content/60">@{{ member_to_remove.user.username }}</p>
+                        
+                        <!-- Role Badge -->
+                        <div class="mt-2">
+                            {% if member_to_remove.role == 'admin' %}
+                                <div class="badge badge-primary">
+                                    <i class="fas fa-shield-alt mr-1"></i>
+                                    Admin
+                                </div>
+                            {% elif member_to_remove.role == 'event_manager' %}
+                                <div class="badge badge-secondary">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    Event Manager
+                                </div>
+                            {% else %}
+                                <div class="badge badge-neutral">
+                                    <i class="fas fa-user mr-1"></i>
+                                    Member
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-sm text-base-content/50 mt-1">
+                            Joined {{ member_to_remove.joined_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning List -->
+            <div class="alert alert-warning mb-6">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h4 class="font-bold">Removing this member will:</h4>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>Remove them from all crew activities</li>
+                        <li>Revoke their access to crew management features</li>
+                        <li>Remove them from any crew-organized events</li>
+                        {% if member_to_remove.role == 'admin' or member_to_remove.role == 'event_manager' %}
+                        <li>Transfer ownership of any events they created to crew owners</li>
+                        {% endif %}
+                        <li>They can be re-invited later if needed</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Confirmation Form -->
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">
+                            Type <code class="bg-base-200 px-2 py-1 rounded">{{ member_to_remove.user.username }}</code> to confirm removal:
+                        </span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="confirm_username" 
+                        class="input input-bordered input-error" 
+                        placeholder="Enter username to confirm"
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+
+                <!-- Optional Reason -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Reason for removal (optional):</span>
+                    </label>
+                    <textarea 
+                        name="removal_reason" 
+                        class="textarea textarea-bordered" 
+                        placeholder="Provide a reason for removing this member..."
+                        rows="3"
+                    ></textarea>
+                    <label class="label">
+                        <span class="label-text-alt">This reason will be logged in crew activity.</span>
+                    </label>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                    <a href="{% url 'crews:members' crew.slug %}" class="btn btn-ghost">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Cancel
+                    </a>
+                    <button 
+                        type="submit" 
+                        class="btn btn-error"
+                        onclick="return validateRemoval()"
+                    >
+                        <i class="fas fa-user-times mr-2"></i>
+                        Remove Member
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="text-center mt-8">
+        <p class="text-base-content/50 text-sm">
+            Removed members can be re-invited to the crew at any time.
+        </p>
+    </div>
+</div>
+
+<script>
+function validateRemoval() {
+    const confirmInput = document.querySelector('input[name="confirm_username"]');
+    const expectedUsername = "{{ member_to_remove.user.username|escapejs }}";
+    
+    if (confirmInput.value !== expectedUsername) {
+        alert('Please type the username exactly to confirm removal.');
+        confirmInput.focus();
+        return false;
+    }
+    
+    return confirm('Are you sure you want to remove this member from the crew?');
+}
+</script>
+{% endblock %}

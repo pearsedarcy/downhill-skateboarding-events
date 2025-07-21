@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crews - Downhill Skateboarding Events{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div>
+            <h1 class="text-4xl font-bold text-base-content mb-2">
+                <i class="fas fa-users text-primary mr-3"></i>
+                Skateboarding Crews
+            </h1>
+            <p class="text-base-content/70 text-lg">
+                Connect with skateboarding crews, teams, and communities around the world.
+            </p>
+        </div>
+        
+        {% if user.is_authenticated %}
+        <div class="mt-4 md:mt-0">
+            <a href="{% url 'crews:create' %}" class="btn btn-primary">
+                <i class="fas fa-plus mr-2"></i>
+                Create New Crew
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Crew Grid -->
+    {% if crews %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for crew in crews %}
+        <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <!-- Logo/Banner -->
+            <figure class="h-32 bg-gradient-to-br from-primary/20 to-secondary/20 relative overflow-hidden">
+                {% if crew.logo %}
+                    <img src="{{ crew.logo.url }}" alt="{{ crew.name }} logo" 
+                         class="w-full h-full object-cover">
+                {% else %}
+                    <div class="flex items-center justify-center h-full">
+                        <i class="fas fa-users text-4xl text-primary/40"></i>
+                    </div>
+                {% endif %}
+                
+                <!-- Verified badge -->
+                {% if crew.is_verified %}
+                <div class="absolute top-2 right-2">
+                    <div class="badge badge-success gap-1">
+                        <i class="fas fa-check text-xs"></i>
+                        Verified
+                    </div>
+                </div>
+                {% endif %}
+            </figure>
+            
+            <div class="card-body p-4">
+                <!-- Crew name and type -->
+                <h2 class="card-title text-lg mb-2">
+                    <a href="{% url 'crews:detail' crew.slug %}" 
+                       class="hover:text-primary transition-colors">
+                        {{ crew.name }}
+                    </a>
+                </h2>
+                
+                <div class="flex flex-wrap gap-1 mb-3">
+                    <div class="badge badge-outline text-xs">{{ crew.get_crew_type_display }}</div>
+                    {% if crew.primary_discipline != 'MIXED' %}
+                    <div class="badge badge-outline text-xs">{{ crew.get_primary_discipline_display }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                {% if crew.description %}
+                <p class="text-sm text-base-content/70 mb-3 line-clamp-2">
+                    {{ crew.description|truncatewords:15 }}
+                </p>
+                {% endif %}
+                
+                <!-- Location and stats -->
+                <div class="flex items-center justify-between text-xs text-base-content/60 mb-3">
+                    <div class="flex items-center">
+                        {% if crew.city and crew.country %}
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ crew.city }}, {{ crew.country.name }}
+                        {% elif crew.country %}
+                            <i class="fas fa-globe mr-1"></i>
+                            {{ crew.country.name }}
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-user mr-1"></i>
+                        {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                    </div>
+                </div>
+                
+                <!-- Action button -->
+                <div class="card-actions justify-end">
+                    <a href="{% url 'crews:detail' crew.slug %}" 
+                       class="btn btn-primary btn-sm">
+                        View Crew
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% else %}
+    <!-- Empty state -->
+    <div class="text-center py-16">
+        <i class="fas fa-users text-6xl text-base-content/20 mb-6"></i>
+        <h3 class="text-2xl font-semibold text-base-content/60 mb-4">No crews yet</h3>
+        <p class="text-base-content/50 mb-8 max-w-md mx-auto">
+            Be the first to create a skateboarding crew and start building your community!
+        </p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'crews:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Create First Crew
+        </a>
+        {% else %}
+        <a href="{% url 'account_login' %}" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Login to Create Crew
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

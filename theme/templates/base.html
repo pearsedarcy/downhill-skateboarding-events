@@ -19,6 +19,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/sdh-favicon.ico' %}">
     {% tailwind_css %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
     <!-- <script src="{% static 'js/theme-init.js' %}"></script> -->
     <style>
       .logo-light {
@@ -80,6 +81,7 @@
               <!-- <li><a href="{% url 'results:results_list' %}" aria-label="View
               results"><i class="fas fa-trophy"></i>Results</a></li> -->
               <li><a href="{% url 'results:league_list' %}" aria-label="View Leagues"><i class="fas fa-ranking-star"></i>Leagues</a></li>
+              <li><a href="{% url 'crews:list' %}" aria-label="View Crews"><i class="fas fa-users"></i>Crews</a></li>
               <!-- <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li> -->
               <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
@@ -187,9 +189,21 @@
               <li>
                 <a href="{% url 'events:submit' %}" class="btn btn-secondary">Add Event</a>
               </li>
+              <li>
+                <a href="{% url 'results:create_league' %}" class="btn btn-secondary">Add League</a>
+              </li>
+              <li>
+                <a href="{% url 'crews:create' %}" class="btn btn-secondary">Create Crew</a>
+              </li>
               {% else %}
               <li>
                 <a href="{% url 'account_login' %}?next={% url 'events:submit' %}" class="btn btn-secondary">Add Event</a>
+              </li>
+              <li>
+                <a href="{% url 'account_login' %}?next={% url 'results:create_league' %}" class="btn btn-secondary">Add League</a>
+              </li>
+              <li>
+                <a href="{% url 'account_login' %}?next={% url 'crews:create' %}" class="btn btn-secondary">Create Crew</a>
               </li>
               {% endif %}
             </ul>
@@ -255,7 +269,10 @@
           <a href="/" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="Home"><i class="fas fa-home mr-4"></i> Home</a>
           <a href="{% url 'events:event_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-calendar-alt mr-4"></i> Events</a>
           <!-- <a href="{% url 'results:results_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-trophy mr-3"></i> Results</a> -->
-          <a href="{% url 'results:league_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="View Leagues"><i class="fas fa-ranking-star mr-3"></i> Leagues</a>
+          <a href="{% url 'results:league_list' %}" class="menu-item btn-ghost
+          p-2 hover:bg-base-200 rounded-lg" aria-label="View Leagues"><i
+          class="fas fa-ranking-star mr-3"></i> Leagues</a>
+            <a href="{% url 'crews:list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-4"></i> Crews</a>
           <!-- <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i> Users</a> -->
           <a href="{% url 'events:about' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i> About</a>
         </div>
@@ -358,6 +375,8 @@
           }
         });
       </script>
+      <!-- DaisyUI Dropdown JavaScript -->
+      <script src="{% static 'js/dropdown.js' %}"></script>
     </div>
     {% block extra_js %}{% endblock %}
   </body>

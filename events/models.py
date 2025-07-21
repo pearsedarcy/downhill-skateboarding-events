@@ -40,7 +40,8 @@ class Event(SearchableModel):
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(null=True, blank=True, default=None)
     location = models.ForeignKey(
-        "Location", on_delete=models.CASCADE, related_name="event"
+        "Location", on_delete=models.CASCADE, related_name="event",
+        null=True, blank=True  # Allow null in development for easier migrations
     )
     event_type = models.CharField(
         max_length=200,
@@ -78,14 +79,19 @@ class Event(SearchableModel):
             ("Professional", "Professional"),
         ],
     )
-    league = models.ForeignKey(
-        'results.League',
-        on_delete=models.SET_NULL,
-        related_name='league_events',
-        null=True,
+    # Removed direct league foreign key to prevent circular dependency
+    # Events are linked to leagues through the LeagueEvent model in results app
+    
+    # Crew ownership
+    created_by_crew = models.ForeignKey(
+        'crews.Crew', 
+        on_delete=models.SET_NULL, 
+        null=True, 
         blank=True,
-        help_text="The league this event belongs to"
+        related_name='created_events',
+        help_text="Crew that created and manages this event"
     )
+    
     tickets_link = models.URLField(null=True, blank=True)
     cover_image = CloudinaryField("image", null=True, blank=True)
     created = models.DateTimeField(default=timezone.now)
@@ -143,6 +149,22 @@ class Event(SearchableModel):
 
     def get_knockout_results(self):
         return self.results.filter(result_type='KNOCKOUT').first()
+    
+    def can_manage(self, user):
+        """Check if a user can manage this event."""
+        if not user.is_authenticated:
+            return False
+        
+        # Check if user is the original organizer
+        if self.organizer and self.organizer.user == user:
+            return True
+            
+        # If no crew is assigned, only organizer/admin can manage
+        if not self.created_by_crew:
+            return user.is_superuser
+            
+        # Check crew permissions
+        return self.created_by_crew.can_create_events(user)
 
 
 class Location(models.Model):

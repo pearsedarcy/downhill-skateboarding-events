@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete {{ crew.name }} - Crews{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'crews:list' %}">Crews</a></li>
+            <li><a href="{% url 'crews:detail' crew.slug %}">{{ crew.name }}</a></li>
+            <li>Delete</li>
+        </ul>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card bg-base-100 shadow-lg border border-error/20">
+        <div class="card-body">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <div class="text-6xl text-error mb-4">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-error mb-2">
+                    Delete Crew
+                </h1>
+                <p class="text-base-content/70">
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <!-- Crew Info -->
+            <div class="bg-base-200/50 rounded-lg p-4 mb-6">
+                <div class="flex items-center gap-4">
+                    {% if crew.logo %}
+                    <div class="avatar">
+                        <div class="w-16 h-16 rounded-lg">
+                            <img src="{{ crew.logo.url }}" alt="{{ crew.name }} logo">
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-lg w-16 h-16">
+                            <span class="text-xl font-bold">{{ crew.name|first|upper }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold">{{ crew.name }}</h3>
+                        <p class="text-base-content/60">
+                            {% if crew.city and crew.country %}
+                                {{ crew.city }}, {{ crew.country.name }}
+                            {% elif crew.country %}
+                                {{ crew.country.name }}
+                            {% endif %}
+                        </p>
+                        <div class="text-sm text-base-content/50 mt-1">
+                            {{ crew.memberships.count }} member{{ crew.memberships.count|pluralize }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning List -->
+            <div class="alert alert-error mb-6">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h4 class="font-bold">Warning: This will permanently delete:</h4>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>All crew information and settings</li>
+                        <li>All crew memberships and roles</li>
+                        <li>All crew activity history</li>
+                        <li>All pending crew invitations</li>
+                        <li>Any crew-associated events or leagues</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Confirmation Form -->
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">
+                            Type <code class="bg-base-200 px-2 py-1 rounded">{{ crew.name }}</code> to confirm deletion:
+                        </span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="confirm_name" 
+                        class="input input-bordered input-error" 
+                        placeholder="Enter crew name to confirm"
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                    <a href="{% url 'crews:detail' crew.slug %}" class="btn btn-ghost">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Cancel
+                    </a>
+                    <button 
+                        type="submit" 
+                        class="btn btn-error"
+                        onclick="return validateDeletion()"
+                    >
+                        <i class="fas fa-trash mr-2"></i>
+                        Delete Crew Forever
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="text-center mt-8">
+        <p class="text-base-content/50 text-sm">
+            Need help? <a href="#" class="link link-primary">Contact support</a>
+        </p>
+    </div>
+</div>
+
+<script>
+function validateDeletion() {
+    const confirmInput = document.querySelector('input[name="confirm_name"]');
+    const expectedName = "{{ crew.name|escapejs }}";
+    
+    if (confirmInput.value !== expectedName) {
+        alert('Please type the crew name exactly to confirm deletion.');
+        confirmInput.focus();
+        return false;
+    }
+    
+    return confirm('Are you absolutely sure you want to delete this crew? This action cannot be undone.');
+}
+</script>
+{% endblock %}

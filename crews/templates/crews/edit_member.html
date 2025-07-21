@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit {{ member_to_edit.user.get_full_name|default:member_to_edit.user.username }} - {{ crew.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'crews:list' %}">Crews</a></li>
+            <li><a href="{% url 'crews:detail' crew.slug %}">{{ crew.name }}</a></li>
+            <li><a href="{% url 'crews:members' crew.slug %}">Members</a></li>
+            <li>Edit {{ member_to_edit.user.get_full_name|default:member_to_edit.user.username }}</li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-base-content mb-2">
+            <i class="fas fa-user-edit text-primary mr-3"></i>
+            Edit Member Role
+        </h1>
+        <p class="text-base-content/70 text-lg">
+            Update {{ member_to_edit.user.get_full_name|default:member_to_edit.user.username }}'s role and permissions
+        </p>
+    </div>
+
+    <!-- Member Info Card -->
+    <div class="card bg-base-100 shadow-lg mb-6">
+        <div class="card-body">
+            <div class="flex items-center gap-4">
+                <div class="avatar">
+                    <div class="w-16 h-16 rounded-full">
+                        {% if member_to_edit.user.profile.avatar %}
+                            <img src="{{ member_to_edit.user.profile.avatar.url }}" alt="{{ member_to_edit.user.get_full_name|default:member_to_edit.user.username }}">
+                        {% else %}
+                            <div class="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center">
+                                <span class="text-xl font-bold">
+                                    {{ member_to_edit.user.first_name|first|default:member_to_edit.user.username|first|upper }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex-1">
+                    <h3 class="font-bold text-xl">
+                        {{ member_to_edit.user.get_full_name|default:member_to_edit.user.username }}
+                    </h3>
+                    <p class="text-base-content/60">
+                        @{{ member_to_edit.user.username }}
+                    </p>
+                    <div class="text-sm text-base-content/50 mt-1">
+                        Joined {{ member_to_edit.joined_at|date:"M d, Y" }}
+                    </div>
+                </div>
+                
+                <!-- Current Role -->
+                <div class="text-right">
+                    <div class="text-sm text-base-content/60 mb-1">Current Role</div>
+                    {% if member_to_edit.role == 'OWNER' %}
+                        <div class="badge badge-accent">
+                            <i class="fas fa-crown mr-1"></i>
+                            Owner
+                        </div>
+                    {% elif member_to_edit.role == 'ADMIN' %}
+                        <div class="badge badge-primary">
+                            <i class="fas fa-shield-alt mr-1"></i>
+                            Admin
+                        </div>
+                    {% elif member_to_edit.role == 'EVENT_MANAGER' %}
+                        <div class="badge badge-secondary">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            Event Manager
+                        </div>
+                    {% else %}
+                        <div class="badge badge-neutral">
+                            <i class="fas fa-user mr-1"></i>
+                            Member
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Selection Form -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Select New Role</h3>
+                    
+                    <div class="space-y-4">
+                        {% for role_value, role_display in role_choices %}
+                        {% if role_value != 'OWNER' or user_membership.role == 'OWNER' %}
+                        <label class="cursor-pointer">
+                            <div class="card card-compact bg-base-200 hover:bg-base-300 transition-colors border-2 {% if member_to_edit.role == role_value %}border-primary{% else %}border-transparent{% endif %}">
+                                <div class="card-body">
+                                    <div class="flex items-center gap-4">
+                                        <input 
+                                            type="radio" 
+                                            name="role" 
+                                            value="{{ role_value }}" 
+                                            class="radio radio-primary"
+                                            {% if member_to_edit.role == role_value %}checked{% endif %}
+                                        >
+                                        
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                {% if role_value == 'owner' %}
+                                                    <i class="fas fa-crown text-accent"></i>
+                                                    <span class="font-bold text-accent">{{ role_display }}</span>
+                                                {% elif role_value == 'admin' %}
+                                                    <i class="fas fa-shield-alt text-primary"></i>
+                                                    <span class="font-bold text-primary">{{ role_display }}</span>
+                                                {% elif role_value == 'event_manager' %}
+                                                    <i class="fas fa-calendar-alt text-secondary"></i>
+                                                    <span class="font-bold text-secondary">{{ role_display }}</span>
+                                                {% else %}
+                                                    <i class="fas fa-user text-neutral"></i>
+                                                    <span class="font-bold">{{ role_display }}</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="text-sm text-base-content/60">
+                                                {% if role_value == 'owner' %}
+                                                    Full control over the crew. Can transfer ownership, delete crew, and manage all aspects.
+                                                {% elif role_value == 'admin' %}
+                                                    Can manage crew settings, invite/remove members, and organize events.
+                                                {% elif role_value == 'event_manager' %}
+                                                    Can create and manage events for the crew. Limited administrative access.
+                                                {% else %}
+                                                    Basic crew member. Can participate in events and view crew information.
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Warning for Role Changes -->
+                {% if member_to_edit.role == 'OWNER' %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Ownership Transfer Warning:</strong>
+                        <p>Transferring ownership will make you lose owner privileges. The new owner will be able to manage all aspects of the crew, including removing you.</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Submit Section -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                    <a href="{% url 'crews:members' crew.slug %}" class="btn btn-ghost">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i>
+                        Update Role
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add visual feedback for role selection
+document.querySelectorAll('input[name="role"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        // Remove border from all cards
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.remove('border-primary');
+            card.classList.add('border-transparent');
+        });
+        
+        // Add border to selected card
+        const selectedCard = this.closest('.card');
+        selectedCard.classList.remove('border-transparent');
+        selectedCard.classList.add('border-primary');
+    });
+});
+</script>
+{% endblock %}

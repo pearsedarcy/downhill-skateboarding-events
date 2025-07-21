@@ -2,6 +2,7 @@ from django import forms
 from django.forms import inlineformset_factory
 from .models import Event, Location
 from django.core.exceptions import ValidationError
+from crews.models import Crew, CrewMembership
 
 class LocationForm(forms.ModelForm):
     def clean_location_title(self):
@@ -49,7 +50,18 @@ class LocationForm(forms.ModelForm):
         }
 
 class EventForm(forms.ModelForm):
+    created_by_crew = forms.ModelChoiceField(
+        queryset=Crew.objects.none(),  # Will be set in __init__
+        required=False,
+        empty_label="Personal Event (no crew)",
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered select-primary w-full'
+        }),
+        help_text="Select a crew to organize this event (optional)"
+    )
+    
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['cover_image'].required = False
         self.fields['end_date'].required = False
@@ -58,25 +70,17 @@ class EventForm(forms.ModelForm):
         self.fields['max_attendees'].required = False
         self.fields['published'].initial = True
         self.fields['continent'].required = False
-        self.fields['league'].required = False
+        self.fields['created_by_crew'].required = False
         
-        # Add league_class data to league choices
-        if 'league' in self.fields:
-            choices = []
-            for league in self.fields['league'].queryset:
-                choices.append((
-                    league.id,
-                    league.name,
-                    {'data-league-class': league.league_class}
-                ))
-            self.fields['league'].widget.choices = [('', '--------')] + [
-                (id_, name) for id_, name, _ in choices
-            ]
-            # Add data attributes to the option elements
-            self.fields['league'].widget.attrs['data-league-classes'] = {
-                str(id_): attrs['data-league-class']
-                for id_, _, attrs in choices
-            }
+        # Set crew choices based on user's crew memberships
+        if user and user.is_authenticated:
+            # Get crews where user can create events (OWNER, ADMIN, EVENT_MANAGER)
+            user_crews = Crew.objects.filter(
+                memberships__user=user,
+                memberships__role__in=['OWNER', 'ADMIN', 'EVENT_MANAGER']
+            ).distinct()
+            self.fields['created_by_crew'].queryset = user_crews
+        # League is now handled through the LeagueEvent model in results app
 
     def clean(self):
         cleaned_data = super().clean()
@@ -123,7 +127,7 @@ class EventForm(forms.ModelForm):
         fields = [
             'title', 'description', 'event_type', 'event_class', 'skill_level',
             'start_date', 'end_date', 'tickets_link', 'cover_image',
-            'cost', 'max_attendees', 'published', 'league', 'continent'
+            'cost', 'max_attendees', 'published', 'continent', 'created_by_crew'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -174,9 +178,7 @@ class EventForm(forms.ModelForm):
                 'class': 'toggle toggle-primary',
                 'role': 'switch'
             }),
-            'league': forms.Select(attrs={
-                'class': 'select select-bordered select-primary w-full'
-            }),
+            # League field removed
             'continent': forms.Select(attrs={
                 'class': 'select select-bordered select-primary w-full'
             })
