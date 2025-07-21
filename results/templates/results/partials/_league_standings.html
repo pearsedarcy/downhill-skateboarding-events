@@ -42,7 +42,7 @@ This partial displays the league standings table with:
             {% elif class == 'masters' %}
                 {% include "results/partials/_eurotour_25_masters_luge_standings.html" %}
             {% else %}
-                {% include "results/partials/_eurotour_25_luge_standings.html" %}
+                {% include "results/partials/eurotour_25_partials/_eurotour_25_luge_standings.html" %}
             {% endif %}
         {% elif discipline == 'inline' %}
             {% include "results/partials/_eurotour_25_inline_standings.html" %}
