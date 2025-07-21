@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[800px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body text-center">
+        <div class="mb-6">
+          <i class="fas fa-calculator text-6xl text-warning mb-4"></i>
+          <h2 class="card-title text-2xl justify-center">Recalculate League Standings</h2>
+        </div>
+
+        <div class="alert alert-warning mb-6">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <h3 class="font-bold">Are you sure?</h3>
+            <div class="text-sm">
+              This will delete all current standings for <strong>{{ league.name }}</strong> 
+              and recalculate them from scratch based on all event results.
+            </div>
+          </div>
+        </div>
+
+        <div class="stats bg-base-200 mb-6">
+          <div class="stat">
+            <div class="stat-title">League Events</div>
+            <div class="stat-value text-primary">{{ league.league_events.count }}</div>
+          </div>
+          
+          <div class="stat">
+            <div class="stat-title">Disciplines</div>
+            <div class="stat-value text-secondary">{{ league.disciplines.count }}</div>
+          </div>
+          
+          <div class="stat">
+            <div class="stat-title">Current Standings</div>
+            <div class="stat-value text-accent">{{ league.standings.count }}</div>
+          </div>
+        </div>
+
+        <div class="card-actions justify-center gap-4">
+          <a href="{% url 'results:league_standings' slug=league.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Cancel
+          </a>
+          
+          <form method="POST" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning">
+              <i class="fas fa-calculator mr-2"></i> Recalculate Now
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

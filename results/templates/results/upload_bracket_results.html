@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">Upload Bracket Results: {{ event.title }}</h2>
+          <a href="{% url 'events:event_details' event.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Event
+          </a>
+        </div>
+        
+        <!-- Progress Steps -->
+        <div class="w-full flex justify-between mb-8">
+          <div class="step-item {% if step >= 1 %}active{% endif %}">
+            <div class="step">1</div>
+            <p>Upload CSV</p>
+          </div>
+          <div class="step-item {% if step >= 2 %}active{% endif %}">
+            <div class="step">2</div>
+            <p>Map Columns</p>
+          </div>
+          <div class="step-item {% if step >= 3 %}active{% endif %}">
+            <div class="step">3</div>
+            <p>Preview & Save</p>
+          </div>
+        </div>
+
+        <!-- Step 1: File Upload -->
+        {% if step == 1 %}
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+          {% csrf_token %}
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">League</span>
+            </label>
+            {{ form.league }}
+            <label class="label">
+              <span class="label-text-alt">Select the league these results belong to</span>
+            </label>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Result File (CSV)</span>
+            </label>
+            <input type="file" name="results_file" accept=".csv" class="file-input file-input-bordered w-full" required>
+          </div>
+
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Mark as Final Results</span>
+              <input type="checkbox" name="is_final" class="checkbox">
+            </label>
+          </div>
+
+          <div class="card-actions justify-end mt-6">
+            <button type="submit" class="btn btn-primary">Next Step</button>
+          </div>
+        </form>
+
+        <div class="divider"></div>
+
+        <div class="prose">
+          <h3>CSV Format Guidelines</h3>
+          <p>Your CSV file should include columns for:</p>
+          <ul>
+            <li>Rank/Position (required)</li>
+            <li>Competitor Name (required)</li>
+            <li>Points (optional - will be calculated based on position if not provided)</li>
+            <li>Discipline (optional - e.g., "Open Skate", "Women's Skate", etc.)</li>
+          </ul>
+          <p>The exact column names don't matter - you'll map them in the next step.</p>
+        </div>
+        {% endif %}
+
+        <!-- Step 2: Column Mapping -->
+        {% if step == 2 %}
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          
+          <div class="alert alert-info mb-4">
+            <div class="flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 mt-1 mr-2"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Map each column from your CSV to the corresponding data type. Required fields: Rank and Name.</span>
+            </div>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="table w-full">
+              <thead>
+                <tr>
+                  <th>CSV Column</th>
+                  <th>Map To</th>
+                  <th>Sample Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for header in temp_data.headers %}
+                <tr>
+                  <td class="font-semibold">{{ header }}</td>
+                  <td>
+                    {% with field_name='map_'|add:header|slugify %}
+                      {{ mapping_form|get_form_field:field_name }}
+                    {% endwith %}
+                  </td>
+                  <td class="text-sm opacity-70">
+                    {% if temp_data.rows.0|length > forloop.counter0 %}
+                      {{ temp_data.rows.0|get_item:forloop.counter0 }}
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card-actions justify-between mt-6">
+            <button type="submit" name="previous_step" class="btn btn-ghost">Previous Step</button>
+            <button type="submit" class="btn btn-primary">Next Step</button>
+          </div>
+        </form>
+        {% endif %}
+
+        <!-- Step 3: Preview & Save -->
+        {% if step == 3 %}
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          
+          <div class="alert alert-warning mb-4">
+            <div class="flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 mt-1 mr-2" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <span>Please verify the data below before saving. This will update league standings for <strong>{{ league.name }}</strong>.</span>
+            </div>
+          </div>
+          
+          {% for discipline, results in preview_data.items %}
+          <div class="mb-6">
+            <h3 class="text-lg font-bold mb-2">{{ discipline }}</h3>
+            <div class="overflow-x-auto">
+              <table class="table table-zebra w-full">
+                <thead>
+                  <tr>
+                    <th>Position</th>
+                    <th>Competitor</th>
+                    <th>Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for result in results %}
+                  <tr>
+                    <td>{{ result.rank }}</td>
+                    <td>{{ result.name }}</td>
+                    <td>{{ result.points }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="3" class="text-center">No results found</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="card-actions justify-between mt-6">
+            <button type="submit" name="previous_step" class="btn btn-ghost">Previous Step</button>
+            <button type="submit" class="btn btn-primary">Save Results</button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+  .step-item:not(:first-child):before {
+    content: '';
+    background-color: hsl(var(--b2));
+    position: absolute;
+    height: 0.125rem;
+    width: 100%;
+    top: 1.25rem;
+    left: -0.5rem;
+  }
+  .step-item.active:not(:first-child):before {
+    background-color: hsl(var(--p));
+  }
+  .step {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: hsl(var(--b2));
+    color: hsl(var(--bc));
+    font-weight: 600;
+    z-index: 10;
+  }
+  .step-item.active .step {
+    background-color: hsl(var(--p));
+    color: hsl(var(--pc));
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add any necessary JavaScript here
+  });
+</script>
+{% endblock %}

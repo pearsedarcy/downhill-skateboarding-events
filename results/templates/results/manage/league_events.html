@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">Manage Events - {{ league.name }}</h2>
+          <div class="flex gap-2">
+            <a href="{% url 'results:manage_league_disciplines' slug=league.slug %}" class="btn btn-outline">
+              <i class="fas fa-list mr-2"></i> Manage Disciplines
+            </a>
+            <a href="{% url 'results:league_standings' slug=league.slug %}" class="btn btn-ghost">
+              <i class="fas fa-arrow-left mr-2"></i> Back to League
+            </a>
+          </div>
+        </div>
+
+        <!-- Add Event Form -->
+        <div class="card bg-base-200 mb-6">
+          <div class="card-body">
+            <h3 class="card-title text-lg">Add Event to League</h3>
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_event">
+          
+          {% if form.non_field_errors %}
+            <div class="alert alert-error">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Event</span>
+              </label>
+              {{ form.event }}
+              {% if form.event.errors %}
+                <div class="text-error text-sm mt-1">{{ form.event.errors }}</div>
+              {% endif %}
+            </div>                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Point Multiplier</span>
+                  </label>
+                  {{ form.multiplier }}
+                  <label class="label">
+                    <span class="label-text-alt">Default: 1.0</span>
+                  </label>
+                </div>
+                
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Weight (%)</span>
+                  </label>
+                  {{ form.weight }}
+                  <label class="label">
+                    <span class="label-text-alt">Default: 100</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="card-actions">
+                <button type="submit" class="btn btn-primary">Add Event</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Current Events -->
+        <div class="card bg-base-100">
+          <div class="card-body">
+            <h3 class="card-title text-lg">Current Events ({{ league_events.count }})</h3>
+            
+            {% if league_events %}
+              <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>Event</th>
+                      <th>Date</th>
+                      <th>Location</th>
+                      <th>Multiplier</th>
+                      <th>Weight</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for league_event in league_events %}
+                    <tr>
+                      <td>
+                        <div class="font-semibold">{{ league_event.event.title }}</div>
+                        <div class="text-sm opacity-70">{{ league_event.event.get_class_display }}</div>
+                      </td>
+                      <td>{{ league_event.event.start_date|date:"M d, Y" }}</td>
+                      <td>
+                        {{ league_event.event.location.city }}, {{ league_event.event.location.country.name }}
+                      </td>
+                      <td>
+                        <form method="POST" class="inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="action" value="update_event">
+                          <input type="hidden" name="league_event_id" value="{{ league_event.id }}">
+                          <input 
+                            type="number" 
+                            name="multiplier" 
+                            value="{{ league_event.multiplier }}" 
+                            step="0.1" 
+                            min="0" 
+                            max="10"
+                            class="input input-sm input-bordered w-20"
+                            onchange="this.form.submit()"
+                          >
+                        </form>
+                      </td>
+                      <td>
+                        <form method="POST" class="inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="action" value="update_event">
+                          <input type="hidden" name="league_event_id" value="{{ league_event.id }}">
+                          <input type="hidden" name="multiplier" value="{{ league_event.multiplier }}">
+                          <input 
+                            type="number" 
+                            name="weight" 
+                            value="{{ league_event.weight }}" 
+                            min="0" 
+                            max="100"
+                            class="input input-sm input-bordered w-20"
+                            onchange="this.form.submit()"
+                          >%
+                        </form>
+                      </td>
+                      <td>
+                        <form method="POST" class="inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="action" value="remove_event">
+                          <input type="hidden" name="event_id" value="{{ league_event.event.id }}">
+                          <button 
+                            type="submit" 
+                            class="btn btn-sm btn-error"
+                            onclick="return confirm('Remove this event from the league?')"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-center py-8 text-base-content/70">
+                <i class="fas fa-calendar-plus text-4xl mb-4"></i>
+                <p>No events added to this league yet.</p>
+                <p class="text-sm">Add your first event using the form above.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between mt-6">
+          <a href="{% url 'results:edit_league' slug=league.slug %}" class="btn btn-outline">
+            <i class="fas fa-edit mr-2"></i> Edit League Settings
+          </a>
+          <a href="{% url 'results:recalculate_league' slug=league.slug %}" class="btn btn-warning">
+            <i class="fas fa-calculator mr-2"></i> Recalculate Standings
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

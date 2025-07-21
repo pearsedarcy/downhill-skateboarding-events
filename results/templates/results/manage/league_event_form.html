@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">Add Event to League</h2>
+          <a href="{% url 'results:league_events' league.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Events
+          </a>
+        </div>
+
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Event</span>
+            </label>
+            {{ form.event }}
+            <label class="label">
+              <span class="label-text-alt">Select an event to add to this league</span>
+            </label>
+            {% if form.event.errors %}
+              <div class="text-error text-sm mt-1">{{ form.event.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Points Multiplier</span>
+            </label>
+            {{ form.points_multiplier }}
+            <label class="label">
+              <span class="label-text-alt">Optional: Multiply points by this value (e.g. 1.5 for finals)</span>
+            </label>
+          </div>
+          
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Is Final Event</span>
+              {{ form.is_final }}
+            </label>
+            <label class="label">
+              <span class="label-text-alt">Final events may have special points calculation or tiebreakers</span>
+            </label>
+          </div>
+          
+          <div class="card-actions justify-end mt-6">
+            <button type="submit" class="btn btn-primary">Add to League</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

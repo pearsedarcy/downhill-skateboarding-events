@@ -4,9 +4,37 @@
 {% block title %}{{ league.name }} Standings - {{ block.super }}{% endblock %}
 {% block meta_description %}View the current standings and events for the {{ league.name }} downhill skateboarding league.{% endblock %}
 
+{% block breadcrumbs %}
+<li><a href="/">Home</a></li>
+<li><a href="{% url 'results:league_list' %}">Leagues</a></li>
+<li>{{ league.name }}</li>
+{% endblock breadcrumbs %}
+
 {% block content %}
 <!-- League header with banner -->
 {% include "results/partials/_league_header.html" %}
+
+<!-- Management Toolbar (for authenticated users) -->
+{% if user.is_authenticated %}
+<div class="bg-base-200 border-b border-base-300">
+    <div class="container mx-auto px-2 sm:px-4 py-3">
+        <div class="flex flex-wrap gap-2 justify-center sm:justify-end">
+            <a href="{% url 'results:edit_league' slug=league.slug %}" class="btn btn-sm btn-outline">
+                <i class="fas fa-edit mr-1"></i> Edit League
+            </a>
+            <a href="{% url 'results:manage_league_events' slug=league.slug %}" class="btn btn-sm btn-outline">
+                <i class="fas fa-calendar mr-1"></i> Manage Events
+            </a>
+            <a href="{% url 'results:manage_league_disciplines' slug=league.slug %}" class="btn btn-sm btn-outline">
+                <i class="fas fa-list mr-1"></i> Manage Disciplines
+            </a>
+            <a href="{% url 'results:recalculate_league' slug=league.slug %}" class="btn btn-sm btn-warning">
+                <i class="fas fa-calculator mr-1"></i> Recalculate
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <div class="container mx-auto px-2 sm:px-4 bg-base-300 p-3 sm:p-8">
     <!-- Standings Section -->

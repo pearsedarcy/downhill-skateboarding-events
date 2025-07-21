@@ -1,0 +1,440 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">League Management</h2>
+          <a href="{% url 'results:leagues' %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Leagues
+          </a>
+        </div>
+
+        <div class="tabs tabs-boxed mb-6">
+          <a href="{% url 'results:manage_league' league.slug %}" class="tab {% if active_tab == 'overview' %}tab-active{% endif %}">Overview</a>
+          <a href="{% url 'results:league_disciplines' league.slug %}" class="tab {% if active_tab == 'disciplines' %}tab-active{% endif %}">Disciplines</a>
+          <a href="{% url 'results:league_events' league.slug %}" class="tab {% if active_tab == 'events' %}tab-active{% endif %}">Events</a>
+          <a href="{% url 'results:league_standings' league.slug %}" class="tab {% if active_tab == 'standings' %}tab-active{% endif %}">Standings</a>
+          <a href="{% url 'results:league_settings' league.slug %}" class="tab {% if active_tab == 'settings' %}tab-active{% endif %}">Settings</a>
+        </div>
+
+        <!-- Overview Tab -->
+        {% if active_tab == 'overview' %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title">League Summary</h3>
+              <div class="stats stats-vertical shadow">
+                <div class="stat">
+                  <div class="stat-title">Name</div>
+                  <div class="stat-value text-xl">{{ league.name }}</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-title">Disciplines</div>
+                  <div class="stat-value text-xl">{{ discipline_count }}</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-title">Events</div>
+                  <div class="stat-value text-xl">{{ events_count }}</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-title">Season</div>
+                  <div class="stat-value text-xl">{{ league.season }}</div>
+                </div>
+              </div>
+              <div class="card-actions justify-end mt-4">
+                <a href="{% url 'results:league_settings' league.slug %}" class="btn btn-primary btn-sm">Edit League</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title">Recent Activities</h3>
+              <ul class="timeline timeline-vertical">
+                {% for event in recent_events %}
+                <li>
+                  <div class="timeline-start">{{ event.date|date:"M j" }}</div>
+                  <div class="timeline-middle">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                  </div>
+                  <div class="timeline-end timeline-box">
+                    <a href="{% url 'events:event_details' event.slug %}">{{ event.title }}</a>
+                  </div>
+                  <hr/>
+                </li>
+                {% empty %}
+                <li>
+                  <div class="timeline-middle">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" /></svg>
+                  </div>
+                  <div class="timeline-end timeline-box">No events yet</div>
+                  <hr/>
+                </li>
+                {% endfor %}
+              </ul>
+              
+              <div class="card-actions justify-end mt-4">
+                <a href="{% url 'results:league_events' league.slug %}" class="btn btn-primary btn-sm">Manage Events</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <h3 class="text-xl font-bold mb-4">Latest Standings</h3>
+          {% if disciplines %}
+            <div class="tabs tabs-boxed mb-4">
+              {% for discipline in disciplines %}
+              <a class="tab {% if forloop.first %}tab-active{% endif %}" 
+                 data-discipline="{{ discipline.id }}">{{ discipline.name }}</a>
+              {% endfor %}
+            </div>
+            
+            {% for discipline in disciplines %}
+            <div class="discipline-standings" id="standings-{{ discipline.id }}" 
+                 style="display: {% if forloop.first %}block{% else %}none{% endif %}">
+              <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Competitor</th>
+                      <th>Points</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for standing in standings|get_standings:discipline.id %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td>{{ standing.competitor_name }}</td>
+                      <td>{{ standing.total_points }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="3" class="text-center">No standings available</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div class="text-right mt-2">
+                <a href="{% url 'results:league_standings' league.slug %}?discipline={{ discipline.id }}" 
+                   class="link link-primary">View full standings</a>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="alert">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>No disciplines have been added to this league yet.</span>
+              <div>
+                <a href="{% url 'results:league_disciplines' league.slug %}" class="btn btn-sm">Add Disciplines</a>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Disciplines Tab -->
+        {% if active_tab == 'disciplines' %}
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold">Disciplines</h3>
+          <a href="{% url 'results:add_discipline' league.slug %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus mr-2"></i> Add Discipline
+          </a>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Competitors</th>
+                <th>Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for discipline in disciplines %}
+              <tr>
+                <td class="font-bold">{{ discipline.name }}</td>
+                <td>{{ discipline.competitor_count }}</td>
+                <td>{{ discipline.description|default:"-" }}</td>
+                <td>
+                  <div class="flex gap-2">
+                    <a href="{% url 'results:edit_discipline' league.slug discipline.id %}" class="btn btn-ghost btn-xs">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'results:league_standings' league.slug %}?discipline={{ discipline.id }}" class="btn btn-ghost btn-xs">
+                      <i class="fas fa-trophy"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center">No disciplines found</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+        
+        <!-- Events Tab -->
+        {% if active_tab == 'events' %}
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold">Events</h3>
+          <a href="{% url 'results:add_league_event' league.slug %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus mr-2"></i> Add Event
+          </a>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for event in league_events %}
+              <tr>
+                <td class="font-bold">
+                  <a href="{% url 'events:event_details' event.event.slug %}" class="link">
+                    {{ event.event.title }}
+                  </a>
+                </td>
+                <td>{{ event.event.start_date|date:"M j, Y" }}</td>
+                <td>
+                  {% if event.has_results %}
+                    <span class="badge badge-success">Results Added</span>
+                  {% elif event.event.is_past %}
+                    <span class="badge badge-warning">Needs Results</span>
+                  {% else %}
+                    <span class="badge badge-info">Upcoming</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="flex gap-2">
+                    {% if event.event.is_past and not event.has_results %}
+                      <a href="{% url 'results:upload_bracket_results' event.event.slug %}" class="btn btn-ghost btn-xs">
+                        <i class="fas fa-upload"></i> Add Results
+                      </a>
+                    {% endif %}
+                    <a href="{% url 'results:remove_league_event' league.slug event.id %}" class="btn btn-ghost btn-xs text-error">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center">No events added to this league</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+        
+        <!-- Standings Tab -->
+        {% if active_tab == 'standings' %}
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+          <h3 class="text-xl font-bold">League Standings</h3>
+          
+          <div class="flex gap-2">
+            <select class="select select-bordered w-full max-w-xs" id="discipline-selector">
+              {% for discipline in disciplines %}
+                <option value="{{ discipline.id }}" {% if selected_discipline == discipline.id %}selected{% endif %}>
+                  {{ discipline.name }}
+                </option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-outline" id="export-csv">
+              <i class="fas fa-download mr-2"></i> Export CSV
+            </button>
+          </div>
+        </div>
+        
+        {% if selected_discipline %}
+          <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Competitor</th>
+                  <th>Total Points</th>
+                  {% for event in league_events %}
+                    <th>{{ event.event.title }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for standing in standings %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ standing.competitor_name }}</td>
+                  <td class="font-bold">{{ standing.total_points }}</td>
+                  {% for event_points in standing.event_points %}
+                    <td>
+                      {% if event_points %}
+                        <div class="tooltip" data-tip="Position: {{ event_points.position }}">
+                          {{ event_points.points }}
+                        </div>
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                  {% endfor %}
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="{{ 3|add:league_events|length }}" class="text-center">No standings available</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mt-4 bg-base-200 p-4 rounded-lg">
+            <h4 class="font-bold mb-2">Points System</h4>
+            <div class="text-sm">
+              <p>{{ points_system_description }}</p>
+            </div>
+          </div>
+        {% else %}
+          <div class="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Please select a discipline to view standings.</span>
+          </div>
+        {% endif %}
+        {% endif %}
+        
+        <!-- Settings Tab -->
+        {% if active_tab == 'settings' %}
+        <div class="mb-6">
+          <h3 class="text-xl font-bold mb-4">League Settings</h3>
+          
+          <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">League Name</span>
+              </label>
+              {{ form.name }}
+            </div>
+            
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Season</span>
+              </label>
+              {{ form.season }}
+            </div>
+            
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Description</span>
+              </label>
+              {{ form.description }}
+              <label class="label">
+                <span class="label-text-alt">Brief description of the league</span>
+              </label>
+            </div>
+            
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Points System</span>
+              </label>
+              {{ form.points_system }}
+              <label class="label">
+                <span class="label-text-alt">How points are calculated for this league</span>
+              </label>
+            </div>
+            
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text">Active</span>
+                {{ form.active }}
+              </label>
+            </div>
+            
+            <div class="card-actions justify-end mt-6">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="bg-base-200 p-4 rounded-lg">
+          <h3 class="text-lg font-bold text-error mb-4">Danger Zone</h3>
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-semibold">Delete this league</p>
+              <p class="text-sm opacity-70">This action cannot be undone. All league data including results will be permanently deleted.</p>
+            </div>
+            <form method="POST" action="{% url 'results:delete_league' league.slug %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-error" onclick="return confirm('Are you sure you want to delete this league? This action cannot be undone.')">
+                Delete League
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Discipline tabs in overview
+    const disciplineTabs = document.querySelectorAll('[data-discipline]');
+    disciplineTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const disciplineId = this.getAttribute('data-discipline');
+        
+        // Update active tab
+        disciplineTabs.forEach(t => t.classList.remove('tab-active'));
+        this.classList.add('tab-active');
+        
+        // Show selected standings
+        document.querySelectorAll('.discipline-standings').forEach(div => {
+          div.style.display = 'none';
+        });
+        document.getElementById('standings-' + disciplineId).style.display = 'block';
+      });
+    });
+    
+    // Discipline selector in standings tab
+    const disciplineSelector = document.getElementById('discipline-selector');
+    if (disciplineSelector) {
+      disciplineSelector.addEventListener('change', function() {
+        window.location.href = `{% url 'results:league_standings' league.slug %}?discipline=${this.value}`;
+      });
+    }
+    
+    // Export CSV button
+    const exportButton = document.getElementById('export-csv');
+    if (exportButton) {
+      exportButton.addEventListener('click', function() {
+        const disciplineId = document.getElementById('discipline-selector').value;
+        window.location.href = `{% url 'results:export_league_standings' league.slug %}?discipline=${disciplineId}`;
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,4 +1,5 @@
 {% load static %}
+{% load results_extras %}
 
 <a href="{% url 'results:league_standings' league.slug %}" 
    class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
@@ -45,37 +46,47 @@
                 </tr>
               </thead>
               <tbody>
-                {% for standing in league.top_standings %}
-                  <tr>
-                    <td class="w-8">
-                      {% if standing.position == 1 %}
-                        <svg class="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                        </svg>
-                      {% elif standing.position == 2 %}
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                        </svg>
-                      {% elif standing.position == 3 %}
-                        <svg class="w-6 h-6 text-amber-700" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                        </svg>
-                      {% else %}
-                        {{ standing.position }}
-                      {% endif %}
-                    </td>
-                    <td>{{ standing.competitor.user.get_full_name }}</td>
-                    <td class="text-right">
-                      <span class="badge badge-primary">{{ standing.points }}</span>
-                    </td>
-                  </tr>
-                {% empty %}
-                  <tr>
-                    <td colspan="3" class="text-center text-base-content/70">
-                      No standings yet
-                    </td>
-                  </tr>
-                {% endfor %}
+                {% with first_discipline=league.discipline_list.first %}
+                  {% if first_discipline %}
+                    {% for standing in league.top_standings|get_item:first_discipline %}
+                      <tr>
+                        <td class="w-8">
+                          {% if standing.position == 1 %}
+                            <svg class="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                            </svg>
+                          {% elif standing.position == 2 %}
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                            </svg>
+                          {% elif standing.position == 3 %}
+                            <svg class="w-6 h-6 text-amber-700" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                            </svg>
+                          {% else %}
+                            {{ standing.position }}
+                          {% endif %}
+                        </td>
+                        <td>{{ standing.competitor_name }}</td>
+                        <td class="text-right">
+                          <span class="badge badge-primary">{{ standing.points }}</span>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr>
+                        <td colspan="3" class="text-center text-base-content/70">
+                          No standings yet
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="3" class="text-center text-base-content/70">
+                        No disciplines set up
+                      </td>
+                    </tr>
+                  {% endif %}
+                {% endwith %}
               </tbody>
             </table>
           </div>
