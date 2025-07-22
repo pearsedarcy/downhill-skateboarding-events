@@ -92,6 +92,12 @@
                                         Invite Members
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{% url 'crews:activity' crew.slug %}">
+                                        <i class="fas fa-chart-line mr-2"></i>
+                                        Activity Dashboard
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline">
@@ -141,7 +147,6 @@
     <div class="tabs tabs-bordered mb-6">
         <a class="tab tab-active" data-tab="members">Members</a>
         <a class="tab" data-tab="events">Events ({{ total_events }})</a>
-        <a href="{% url 'crews:activity' crew.slug %}" class="tab">Activity</a>
     </div>
     
     <!-- Members Section -->

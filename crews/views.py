@@ -391,10 +391,71 @@ def decline_invitation(request, invitation_id):
 
 
 def crew_activity(request, slug):
-    """Show crew activity feed."""
+    """Show crew activity feed with filtering and pagination."""
     crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    
+    # Get user's membership to determine permissions
+    user_membership = None
+    can_view_activity = False
+    
+    if request.user.is_authenticated:
+        user_membership = crew.get_user_membership(request.user)
+        can_view_activity = user_membership is not None  # Only crew members can view activity
+    
+    # If user is not a member, redirect to crew detail
+    if not can_view_activity:
+        from django.contrib import messages
+        messages.error(request, "You must be a crew member to view activity.")
+        return redirect('crews:detail', slug=crew.slug)
+    
+    # Get activity with filtering options
+    activities = crew.activities.select_related('user', 'target_user')
+    
+    # Apply filters
+    activity_type = request.GET.get('type')
+    if activity_type and activity_type in [choice[0] for choice in CrewActivity.ACTIVITY_TYPES]:
+        activities = activities.filter(activity_type=activity_type)
+    
+    # Date filtering
+    from datetime import datetime, timedelta
+    date_range = request.GET.get('range', '30')  # Default to last 30 days
+    if date_range == '7':
+        start_date = timezone.now() - timedelta(days=7)
+    elif date_range == '30':
+        start_date = timezone.now() - timedelta(days=30)
+    elif date_range == '90':
+        start_date = timezone.now() - timedelta(days=90)
+    else:
+        start_date = None
+    
+    if start_date:
+        activities = activities.filter(created_at__gte=start_date)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(activities, 20)  # 20 activities per page
+    page_number = request.GET.get('page')
+    page_activities = paginator.get_page(page_number)
+    
+    # Get activity statistics
+    activity_stats = {
+        'total_activities': crew.activities.count(),
+        'recent_activities': crew.activities.filter(
+            created_at__gte=timezone.now() - timedelta(days=7)
+        ).count(),
+        'activity_types': crew.activities.values('activity_type').annotate(
+            count=models.Count('activity_type')
+        ).order_by('-count')[:5]
+    }
+    
     return render(request, 'crews/crew_activity.html', {
-        'crew': crew
+        'crew': crew,
+        'activities': page_activities,
+        'activity_stats': activity_stats,
+        'activity_types': CrewActivity.ACTIVITY_TYPES,
+        'selected_type': activity_type,
+        'selected_range': date_range,
+        'user_membership': user_membership,
     })
 
 
