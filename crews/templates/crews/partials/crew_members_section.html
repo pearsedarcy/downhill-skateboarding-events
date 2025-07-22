@@ -1,0 +1,62 @@
+<!-- Members Section -->
+<div class="card bg-base-100 shadow-lg" id="members-tab">
+    <div class="card-body p-4 lg:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 lg:mb-6">
+            <h2 class="card-title text-lg lg:text-xl">
+                <i class="fas fa-users text-primary mr-2"></i>
+                Crew Members ({{ crew.member_count }})
+            </h2>
+            
+            {% if can_manage %}
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-2 w-full sm:w-auto">
+                <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-outline btn-sm flex-1 sm:flex-none">
+                    <i class="fas fa-user-shield mr-2"></i>
+                    <span class="hidden sm:inline">Permissions</span>
+                    <span class="sm:hidden">Permissions</span>
+                </a>
+                <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-secondary btn-sm flex-1 sm:flex-none">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    <span class="hidden sm:inline">Invite Members</span>
+                    <span class="sm:hidden">Invite</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Members List -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+            {% for membership in active_memberships %}
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-base-300">
+                <div class="avatar">
+                    <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-full bg-primary/20">
+                        {% if membership.user.profile.avatar %}
+                            <img src="{{ membership.user.profile.avatar.url }}" alt="{{ membership.user.get_full_name|default:membership.user.username }}">
+                        {% else %}
+                            <div class="flex items-center justify-center h-full">
+                                <i class="fas fa-user text-lg text-primary/60"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex-1">
+                    <div class="font-medium text-sm lg:text-base">
+                        {{ membership.user.get_full_name|default:membership.user.username }}
+                    </div>
+                    <div class="text-xs lg:text-sm text-base-content/60">{{ membership.get_role_display }}</div>
+                </div>
+                
+                {% if membership.role == 'OWNER' %}
+                <div class="badge badge-warning text-xs">Owner</div>
+                {% elif membership.role == 'ADMIN' %}
+                <div class="badge badge-info text-xs">Admin</div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-8 text-base-content/60">
+                No members found.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

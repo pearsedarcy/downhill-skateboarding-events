@@ -1,0 +1,14 @@
+<!-- Crew Description & Media -->
+{% if crew.description %}
+<div class="card bg-base-100 shadow-lg mb-6 lg:mb-8">
+    <div class="card-body p-4 lg:p-6">
+        <h2 class="card-title text-lg lg:text-xl mb-3 lg:mb-4">
+            <i class="fas fa-info-circle text-primary mr-2"></i>
+            About {{ crew.name }}
+        </h2>
+        <div class="prose max-w-none text-sm lg:text-base">
+            {{ crew.description|linebreaks }}
+        </div>
+    </div>
+</div>
+{% endif %}

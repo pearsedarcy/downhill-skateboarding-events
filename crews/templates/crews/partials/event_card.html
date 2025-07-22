@@ -1,0 +1,69 @@
+{% comment %}
+Event card component for displaying events in crew detail page
+Variables:
+- event: The event object
+- is_past: Boolean indicating if this is a past event
+{% endcomment %}
+
+<div class="card bg-base-200 shadow-sm border border-base-300 {% if is_past %}opacity-80{% endif %}">
+    <div class="card-body p-3 lg:p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+            <h4 class="card-title text-sm lg:text-base">
+                <a href="{% url 'events:event_details' event.slug %}" class="hover:text-primary">
+                    {{ event.title }}
+                </a>
+            </h4>
+            {% if event.is_published %}
+                <div class="badge badge-success text-xs">Published</div>
+            {% else %}
+                <div class="badge badge-warning text-xs">Draft</div>
+            {% endif %}
+        </div>
+        
+        <div class="text-xs lg:text-sm text-base-content/70 space-y-1">
+            <div class="flex items-center gap-1">
+                <i class="fas fa-calendar text-primary"></i>
+                <span>{{ event.start_date|date:"M j, Y" }}</span>
+                {% if event.start_time %}
+                <span>at {{ event.start_time|time:"g:i A" }}</span>
+                {% endif %}
+            </div>
+            {% if event.location_name %}
+            <div class="flex items-center gap-1">
+                <i class="fas fa-map-marker-alt text-secondary"></i>
+                <span>{{ event.location_name }}</span>
+            </div>
+            {% endif %}
+            {% if event.discipline %}
+            <div class="flex items-center gap-1">
+                <i class="fas fa-tag text-accent"></i>
+                <span>{{ event.get_discipline_display }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if can_manage %}
+        <div class="card-actions justify-end mt-2">
+            <div class="flex gap-1">
+                <button class="btn btn-xs btn-ghost toggle-publish-btn" 
+                        data-slug="{{ event.slug }}" 
+                        data-published="{{ event.is_published|yesno:'true,false' }}">
+                    {% if event.is_published %}
+                        <i class="fas fa-eye-slash"></i>
+                    {% else %}
+                        <i class="fas fa-eye"></i>
+                    {% endif %}
+                </button>
+                <a href="{% url 'events:edit_event' event.slug %}" class="btn btn-xs btn-ghost">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <button class="btn btn-xs btn-ghost text-error delete-event-btn"
+                        data-slug="{{ event.slug }}" 
+                        data-title="{{ event.title }}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>

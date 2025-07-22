@@ -1,0 +1,121 @@
+<!-- Image Modal -->
+<dialog id="imageModal" class="modal">
+    <div class="modal-box max-w-4xl">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <img id="modalImage" src="" alt="" class="w-full h-auto rounded-lg">
+        <h3 id="modalTitle" class="font-bold text-lg mt-4"></h3>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+// Image modal functionality
+function openImageModal(src, title) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('imageModal').showModal();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set progress bar widths
+    document.querySelectorAll('.role-progress-bar').forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+    
+    // Tab switching functionality
+    const tabs = document.querySelectorAll('.tab[data-tab]');
+    const tabContents = {
+        'members': document.getElementById('members-tab'),
+        'events': document.getElementById('events-tab')
+    };
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs
+            tabs.forEach(t => t.classList.remove('tab-active'));
+            
+            // Hide all tab contents
+            Object.values(tabContents).forEach(content => {
+                if (content) content.classList.add('hidden');
+            });
+            
+            // Show selected tab content
+            if (tabContents[targetTab]) {
+                tabContents[targetTab].classList.remove('hidden');
+            }
+            
+            // Add active class to clicked tab
+            this.classList.add('tab-active');
+        });
+    });
+});
+
+// Event management functions
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle toggle publish buttons
+    document.querySelectorAll('.toggle-publish-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const eventSlug = this.dataset.slug;
+            const currentState = this.dataset.published;
+            togglePublish(eventSlug, currentState);
+        });
+    });
+    
+    // Handle delete event buttons
+    document.querySelectorAll('.delete-event-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const eventSlug = this.dataset.slug;
+            const eventTitle = this.dataset.title;
+            deleteEvent(eventSlug, eventTitle);
+        });
+    });
+});
+
+function togglePublish(eventSlug, currentState) {
+    // Create and submit a form dynamically
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/events/${eventSlug}/publish/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function deleteEvent(eventSlug, eventTitle) {
+    if (confirm(`Are you sure you want to delete the event "${eventTitle}"?`)) {
+        // Create and submit a form dynamically
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/events/delete/${eventSlug}/`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>

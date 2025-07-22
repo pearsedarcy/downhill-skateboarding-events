@@ -1,0 +1,965 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ crew.name }} - Crews{% endblock %}
+
+{% block content %}
+{% include 'crews/partials/crew_banner_header.html' %}
+
+<div class="container mx-auto px-4 py-8">
+    {% include 'crews/partials/crew_description.html' %}
+    
+    {% include 'crews/partials/crew_statistics.html' %}
+    
+    <!-- Navigation Tabs -->
+    <div class="tabs tabs-bordered mb-4 lg:mb-6">
+        <a class="tab tab-active" data-tab="members">Members</a>
+        <a class="tab" data-tab="events">Events ({{ total_events }})</a>
+    </div>
+    
+    {% include 'crews/partials/crew_members_section.html' %}
+    
+    {% include 'crews/partials/crew_events_section.html' %}
+    
+    {% include 'crews/partials/crew_social_links.html' %}
+</div>
+
+{% include 'crews/partials/crew_scripts.html' %}
+{% endblock %}
+<!-- Full Screen Banner -->
+{% if crew.banner %}
+<div class="relative h-64 md:h-80 lg:h-96 bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden">
+    <img src="{{ crew.banner.url }}" alt="{{ crew.name }} banner" 
+         class="w-full h-full object-cover">
+    <!-- Banner Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+    
+    <!-- Crew Info Overlay -->
+    <div class="absolute bottom-6 left-0 right-0 px-4">
+        <div class="container mx-auto">
+            <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+                <!-- Logo on Banner -->
+                <div class="avatar self-center sm:self-auto relative">
+                    <div class="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-xl bg-base-100/95 backdrop-blur-sm p-2 md:p-3">
+                        {% if crew.logo %}
+                            <img src="{{ crew.logo.url }}" alt="{{ crew.name }} logo" class="w-full h-full object-contain">
+                        {% else %}
+                            <div class="flex items-center justify-center h-full">
+                                <i class="fas fa-users text-xl md:text-2xl lg:text-3xl text-primary/60"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if crew.is_verified %}
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 md:w-8 md:h-8 bg-success rounded-full flex items-center justify-center border-2 border-white shadow-lg z-10">
+                        <i class="fas fa-check text-white text-xs md:text-sm font-bold"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Crew Title on Banner -->
+                <div class="flex-1 text-white text-center sm:text-left">
+                    <h1 class="text-2xl md:text-4xl lg:text-5xl font-bold drop-shadow-lg mb-2">{{ crew.name }}</h1>
+                    <div class="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
+                        <div class="badge badge-primary bg-primary/90 backdrop-blur-sm">{{ crew.get_crew_type_display }}</div>
+                        <div class="badge badge-outline border-white/50 text-white bg-white/10 backdrop-blur-sm">{{ crew.get_primary_discipline_display }}</div>
+                        {% if crew.city and crew.country %}
+                        <div class="badge badge-outline border-white/50 text-white bg-white/10 backdrop-blur-sm">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ crew.city }}, {{ crew.country.name }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center sm:justify-start items-center gap-4 text-sm text-white/90">
+                        <span class="flex items-center">
+                            <i class="fas fa-user mr-1"></i>
+                            {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                        </span>
+                        <span class="flex items-center">
+                            <i class="fas fa-calendar mr-1"></i>
+                            Created {{ crew.created_at|date:"M Y" }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons on Banner -->
+                <div class="flex flex-row gap-2 justify-center sm:justify-end w-full sm:w-auto">
+                    {% if user.is_authenticated %}
+                        {% if can_manage %}
+                            <div class="dropdown dropdown-end">
+                                <div tabindex="0" role="button" class="btn btn-primary btn-sm backdrop-blur-sm">
+                                    <i class="fas fa-cog mr-1"></i>
+                                    <span class="hidden sm:inline">Manage</span>
+                                    <i class="fas fa-chevron-down ml-1"></i>
+                                </div>
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                    <li>
+                                        <a href="{% url 'crews:edit' crew.slug %}">
+                                            <i class="fas fa-edit mr-2"></i>
+                                            Edit Crew Details
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'crews:manage_permissions' crew.slug %}">
+                                            <i class="fas fa-user-shield mr-2"></i>
+                                            Manage Permissions
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'crews:invite' crew.slug %}">
+                                            <i class="fas fa-user-plus mr-2"></i>
+                                            Invite Members
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'crews:activity' crew.slug %}">
+                                            <i class="fas fa-chart-line mr-2"></i>
+                                            Activity Dashboard
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm text-white border-white/50 hover:bg-white/20 backdrop-blur-sm">
+                                <i class="fas fa-users mr-1"></i>
+                                <span class="hidden sm:inline">Members</span>
+                                <span class="sm:hidden">({{ crew.memberships.count }})</span>
+                                <span class="hidden sm:inline">({{ crew.memberships.count }})</span>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm text-white border-white/50 hover:bg-white/20 backdrop-blur-sm">
+                                <i class="fas fa-users mr-1"></i>
+                                <span class="hidden sm:inline">View Members</span>
+                                <span class="sm:hidden">Members</span>
+                            </a>
+                            <a href="{% url 'crews:join' crew.slug %}" class="btn btn-primary btn-sm backdrop-blur-sm">
+                                <i class="fas fa-user-plus mr-1"></i>
+                                <span class="hidden sm:inline">Join Crew</span>
+                                <span class="sm:hidden">Join</span>
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm text-white border-white/50 hover:bg-white/20 backdrop-blur-sm">
+                            <i class="fas fa-users mr-1"></i>
+                            <span class="hidden sm:inline">View Members</span>
+                            <span class="sm:hidden">Members</span>
+                        </a>
+                        <a href="{% url 'account_login' %}" class="btn btn-primary btn-sm backdrop-blur-sm">
+                            <i class="fas fa-sign-in-alt mr-1"></i>
+                            <span class="hidden sm:inline">Login to Join</span>
+                            <span class="sm:hidden">Login</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- No Banner Version -->
+<div class="bg-gradient-to-br from-primary/20 to-secondary/20">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-8">
+            <div class="avatar mb-4 lg:mb-6 relative">
+                <div class="w-24 h-24 lg:w-32 lg:h-32 rounded-xl bg-base-200 mx-auto">
+                    {% if crew.logo %}
+                        <img src="{{ crew.logo.url }}" alt="{{ crew.name }} logo">
+                    {% else %}
+                        <div class="flex items-center justify-center h-full">
+                            <i class="fas fa-users text-4xl lg:text-5xl text-primary/40"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if crew.is_verified %}
+                <div class="absolute -bottom-1 -right-1 w-7 h-7 lg:w-9 lg:h-9 bg-success rounded-full flex items-center justify-center border-2 border-white shadow-lg z-10">
+                    <i class="fas fa-check text-white text-sm lg:text-base font-bold"></i>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <h1 class="text-3xl lg:text-5xl font-bold text-base-content">{{ crew.name }}</h1>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-2 mb-6">
+                <div class="badge badge-primary">{{ crew.get_crew_type_display }}</div>
+                <div class="badge badge-outline">{{ crew.get_primary_discipline_display }}</div>
+                {% if crew.city and crew.country %}
+                <div class="badge badge-outline">
+                    <i class="fas fa-map-marker-alt mr-1"></i>
+                    {{ crew.city }}, {{ crew.country.name }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex flex-wrap justify-center items-center gap-4 text-sm text-base-content/70 mb-8">
+                <span class="flex items-center">
+                    <i class="fas fa-user mr-1"></i>
+                    {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                </span>
+                <span class="flex items-center">
+                    <i class="fas fa-calendar mr-1"></i>
+                    Created {{ crew.created_at|date:"M Y" }}
+                </span>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-row gap-2 justify-center">
+                {% if user.is_authenticated %}
+                    {% if can_manage %}
+                        <div class="dropdown dropdown-end">
+                            <div tabindex="0" role="button" class="btn btn-primary btn-sm">
+                                <i class="fas fa-cog mr-1"></i>
+                                <span class="hidden sm:inline">Manage</span>
+                                <i class="fas fa-chevron-down ml-1"></i>
+                            </div>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li>
+                                    <a href="{% url 'crews:edit' crew.slug %}">
+                                        <i class="fas fa-edit mr-2"></i>
+                                        Edit Crew Details
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'crews:manage_permissions' crew.slug %}">
+                                        <i class="fas fa-user-shield mr-2"></i>
+                                        Manage Permissions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'crews:invite' crew.slug %}">
+                                        <i class="fas fa-user-plus mr-2"></i>
+                                        Invite Members
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'crews:activity' crew.slug %}">
+                                        <i class="fas fa-chart-line mr-2"></i>
+                                        Activity Dashboard
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-users mr-1"></i>
+                            <span class="hidden sm:inline">Members</span>
+                            <span class="sm:hidden">({{ crew.memberships.count }})</span>
+                            <span class="hidden sm:inline">({{ crew.memberships.count }})</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-users mr-1"></i>
+                            <span class="hidden sm:inline">View Members</span>
+                            <span class="sm:hidden">Members</span>
+                        </a>
+                        <a href="{% url 'crews:join' crew.slug %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-user-plus mr-1"></i>
+                            <span class="hidden sm:inline">Join Crew</span>
+                            <span class="sm:hidden">Join</span>
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm">
+                        <i class="fas fa-users mr-1"></i>
+                        <span class="hidden sm:inline">View Members</span>
+                        <span class="sm:hidden">Members</span>
+                    </a>
+                    <a href="{% url 'account_login' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-sign-in-alt mr-1"></i>
+                        <span class="hidden sm:inline">Login to Join</span>
+                        <span class="sm:hidden">Login</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="container mx-auto px-4 py-8">
+    
+    <!-- Crew Description & Media -->
+    {% if crew.description %}
+    <div class="card bg-base-100 shadow-lg mb-6 lg:mb-8">
+        <div class="card-body p-4 lg:p-6">
+            <h2 class="card-title text-lg lg:text-xl mb-3 lg:mb-4">
+                <i class="fas fa-info-circle text-primary mr-2"></i>
+                About {{ crew.name }}
+            </h2>
+            <div class="prose max-w-none text-sm lg:text-base">
+                {{ crew.description|linebreaks }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Crew Statistics & Achievements -->
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+        <!-- Main Statistics -->
+        <div class="xl:col-span-3">
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body p-4 lg:p-6">
+                    <h2 class="card-title mb-4 lg:mb-6 text-lg lg:text-xl">
+                        <i class="fas fa-chart-bar text-primary mr-2"></i>
+                        Crew Statistics
+                    </h2>
+                    
+                    <!-- Key Metrics Grid -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-6">
+                        <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                            <div class="stat-figure text-primary">
+                                <i class="fas fa-users text-lg lg:text-xl"></i>
+                            </div>
+                            <div class="stat-title text-xs">Members</div>
+                            <div class="stat-value text-lg lg:text-xl">{{ crew_stats.total_members }}</div>
+                            {% if crew_stats.members_this_month > 0 %}
+                            <div class="stat-desc text-success text-xs">+{{ crew_stats.members_this_month }} this month</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                            <div class="stat-figure text-secondary">
+                                <i class="fas fa-calendar text-lg lg:text-xl"></i>
+                            </div>
+                            <div class="stat-title text-xs">Events</div>
+                            <div class="stat-value text-lg lg:text-xl">{{ crew_stats.total_events }}</div>
+                            <div class="stat-desc text-xs">{{ crew_stats.upcoming_events }} upcoming</div>
+                        </div>
+                        
+                        <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                            <div class="stat-figure text-accent">
+                                <i class="fas fa-chart-line text-lg lg:text-xl"></i>
+                            </div>
+                            <div class="stat-title text-xs">Activity</div>
+                            <div class="stat-value text-lg lg:text-xl">{{ crew_stats.recent_activity_count }}</div>
+                            <div class="stat-desc text-xs">this week</div>
+                        </div>
+                        
+                        <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                            <div class="stat-figure text-info">
+                                <i class="fas fa-birthday-cake text-lg lg:text-xl"></i>
+                            </div>
+                            <div class="stat-title text-xs">Age</div>
+                            <div class="stat-value text-base lg:text-lg">{{ crew_stats.crew_age_days }}</div>
+                            <div class="stat-desc text-xs">days</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Member Role Breakdown -->
+                    <div class="mb-4 lg:mb-6">
+                        <h3 class="font-semibold mb-2 lg:mb-3 flex items-center text-sm">
+                            <i class="fas fa-chart-pie text-primary mr-2"></i>
+                            Member Roles
+                        </h3>
+                        <div class="space-y-1 lg:space-y-2">
+                            {% for role_data in crew_stats.role_breakdown %}
+                            {% if role_data.count > 0 %}
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium">{{ role_data.role }}s</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-12 lg:w-16 bg-base-300 rounded-full h-2 relative">
+                                        <div class="bg-primary h-2 rounded-full absolute top-0 left-0 role-progress-bar" 
+                                             data-width="{{ role_data.percentage }}"></div>
+                                    </div>
+                                    <span class="text-sm w-6 lg:w-8 text-right">{{ role_data.count }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Growth - Compact -->
+                    {% if crew_stats.members_this_month > 0 or crew_stats.events_this_year > 0 %}
+                    <div>
+                        <h3 class="font-semibold mb-2 lg:mb-3 flex items-center text-sm">
+                            <i class="fas fa-trending-up text-success mr-2"></i>
+                            Recent Growth
+                        </h3>
+                        <div class="flex flex-col sm:flex-row gap-2 lg:gap-4 text-sm">
+                            {% if crew_stats.members_this_month > 0 %}
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-user-plus text-success"></i>
+                                <span>{{ crew_stats.members_this_month }} new member{{ crew_stats.members_this_month|pluralize }} (30d)</span>
+                            </div>
+                            {% endif %}
+                            {% if crew_stats.events_this_year > 0 %}
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar-plus text-info"></i>
+                                <span>{{ crew_stats.events_this_year }} event{{ crew_stats.events_this_year|pluralize }} (YTD)</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar with Status & Info -->
+        <div class="space-y-4 lg:space-y-6">
+            <!-- Activity Status -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body p-3 lg:p-4">
+                    <h3 class="card-title text-sm lg:text-base mb-2 lg:mb-3">
+                        <i class="fas fa-pulse text-primary mr-2"></i>
+                        Status
+                    </h3>
+                    
+                    {% if crew_stats.is_active_crew %}
+                    <div class="alert alert-success p-2 lg:p-3">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <div class="font-bold text-xs lg:text-sm">Active Crew</div>
+                            <div class="text-xs">Regular engagement</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning p-2 lg:p-3">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <div class="font-bold text-xs lg:text-sm">Quiet Period</div>
+                            <div class="text-xs">No recent activity</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Quick Stats -->
+                    <div class="mt-2 lg:mt-3 space-y-1 text-xs">
+                        <div class="flex justify-between">
+                            <span>Events/month:</span>
+                            <span class="font-medium">{{ crew_stats.avg_events_per_month }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Published:</span>
+                            <span class="font-medium">{{ crew_stats.published_events }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Activities:</span>
+                            <span class="font-medium">{{ crew_stats.total_activity_count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Achievements -->
+            {% if achievements %}
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body p-3 lg:p-4">
+                    <h3 class="card-title text-sm lg:text-base mb-2 lg:mb-3">
+                        <i class="fas fa-trophy text-warning mr-2"></i>
+                        Achievements
+                    </h3>
+                    
+                    <div class="space-y-1 lg:space-y-2">
+                        {% for achievement in achievements %}
+                        <div class="flex items-center gap-2 p-2 bg-base-200 rounded">
+                            <i class="{{ achievement.icon }} text-warning text-sm"></i>
+                            <div>
+                                <div class="font-medium text-xs lg:text-sm">{{ achievement.name }}</div>
+                                <div class="text-xs text-base-content/60">{{ achievement.description }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Recent Members -->
+            {% if recent_members %}
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body p-3 lg:p-4">
+                    <h3 class="card-title text-sm lg:text-base mb-2 lg:mb-3">
+                        <i class="fas fa-user-plus text-success mr-2"></i>
+                        New Members
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        {% for membership in recent_members %}
+                        <div class="flex items-center gap-2">
+                            <div class="avatar">
+                                <div class="w-6 h-6 rounded-full bg-primary/20">
+                                    {% if membership.user.userprofile.profile_picture %}
+                                        <img src="{{ membership.user.userprofile.profile_picture.url }}" 
+                                             alt="{{ membership.user.username }}">
+                                    {% else %}
+                                        <div class="flex items-center justify-center h-full">
+                                            <i class="fas fa-user text-primary/60 text-xs"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs lg:text-sm font-medium truncate">{{ membership.user.username }}</div>
+                                <div class="text-xs text-base-content/60">{{ membership.joined_at|timesince }} ago</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="tabs tabs-bordered mb-4 lg:mb-6">
+        <a class="tab tab-active" data-tab="members">Members</a>
+        <a class="tab" data-tab="events">Events ({{ total_events }})</a>
+    </div>
+    
+    <!-- Members Section -->
+    <div class="card bg-base-100 shadow-lg" id="members-tab">
+        <div class="card-body p-4 lg:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 lg:mb-6">
+                <h2 class="card-title text-lg lg:text-xl">
+                    <i class="fas fa-users text-primary mr-2"></i>
+                    Crew Members ({{ crew.member_count }})
+                </h2>
+                
+                {% if can_manage %}
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-2 w-full sm:w-auto">
+                    <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-outline btn-sm flex-1 sm:flex-none">
+                        <i class="fas fa-user-shield mr-2"></i>
+                        <span class="hidden sm:inline">Permissions</span>
+                        <span class="sm:hidden">Permissions</span>
+                    </a>
+                    <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-secondary btn-sm flex-1 sm:flex-none">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        <span class="hidden sm:inline">Invite Members</span>
+                        <span class="sm:hidden">Invite</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Members List -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+                {% for membership in active_memberships %}
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-base-300">
+                    <div class="avatar">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-full bg-primary/20">
+                            {% if membership.user.userprofile.profile_picture %}
+                                <img src="{{ membership.user.userprofile.profile_picture.url }}" 
+                                     alt="{{ membership.user.username }}">
+                            {% else %}
+                                <div class="flex items-center justify-center h-full">
+                                    <i class="fas fa-user text-primary/60"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <div class="font-medium text-sm lg:text-base">
+                            {% if membership.nickname %}
+                                {{ membership.nickname }}
+                                <span class="text-xs lg:text-sm text-base-content/60">({{ membership.user.username }})</span>
+                            {% else %}
+                                {{ membership.user.username }}
+                            {% endif %}
+                        </div>
+                        <div class="text-xs lg:text-sm text-base-content/60">{{ membership.get_role_display }}</div>
+                    </div>
+                    
+                    {% if membership.role == 'OWNER' %}
+                    <div class="badge badge-warning text-xs">Owner</div>
+                    {% elif membership.role == 'ADMIN' %}
+                    <div class="badge badge-info text-xs">Admin</div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-8 text-base-content/60">
+                    No members found.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Events Section -->
+    <div class="card bg-base-100 shadow-lg hidden" id="events-tab">
+        <div class="card-body">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 class="card-title">
+                    <i class="fas fa-calendar text-primary mr-2"></i>
+                    Crew Events ({{ total_events }})
+                </h2>
+                
+                {% if user_permissions.create or user_permissions.manage_crew %}
+                <a href="{% url 'events:submit' %}?crew={{ crew.slug }}" class="btn btn-secondary btn-sm w-full sm:w-auto">
+                    <i class="fas fa-plus mr-2"></i>
+                    Create Event
+                </a>
+                {% endif %}
+            </div>
+            
+            {% if upcoming_events or past_events %}
+                <!-- Upcoming Events -->
+                {% if upcoming_events %}
+                <div class="mb-6 lg:mb-8">
+                    <h3 class="text-base lg:text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+                        <i class="fas fa-arrow-up text-success mr-2"></i>
+                        Upcoming Events ({{ upcoming_events.count }})
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
+                        {% for event in upcoming_events %}
+                        <div class="card bg-base-200 shadow-sm border border-base-300">
+                            <div class="card-body p-3 lg:p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <h4 class="card-title text-sm lg:text-base">
+                                        <a href="{% url 'events:event_details' event.slug %}" class="link link-hover">
+                                            {{ event.title }}
+                                        </a>
+                                    </h4>
+                                    <div class="flex items-center gap-2">
+                                        <!-- Published status badge -->
+                                        {% if event.published %}
+                                            <div class="badge badge-success badge-sm">Published</div>
+                                        {% else %}
+                                            <div class="badge badge-warning badge-sm">Draft</div>
+                                        {% endif %}
+                                        <div class="badge badge-ghost badge-sm">{{ event.get_event_class_display }}</div>
+                                        
+                                        <!-- Management dropdown for users with appropriate permissions -->
+                                        {% if event.user_can_manage %}
+                                        <div class="dropdown dropdown-end">
+                                            <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </div>
+                                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow border">
+                                                <li>
+                                                    <a href="{% url 'events:edit_event' event.slug %}" class="text-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                        Edit Event
+                                                    </a>
+                                                </li>
+                                                <!-- Show publish/unpublish based on user permission -->
+                                                {% if event.user_can_publish %}
+                                                <li>
+                                                    <a href="#" class="text-sm toggle-publish-btn" data-slug="{{ event.slug }}" data-published="{{ event.published|yesno:'true,false' }}">
+                                                        {% if event.published %}
+                                                            <i class="fas fa-eye-slash"></i>
+                                                            Unpublish
+                                                        {% else %}
+                                                            <i class="fas fa-eye"></i>
+                                                            Publish
+                                                        {% endif %}
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                <li><hr class="border-base-300 my-1"></li>
+                                                <li>
+                                                    <a href="#" class="text-sm text-error delete-event-btn" data-slug="{{ event.slug }}" data-title="{{ event.title }}">
+                                                        <i class="fas fa-trash"></i>
+                                                        Delete Event
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="text-sm text-base-content/70 space-y-1">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-day w-4 mr-2"></i>
+                                        {{ event.start_date|date:"M d, Y" }}
+                                        {% if event.end_date and event.end_date != event.start_date %}
+                                            - {{ event.end_date|date:"M d, Y" }}
+                                        {% endif %}
+                                    </div>
+                                    {% if event.location %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-map-marker-alt w-4 mr-2"></i>
+                                        {{ event.location.city }}, {{ event.location.country.name }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-tag w-4 mr-2"></i>
+                                        {{ event.event_type }}
+                                    </div>
+                                </div>
+                                
+                                {% if event.description %}
+                                <p class="text-sm text-base-content/60 mt-2 line-clamp-2">
+                                    {{ event.description|truncatewords:20 }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Past Events -->
+                {% if past_events %}
+                <div>
+                    <h3 class="text-base lg:text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+                        <i class="fas fa-history text-base-content/60 mr-2"></i>
+                        Past Events ({{ past_events.count }})
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
+                        {% for event in past_events|slice:":6" %}
+                        <div class="card bg-base-200 shadow-sm border border-base-300 opacity-80">
+                            <div class="card-body p-3 lg:p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <h4 class="card-title text-sm lg:text-base">
+                                        <a href="{% url 'events:event_details' event.slug %}" class="link link-hover">
+                                            {{ event.title }}
+                                        </a>
+                                    </h4>
+                                    <div class="flex items-center gap-2">
+                                        <!-- Published status badge -->
+                                        {% if event.published %}
+                                            <div class="badge badge-success badge-sm">Published</div>
+                                        {% else %}
+                                            <div class="badge badge-warning badge-sm">Draft</div>
+                                        {% endif %}
+                                        <div class="badge badge-ghost badge-sm">{{ event.get_event_class_display }}</div>
+                                        
+                                        <!-- Management dropdown for users with appropriate permissions -->
+                                        {% if event.user_can_manage %}
+                                        <div class="dropdown dropdown-end">
+                                            <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </div>
+                                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow border">
+                                                <li>
+                                                    <a href="{% url 'events:edit_event' event.slug %}" class="text-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                        Edit Event
+                                                    </a>
+                                                </li>
+                                                <!-- Show publish/unpublish based on user permission -->
+                                                {% if event.user_can_publish %}
+                                                <li>
+                                                    <a href="#" class="text-sm toggle-publish-btn" data-slug="{{ event.slug }}" data-published="{{ event.published|yesno:'true,false' }}">
+                                                        {% if event.published %}
+                                                            <i class="fas fa-eye-slash"></i>
+                                                            Unpublish
+                                                        {% else %}
+                                                            <i class="fas fa-eye"></i>
+                                                            Publish
+                                                        {% endif %}
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                <li><hr class="border-base-300 my-1"></li>
+                                                <li>
+                                                    <a href="#" class="text-sm text-error delete-event-btn" data-slug="{{ event.slug }}" data-title="{{ event.title }}">
+                                                        <i class="fas fa-trash"></i>
+                                                        Delete Event
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="text-sm text-base-content/70 space-y-1">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-day w-4 mr-2"></i>
+                                        {{ event.start_date|date:"M d, Y" }}
+                                    </div>
+                                    {% if event.location %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-map-marker-alt w-4 mr-2"></i>
+                                        {{ event.location.city }}, {{ event.location.country.name }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if past_events.count > 6 %}
+                    <div class="text-center mt-4">
+                        <div class="text-sm text-base-content/60">
+                            And {{ past_events.count|add:"-6" }} more past event{{ past_events.count|add:"-6"|pluralize }}...
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% else %}
+                <!-- No Events -->
+                <div class="text-center py-8 lg:py-12 text-base-content/60">
+                    <i class="fas fa-calendar text-3xl lg:text-4xl mb-3 lg:mb-4"></i>
+                    <h3 class="text-base lg:text-lg font-semibold mb-2">No Events Yet</h3>
+                    <p class="mb-3 lg:mb-4 text-sm lg:text-base">This crew hasn't organized any events yet.</p>
+                    {% if user_permissions.create or user_permissions.manage_crew %}
+                    <a href="{% url 'events:submit' %}?crew={{ crew.slug }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Create First Event
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Social Links -->
+    {% if crew.website or crew.instagram or crew.youtube %}
+    <div class="card bg-base-100 shadow-lg mt-6 lg:mt-8">
+        <div class="card-body p-4 lg:p-6">
+            <h2 class="card-title text-lg lg:text-xl mb-3 lg:mb-4">
+                <i class="fas fa-link text-primary mr-2"></i>
+                Connect with {{ crew.name }}
+            </h2>
+            
+            <div class="flex flex-wrap gap-2 lg:gap-3">
+                {% if crew.website %}
+                <a href="{{ crew.website }}" target="_blank" rel="noopener" 
+                   class="btn btn-outline btn-sm">
+                    <i class="fas fa-globe mr-2"></i>
+                    Website
+                </a>
+                {% endif %}
+                
+                {% if crew.instagram %}
+                <a href="https://instagram.com/{{ crew.instagram }}" target="_blank" rel="noopener"
+                   class="btn btn-outline btn-sm">
+                    <i class="fab fa-instagram mr-2"></i>
+                    @{{ crew.instagram }}
+                </a>
+                {% endif %}
+                
+                {% if crew.youtube %}
+                <a href="{{ crew.youtube }}" target="_blank" rel="noopener"
+                   class="btn btn-outline btn-sm">
+                    <i class="fab fa-youtube mr-2"></i>
+                    YouTube
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Image Modal -->
+<dialog id="imageModal" class="modal">
+    <div class="modal-box max-w-4xl">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <img id="modalImage" src="" alt="" class="w-full h-auto rounded-lg">
+        <h3 id="modalTitle" class="font-bold text-lg mt-4"></h3>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+// Image modal functionality
+function openImageModal(src, title) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('imageModal').showModal();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set progress bar widths
+    document.querySelectorAll('.role-progress-bar').forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+    
+    // Tab switching functionality
+    const tabs = document.querySelectorAll('.tab[data-tab]');
+    const tabContents = {
+        'members': document.getElementById('members-tab'),
+        'events': document.getElementById('events-tab')
+    };
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs
+            tabs.forEach(t => t.classList.remove('tab-active'));
+            
+            // Hide all tab contents
+            Object.values(tabContents).forEach(content => {
+                if (content) content.classList.add('hidden');
+            });
+            
+            // Show selected tab content
+            if (tabContents[targetTab]) {
+                tabContents[targetTab].classList.remove('hidden');
+            }
+            
+            // Add active class to clicked tab
+            this.classList.add('tab-active');
+        });
+    });
+});
+
+// Event management functions
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle toggle publish buttons
+    document.querySelectorAll('.toggle-publish-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const eventSlug = this.dataset.slug;
+            const currentState = this.dataset.published;
+            togglePublish(eventSlug, currentState);
+        });
+    });
+    
+    // Handle delete event buttons
+    document.querySelectorAll('.delete-event-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const eventSlug = this.dataset.slug;
+            const eventTitle = this.dataset.title;
+            deleteEvent(eventSlug, eventTitle);
+        });
+    });
+});
+
+function togglePublish(eventSlug, currentState) {
+    // Create and submit a form dynamically
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/events/${eventSlug}/toggle-publish/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function deleteEvent(eventSlug, eventTitle) {
+    if (confirm(`Are you sure you want to delete the event "${eventTitle}"?`)) {
+        // Create and submit a form dynamically
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/events/${eventSlug}/delete/`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

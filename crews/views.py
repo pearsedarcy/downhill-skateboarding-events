@@ -90,6 +90,87 @@ def crew_detail(request, slug):
             event.user_can_manage = event.can_manage(request.user)
             event.user_can_publish = event.can_publish(request.user)
     
+    # Enhanced crew statistics
+    crew_stats = {
+        # Member statistics
+        'total_members': active_memberships.count(),
+        'owner_count': active_memberships.filter(role='OWNER').count(),
+        'admin_count': active_memberships.filter(role='ADMIN').count(),
+        'member_count': active_memberships.filter(role='MEMBER').count(),
+        
+        # Growth metrics
+        'members_this_month': active_memberships.filter(
+            joined_at__gte=timezone.now() - timedelta(days=30)
+        ).count(),
+        'members_this_year': active_memberships.filter(
+            joined_at__gte=timezone.now() - timedelta(days=365)
+        ).count(),
+        
+        # Event statistics
+        'total_events': crew_events.count(),
+        'upcoming_events': upcoming_events.count(),
+        'past_events': past_events.count(),
+        'published_events': crew_events.filter(published=True).count(),
+        'events_this_year': crew_events.filter(
+            start_date__gte=timezone.now().date().replace(month=1, day=1)
+        ).count(),
+        
+        # Activity metrics
+        'recent_activity_count': CrewActivity.objects.filter(
+            crew=crew,
+            created_at__gte=timezone.now() - timedelta(days=7)
+        ).count(),
+        'total_activity_count': CrewActivity.objects.filter(crew=crew).count(),
+        
+        # Engagement metrics
+        'avg_events_per_month': 0,
+        'crew_age_days': (timezone.now().date() - crew.created_at.date()).days,
+        'is_active_crew': False,  # Will calculate below
+    }
+    
+    # Calculate average events per month
+    if crew_stats['crew_age_days'] > 0:
+        months_active = max(1, crew_stats['crew_age_days'] / 30.44)  # Average days per month
+        crew_stats['avg_events_per_month'] = round(crew_stats['total_events'] / months_active, 1)
+    
+    # Determine if crew is considered "active" (recent activity)
+    crew_stats['is_active_crew'] = (
+        crew_stats['recent_activity_count'] > 0 or 
+        crew_stats['upcoming_events'] > 0 or
+        crew_stats['members_this_month'] > 0
+    )
+    
+    # Member role breakdown for chart/display
+    crew_stats['role_breakdown'] = [
+        {'role': 'Owner', 'count': crew_stats['owner_count'], 'percentage': 0},
+        {'role': 'Admin', 'count': crew_stats['admin_count'], 'percentage': 0},
+        {'role': 'Member', 'count': crew_stats['member_count'], 'percentage': 0},
+    ]
+    
+    # Calculate percentages
+    total_members = crew_stats['total_members']
+    if total_members > 0:
+        for role_data in crew_stats['role_breakdown']:
+            role_data['percentage'] = round((role_data['count'] / total_members) * 100, 1)
+    
+    # Recent member activity
+    recent_members = active_memberships.filter(
+        joined_at__gte=timezone.now() - timedelta(days=30)
+    ).order_by('-joined_at')[:5]
+    
+    # Crew achievements/milestones
+    achievements = []
+    if crew_stats['total_members'] >= 10:
+        achievements.append({'name': 'Growing Community', 'icon': 'fas fa-users', 'description': '10+ members'})
+    if crew_stats['total_events'] >= 5:
+        achievements.append({'name': 'Event Organizer', 'icon': 'fas fa-calendar-check', 'description': '5+ events organized'})
+    if crew_stats['crew_age_days'] >= 365:
+        achievements.append({'name': 'Established Crew', 'icon': 'fas fa-clock', 'description': '1+ years active'})
+    if crew.is_verified:
+        achievements.append({'name': 'Verified Crew', 'icon': 'fas fa-check-circle', 'description': 'Official verification'})
+    if crew_stats['published_events'] >= 3:
+        achievements.append({'name': 'Event Publisher', 'icon': 'fas fa-globe', 'description': '3+ published events'})
+    
     return render(request, 'crews/crew_detail.html', {
         'crew': crew,
         'can_manage': can_manage,
@@ -99,6 +180,9 @@ def crew_detail(request, slug):
         'upcoming_events': upcoming_events,
         'past_events': past_events,
         'total_events': crew_events.count(),
+        'crew_stats': crew_stats,
+        'recent_members': recent_members,
+        'achievements': achievements,
     })
 
 

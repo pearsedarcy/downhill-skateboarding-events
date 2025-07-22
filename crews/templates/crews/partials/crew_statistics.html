@@ -1,0 +1,105 @@
+<!-- Crew Statistics & Achievements -->
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+    <!-- Main Statistics -->
+    <div class="xl:col-span-3">
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body p-4 lg:p-6">
+                <h2 class="card-title mb-4 lg:mb-6 text-lg lg:text-xl">
+                    <i class="fas fa-chart-bar text-primary mr-2"></i>
+                    Crew Statistics
+                </h2>
+                
+                <!-- Key Metrics Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-6">
+                    <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                        <div class="stat-figure text-primary">
+                            <i class="fas fa-users text-lg lg:text-xl"></i>
+                        </div>
+                        <div class="stat-title text-xs">Members</div>
+                        <div class="stat-value text-lg lg:text-xl">{{ crew_stats.total_members }}</div>
+                        {% if crew_stats.members_this_month > 0 %}
+                        <div class="stat-desc text-success text-xs">+{{ crew_stats.members_this_month }} this month</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                        <div class="stat-figure text-secondary">
+                            <i class="fas fa-calendar text-lg lg:text-xl"></i>
+                        </div>
+                        <div class="stat-title text-xs">Events</div>
+                        <div class="stat-value text-lg lg:text-xl">{{ crew_stats.total_events }}</div>
+                        <div class="stat-desc text-xs">{{ crew_stats.upcoming_events }} upcoming</div>
+                    </div>
+                    
+                    <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                        <div class="stat-figure text-accent">
+                            <i class="fas fa-chart-line text-lg lg:text-xl"></i>
+                        </div>
+                        <div class="stat-title text-xs">Activity</div>
+                        <div class="stat-value text-lg lg:text-xl">{{ crew_stats.recent_activity_count }}</div>
+                        <div class="stat-desc text-xs">this week</div>
+                    </div>
+                    
+                    <div class="stat bg-base-200 rounded-lg p-3 lg:p-4">
+                        <div class="stat-figure text-info">
+                            <i class="fas fa-birthday-cake text-lg lg:text-xl"></i>
+                        </div>
+                        <div class="stat-title text-xs">Age</div>
+                        <div class="stat-value text-base lg:text-lg">{{ crew_stats.crew_age_days }}</div>
+                        <div class="stat-desc text-xs">days</div>
+                    </div>
+                </div>
+                
+                <!-- Member Role Breakdown -->
+                <div class="mb-4 lg:mb-6">
+                    <h3 class="font-semibold mb-2 lg:mb-3 flex items-center text-sm">
+                        <i class="fas fa-chart-pie text-primary mr-2"></i>
+                        Member Roles
+                    </h3>
+                    <div class="space-y-1 lg:space-y-2">
+                        {% for role_data in crew_stats.role_breakdown %}
+                        {% if role_data.count > 0 %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium">{{ role_data.role }}s</span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-12 lg:w-16 bg-base-300 rounded-full h-2 relative">
+                                    <div class="role-progress-bar bg-primary h-full rounded-full" data-width="{{ role_data.percentage }}"></div>
+                                </div>
+                                <span class="text-sm w-6 lg:w-8 text-right">{{ role_data.count }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Recent Growth - Compact -->
+                {% if crew_stats.members_this_month > 0 or crew_stats.events_this_year > 0 %}
+                <div>
+                    <h3 class="font-semibold mb-2 lg:mb-3 flex items-center text-sm">
+                        <i class="fas fa-trending-up text-success mr-2"></i>
+                        Recent Growth
+                    </h3>
+                    <div class="flex flex-col sm:flex-row gap-2 lg:gap-4 text-sm">
+                        {% if crew_stats.members_this_month > 0 %}
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-plus text-success"></i>
+                            <span>{{ crew_stats.members_this_month }} new member{{ crew_stats.members_this_month|pluralize }} (30d)</span>
+                        </div>
+                        {% endif %}
+                        {% if crew_stats.events_this_year > 0 %}
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-calendar-plus text-info"></i>
+                            <span>{{ crew_stats.events_this_year }} event{{ crew_stats.events_this_year|pluralize }} (YTD)</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar with Status & Info -->
+    {% include 'crews/partials/crew_sidebar_info.html' %}
+</div>
