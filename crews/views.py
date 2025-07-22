@@ -13,6 +13,14 @@ from django.db import models
 from datetime import timedelta
 from .models import Crew, CrewMembership, CrewInvitation, CrewActivity
 from .forms import CrewForm, CrewMembershipForm, CrewInvitationForm
+from .permissions import (
+    crew_permission_required, 
+    CrewPermissionMixin,
+    check_crew_permission,
+    require_crew_permission,
+    CrewNotFoundError,
+    InsufficientPermissionError
+)
 
 
 def crew_list(request):
@@ -30,9 +38,33 @@ def crew_detail(request, slug):
     # Get user's membership to determine permissions
     user_membership = None
     can_manage = False
+    user_permissions = {}
+    
     if request.user.is_authenticated:
-        user_membership = crew.memberships.filter(user=request.user).first()
-        can_manage = user_membership.can_manage() if user_membership else False
+        user_membership = crew.get_user_membership(request.user)
+        if user_membership:
+            # User is a member - get all permissions
+            user_permissions = {
+                'create': user_membership.has_event_permission('create'),
+                'edit': user_membership.has_event_permission('edit'), 
+                'publish': user_membership.has_event_permission('publish'),
+                'delegate': user_membership.has_event_permission('delegate'),
+                'manage_crew': user_membership.can_manage(),
+            }
+            can_manage = user_permissions['manage_crew']
+        else:
+            # User is authenticated but not a member
+            user_permissions = {
+                'create': False, 'edit': False, 'publish': False, 
+                'delegate': False, 'manage_crew': False
+            }
+    else:
+        # User is not authenticated
+        user_membership = None
+        user_permissions = {
+            'create': False, 'edit': False, 'publish': False, 
+            'delegate': False, 'manage_crew': False
+        }
     
     active_memberships = crew.memberships.filter(is_active=True).order_by('role', 'joined_at')
     
@@ -60,6 +92,7 @@ def crew_detail(request, slug):
         'crew': crew,
         'can_manage': can_manage,
         'user_membership': user_membership,
+        'user_permissions': user_permissions,
         'active_memberships': active_memberships,
         'upcoming_events': upcoming_events,
         'past_events': past_events,
@@ -109,11 +142,10 @@ def create_crew(request):
 
 
 @login_required  
+@crew_permission_required('edit')
 def edit_crew(request, slug):
     """Edit crew details."""
     crew = get_object_or_404(Crew, slug=slug)
-    if not crew.can_manage(request.user):
-        return HttpResponseForbidden("You don't have permission to edit this crew.")
     
     if request.method == 'POST':
         form = CrewForm(request.POST, request.FILES, instance=crew)
@@ -148,10 +180,14 @@ def delete_crew(request, slug):
     Only crew owners can delete crews.
     """
     crew = get_object_or_404(Crew, slug=slug)
-    user_membership = crew.memberships.filter(user=request.user).first()
     
-    # Check if user is the owner
-    if not user_membership or user_membership.role != 'owner':
+    # Check if user is the owner using new permission system
+    try:
+        user_membership = crew.get_user_membership(request.user)
+        if user_membership.role != 'OWNER':
+            messages.error(request, "Only crew owners can delete crews.")
+            return redirect('crews:detail', slug=crew.slug)
+    except CrewMembership.DoesNotExist:
         messages.error(request, "Only crew owners can delete crews.")
         return redirect('crews:detail', slug=crew.slug)
     
@@ -266,23 +302,19 @@ def edit_member(request, slug, user_id):
 
 
 @login_required
+@crew_permission_required('delegate')  # Members need delegate permission to manage other members
 def remove_member(request, slug, user_id):
     """Remove a member from the crew."""
     crew = get_object_or_404(Crew, slug=slug)
     member_to_remove = get_object_or_404(CrewMembership, crew=crew, user_id=user_id)
-    user_membership = crew.memberships.filter(user=request.user).first()
-    
-    # Check permissions
-    if not user_membership or not user_membership.can_manage():
-        messages.error(request, "You don't have permission to remove members.")
-        return redirect('crews:members', slug=crew.slug)
+    user_membership = crew.get_user_membership(request.user)
     
     # Cannot remove crew owner
     if member_to_remove.role == 'OWNER':
         messages.error(request, "Cannot remove crew owner. Transfer ownership first.")
         return redirect('crews:members', slug=crew.slug)
     
-    # Admins cannot remove other admins
+    # Admins cannot remove other admins unless they're owner
     if (user_membership.role == 'ADMIN' and 
         member_to_remove.role == 'ADMIN' and 
         member_to_remove.user != request.user):

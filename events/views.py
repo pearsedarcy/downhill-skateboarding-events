@@ -250,10 +250,11 @@ def event_submission(request, slug=None):
         crew_slug = request.GET.get('crew')
         if crew_slug:
             from crews.models import Crew
+            from crews.permissions import check_crew_permission
             try:
                 crew = Crew.objects.get(slug=crew_slug, is_active=True)
-                # Check if user can create events for this crew
-                if crew.can_create_events(request.user):
+                # Check if user can create events for this crew using new permission system
+                if check_crew_permission(request.user, crew.slug, 'create'):
                     initial_data['created_by_crew'] = crew
             except Crew.DoesNotExist:
                 pass
