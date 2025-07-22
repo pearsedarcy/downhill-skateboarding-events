@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.db import models
 from datetime import timedelta
 from .models import Crew, CrewMembership, CrewInvitation, CrewActivity
-from .forms import CrewForm, CrewMembershipForm, CrewInvitationForm
+from .forms import CrewForm, CrewMembershipForm, CrewInvitationForm, MemberPermissionForm, BulkPermissionForm
 from .permissions import (
     crew_permission_required, 
     CrewPermissionMixin,
@@ -142,7 +142,7 @@ def create_crew(request):
 
 
 @login_required  
-@crew_permission_required('edit')
+@crew_permission_required('edit', crew_param='slug')
 def edit_crew(request, slug):
     """Edit crew details."""
     crew = get_object_or_404(Crew, slug=slug)
@@ -302,7 +302,7 @@ def edit_member(request, slug, user_id):
 
 
 @login_required
-@crew_permission_required('delegate')  # Members need delegate permission to manage other members
+@crew_permission_required('delegate', crew_param='slug')  # Members need delegate permission to manage other members
 def remove_member(request, slug, user_id):
     """Remove a member from the crew."""
     crew = get_object_or_404(Crew, slug=slug)
@@ -394,3 +394,283 @@ def crew_activity(request, slug):
     return render(request, 'crews/crew_activity.html', {
         'crew': crew
     })
+
+
+# ============================================================================
+# PERMISSION MANAGEMENT VIEWS (Task 4)
+# ============================================================================
+
+@login_required
+@crew_permission_required('delegate', crew_param='slug')
+def manage_permissions(request, slug):
+    """Main permission management dashboard."""
+    crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    user_membership = crew.get_user_membership(request.user)
+    
+    # Get all active members with their permissions
+    members = crew.memberships.filter(is_active=True).order_by('role', 'user__username')
+    
+    # Add permission summary for each member
+    for member in members:
+        member.permissions_summary = {
+            'create': member.can_create_events,
+            'edit': member.can_edit_events,
+            'publish': member.can_publish_events,
+            'delegate': member.can_delegate_permissions,
+            'total_granted': sum([
+                member.can_create_events,
+                member.can_edit_events, 
+                member.can_publish_events,
+                member.can_delegate_permissions
+            ])
+        }
+    
+    # Calculate permission statistics
+    permission_stats = {
+        'can_create_events': sum(1 for m in members if m.can_create_events),
+        'can_edit_events': sum(1 for m in members if m.can_edit_events),
+        'can_publish_events': sum(1 for m in members if m.can_publish_events),
+        'can_delegate_permissions': sum(1 for m in members if m.can_delegate_permissions),
+        'total_members': members.count()
+    }
+
+    return render(request, 'crews/manage_permissions.html', {
+        'crew': crew,
+        'user_membership': user_membership,
+        'members': members,
+        'permission_stats': permission_stats,
+        'can_manage_delegation': (user_membership.role == 'OWNER' or 
+                                 user_membership.can_delegate_permissions),
+    })
+
+
+@login_required
+@crew_permission_required('delegate', crew_param='slug')
+def edit_member_permissions(request, slug, user_id):
+    """Edit permissions for a specific member."""
+    crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    member_to_edit = get_object_or_404(CrewMembership, crew=crew, user_id=user_id, is_active=True)
+    user_membership = crew.get_user_membership(request.user)
+    
+    # Cannot edit owner permissions (owners have all permissions by default)
+    if member_to_edit.role == 'OWNER':
+        messages.error(request, "Cannot modify permissions for crew owners.")
+        return redirect('crews:manage_permissions', slug=crew.slug)
+    
+    # Cannot edit your own permissions  
+    if member_to_edit.user == request.user:
+        messages.error(request, "Cannot modify your own permissions.")
+        return redirect('crews:manage_permissions', slug=crew.slug)
+    
+    if request.method == 'POST':
+        form = MemberPermissionForm(
+            request.POST, 
+            instance=member_to_edit,
+            user_requesting=request.user,
+            crew=crew
+        )
+        if form.is_valid():
+            # Track what changed
+            original_permissions = {
+                'create': member_to_edit.can_create_events,
+                'edit': member_to_edit.can_edit_events,
+                'publish': member_to_edit.can_publish_events,
+                'delegate': member_to_edit.can_delegate_permissions,
+            }
+            
+            updated_member = form.save()
+            
+            # Log the changes
+            changes = []
+            new_permissions = {
+                'create': updated_member.can_create_events,
+                'edit': updated_member.can_edit_events,
+                'publish': updated_member.can_publish_events,
+                'delegate': updated_member.can_delegate_permissions,
+            }
+            
+            for perm_name, new_value in new_permissions.items():
+                if original_permissions[perm_name] != new_value:
+                    action = "granted" if new_value else "revoked"
+                    changes.append(f"{action} {perm_name}")
+            
+            if changes:
+                change_description = f"Permissions updated for {updated_member.user.username}: {', '.join(changes)}"
+                CrewActivity.objects.create(
+                    crew=crew,
+                    user=request.user,
+                    activity_type='PERMISSIONS_UPDATED',
+                    description=change_description
+                )
+                
+                messages.success(request, f"Permissions updated for {updated_member.user.username}")
+            else:
+                messages.info(request, "No changes were made.")
+            
+            return redirect('crews:manage_permissions', slug=crew.slug)
+    else:
+        form = MemberPermissionForm(
+            instance=member_to_edit,
+            user_requesting=request.user,
+            crew=crew
+        )
+    
+    return render(request, 'crews/edit_member_permissions.html', {
+        'crew': crew,
+        'member_to_edit': member_to_edit,
+        'user_membership': user_membership,
+        'form': form,
+    })
+
+
+@login_required
+@crew_permission_required('delegate', crew_param='slug')
+def bulk_permissions(request, slug):
+    """Bulk permission management interface."""
+    crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    user_membership = crew.get_user_membership(request.user)
+    
+    if request.method == 'POST':
+        form = BulkPermissionForm(
+            request.POST,
+            crew=crew,
+            user_requesting=request.user
+        )
+        if form.is_valid():
+            members = form.cleaned_data['members']
+            action = form.cleaned_data['action']
+            permission_type = form.cleaned_data['permission_type']
+            reason = form.cleaned_data.get('reason', '')
+            
+            updated_count = 0
+            permission_value = (action == 'grant')
+            
+            for member in members:
+                # Skip owners
+                if member.role == 'OWNER':
+                    continue
+                    
+                # Update the specific permission
+                current_value = getattr(member, permission_type)
+                if current_value != permission_value:
+                    setattr(member, permission_type, permission_value)
+                    member.save()
+                    updated_count += 1
+            
+            if updated_count > 0:
+                # Log the bulk change
+                permission_name = form.fields['permission_type'].choices[
+                    [choice[0] for choice in form.fields['permission_type'].choices].index(permission_type)
+                ][1]
+                
+                description = f"Bulk {action}: {permission_name} for {updated_count} members"
+                if reason:
+                    description += f" (Reason: {reason})"
+                
+                CrewActivity.objects.create(
+                    crew=crew,
+                    user=request.user,
+                    activity_type='BULK_PERMISSIONS_UPDATED',
+                    description=description
+                )
+                
+                messages.success(request, f"Updated permissions for {updated_count} members.")
+            else:
+                messages.info(request, "No changes were made (members already had the selected permission state).")
+            
+            return redirect('crews:manage_permissions', slug=crew.slug)
+    else:
+        form = BulkPermissionForm(crew=crew, user_requesting=request.user)
+    
+    # Get eligible members (all members except owner and current user)
+    eligible_members = crew.memberships.filter(
+        is_active=True
+    ).exclude(
+        role='OWNER'
+    ).exclude(
+        user=request.user
+    ).order_by('user__username')
+    
+    # Get all crew members for copy operations
+    crew_members = crew.memberships.filter(is_active=True).order_by('user__username')
+    
+    return render(request, 'crews/bulk_permissions.html', {
+        'crew': crew,
+        'user_membership': user_membership,
+        'form': form,
+        'eligible_members': eligible_members,
+        'crew_members': crew_members,
+    })
+
+
+from django.http import JsonResponse
+
+@login_required
+@crew_permission_required('delegate', crew_param='slug')
+def ajax_toggle_permission(request, slug):
+    """AJAX endpoint for quick permission toggling."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    user_membership = crew.get_user_membership(request.user)
+    
+    try:
+        member_id = request.POST.get('member_id')
+        permission_type = request.POST.get('permission_type')
+        
+        member = get_object_or_404(CrewMembership, id=member_id, crew=crew, is_active=True)
+        
+        # Validation
+        if member.role == 'OWNER':
+            return JsonResponse({'error': 'Cannot modify owner permissions'}, status=400)
+        
+        if member.user == request.user:
+            return JsonResponse({'error': 'Cannot modify your own permissions'}, status=400)
+        
+        if permission_type not in ['can_create_events', 'can_edit_events', 'can_publish_events', 'can_delegate_permissions']:
+            return JsonResponse({'error': 'Invalid permission type'}, status=400)
+        
+        # Check delegation permission access
+        if (permission_type == 'can_delegate_permissions' and 
+            not (user_membership.role == 'OWNER' or user_membership.can_delegate_permissions)):
+            return JsonResponse({'error': 'Insufficient permissions'}, status=403)
+        
+        # Toggle the permission
+        current_value = getattr(member, permission_type)
+        new_value = not current_value
+        setattr(member, permission_type, new_value)
+        member.save()
+        
+        # Log the change
+        action = "granted" if new_value else "revoked"
+        permission_name = permission_type.replace('can_', '').replace('_', ' ').title()
+        
+        CrewActivity.objects.create(
+            crew=crew,
+            user=request.user,
+            activity_type='PERMISSION_TOGGLED',
+            description=f"{action} {permission_name} for {member.user.username}"
+        )
+        
+        # Calculate updated permission statistics
+        members = crew.memberships.filter(is_active=True)
+        permission_stats = {
+            'can_create_events': sum(1 for m in members if m.can_create_events),
+            'can_edit_events': sum(1 for m in members if m.can_edit_events),
+            'can_publish_events': sum(1 for m in members if m.can_publish_events),
+            'can_delegate_permissions': sum(1 for m in members if m.can_delegate_permissions),
+            'total_members': members.count()
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'new_value': new_value,
+            'member_id': member.id,
+            'permission_type': permission_type,
+            'message': f"{permission_name} {'granted to' if new_value else 'revoked from'} {member.user.username}",
+            'permission_stats': permission_stats
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

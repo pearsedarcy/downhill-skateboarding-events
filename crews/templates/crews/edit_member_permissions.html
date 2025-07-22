@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Permissions - {{ member_to_edit.user.username }} - {{ crew.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Edit Member Permissions</h1>
+            <p class="text-base-content/70 mt-2">{{ crew.name }}</p>
+        </div>
+        <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left"></i>
+            Back to Permissions
+        </a>
+    </div>
+
+    <!-- Member Info Card -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+            <div class="flex items-center gap-4">
+                <div class="avatar">
+                    <div class="mask mask-squircle w-16 h-16">
+                        {% if member_to_edit.user.userprofile.profile_picture %}
+                        <img src="{{ member_to_edit.user.userprofile.profile_picture.url }}" alt="{{ member_to_edit.user.username }}">
+                        {% else %}
+                        <div class="bg-primary text-primary-content flex items-center justify-center text-xl font-bold">
+                            {{ member_to_edit.user.username|first|upper }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">
+                        {{ member_to_edit.user.get_full_name|default:member_to_edit.user.username }}
+                    </h2>
+                    <p class="text-base-content/70">@{{ member_to_edit.user.username }}</p>
+                    <div class="mt-2">
+                        <span class="badge {% if member_to_edit.role == 'ADMIN' %}badge-warning{% else %}badge-ghost{% endif %}">
+                            {{ member_to_edit.get_role_display }}
+                        </span>
+                        <span class="badge badge-outline ml-2">
+                            Member since {{ member_to_edit.joined_at|date:"M Y" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permission Form -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-header px-6 py-4 border-b border-base-200">
+            <h3 class="text-lg font-semibold">Event Permissions</h3>
+            <p class="text-sm text-base-content/70 mt-1">
+                Configure what this member can do with crew events
+            </p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="space-y-6">
+                    <!-- Create Events Permission -->
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                            {{ form.can_create_events }}
+                            <div>
+                                <span class="label-text font-medium">Create Events</span>
+                                <p class="text-sm text-base-content/70 mt-1">
+                                    {{ form.can_create_events.help_text }}
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Edit Events Permission -->
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                            {{ form.can_edit_events }}
+                            <div>
+                                <span class="label-text font-medium">Edit Events</span>
+                                <p class="text-sm text-base-content/70 mt-1">
+                                    {{ form.can_edit_events.help_text }}
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Publish Events Permission -->
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                            {{ form.can_publish_events }}
+                            <div>
+                                <span class="label-text font-medium">Publish Events</span>
+                                <p class="text-sm text-base-content/70 mt-1">
+                                    {{ form.can_publish_events.help_text }}
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Delegate Permissions (if available) -->
+                    {% if form.can_delegate_permissions %}
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-4">
+                            {{ form.can_delegate_permissions }}
+                            <div>
+                                <span class="label-text font-medium">Delegate Permissions</span>
+                                <p class="text-sm text-base-content/70 mt-1">
+                                    {{ form.can_delegate_permissions.help_text }}
+                                </p>
+                                <div class="alert alert-warning mt-2">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span class="text-sm">
+                                        This permission allows the member to grant/revoke permissions for other members. Use with caution.
+                                    </span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Current Permission Summary -->
+                <div class="mt-8 p-4 bg-base-200 rounded-box">
+                    <h4 class="font-medium mb-3">Current Permission Summary</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-plus-circle {% if member_to_edit.can_create_events %}text-success{% else %}text-base-content/40{% endif %}"></i>
+                            <span class="{% if not member_to_edit.can_create_events %}text-base-content/60{% endif %}">
+                                Create Events
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-edit {% if member_to_edit.can_edit_events %}text-success{% else %}text-base-content/40{% endif %}"></i>
+                            <span class="{% if not member_to_edit.can_edit_events %}text-base-content/60{% endif %}">
+                                Edit Events
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-rocket {% if member_to_edit.can_publish_events %}text-success{% else %}text-base-content/40{% endif %}"></i>
+                            <span class="{% if not member_to_edit.can_publish_events %}text-base-content/60{% endif %}">
+                                Publish Events
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-cog {% if member_to_edit.can_delegate_permissions %}text-success{% else %}text-base-content/40{% endif %}"></i>
+                            <span class="{% if not member_to_edit.can_delegate_permissions %}text-base-content/60{% endif %}">
+                                Delegate Permissions
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="card-actions justify-end mt-8 gap-3">
+                    <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-ghost">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Permissions
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Permission Guidelines -->
+    <div class="mt-8 p-4 bg-info/10 border border-info/20 rounded-box">
+        <h4 class="font-medium text-info mb-2">
+            <i class="fas fa-info-circle mr-2"></i>
+            Permission Guidelines
+        </h4>
+        <ul class="text-sm space-y-1 text-info/80">
+            <li>• Grant only the permissions necessary for the member's role</li>
+            <li>• "Delegate Permissions" should only be given to trusted members</li>
+            <li>• Changes will be logged in the crew activity feed</li>
+            <li>• Members can see their own permissions in the crew dashboard</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

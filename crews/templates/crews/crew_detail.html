@@ -67,10 +67,33 @@
             <div class="flex flex-col sm:flex-row gap-2">
                 {% if user.is_authenticated %}
                     {% if can_manage %}
-                        <a href="{% url 'crews:edit' crew.slug %}" class="btn btn-primary">
-                            <i class="fas fa-edit mr-2"></i>
-                            Manage Crew
-                        </a>
+                        <div class="dropdown dropdown-end">
+                            <div tabindex="0" role="button" class="btn btn-primary">
+                                <i class="fas fa-cog mr-2"></i>
+                                Manage Crew
+                                <i class="fas fa-chevron-down ml-1"></i>
+                            </div>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li>
+                                    <a href="{% url 'crews:edit' crew.slug %}">
+                                        <i class="fas fa-edit mr-2"></i>
+                                        Edit Crew Details
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'crews:manage_permissions' crew.slug %}">
+                                        <i class="fas fa-user-shield mr-2"></i>
+                                        Manage Permissions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'crews:invite' crew.slug %}">
+                                        <i class="fas fa-user-plus mr-2"></i>
+                                        Invite Members
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                         <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline">
                             <i class="fas fa-users mr-2"></i>
                             Members ({{ crew.memberships.count }})
@@ -131,10 +154,16 @@
                 </h2>
                 
                 {% if can_manage %}
-                <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Invite Members
-                </a>
+                <div class="flex gap-2">
+                    <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-outline btn-sm">
+                        <i class="fas fa-user-shield mr-2"></i>
+                        Permissions
+                    </a>
+                    <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Invite Members
+                    </a>
+                </div>
                 {% endif %}
             </div>
             

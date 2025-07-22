@@ -28,6 +28,10 @@
         
         {% if user_membership and user_membership.can_manage %}
         <div class="flex gap-2">
+            <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-outline">
+                <i class="fas fa-user-shield mr-2"></i>
+                Manage Permissions
+            </a>
             <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-primary">
                 <i class="fas fa-user-plus mr-2"></i>
                 Invite Members
