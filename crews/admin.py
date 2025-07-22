@@ -35,10 +35,45 @@ class CrewAdmin(admin.ModelAdmin):
 
 @admin.register(CrewMembership)
 class CrewMembershipAdmin(admin.ModelAdmin):
-    list_display = ['user', 'crew', 'role', 'is_active', 'joined_at']
-    list_filter = ['role', 'is_active', 'is_public']
+    list_display = [
+        'user', 'crew', 'role', 'is_active', 
+        'can_create_events', 'can_edit_events', 'can_publish_events', 'can_delegate_permissions',
+        'joined_at'
+    ]
+    list_filter = [
+        'role', 'is_active', 'is_public', 
+        'can_create_events', 'can_edit_events', 'can_publish_events', 'can_delegate_permissions'
+    ]
     search_fields = ['user__username', 'crew__name', 'nickname']
     raw_id_fields = ['user', 'crew', 'invited_by']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('user', 'crew', 'role', 'nickname', 'bio')
+        }),
+        ('Event Permissions', {
+            'fields': (
+                'can_create_events', 
+                'can_edit_events', 
+                'can_publish_events', 
+                'can_delegate_permissions'
+            ),
+            'description': 'Event management permissions for this crew member. Note: Owners and Admins automatically have all permissions regardless of these settings.'
+        }),
+        ('Status', {
+            'fields': ('is_active', 'is_public')
+        }),
+        ('Metadata', {
+            'fields': ('joined_at', 'invited_by'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def get_readonly_fields(self, request, obj=None):
+        readonly = ['joined_at']
+        if obj:  # Editing existing object
+            readonly.extend(['user', 'crew'])  # Don't allow changing user/crew relationships
+        return readonly
 
 
 @admin.register(CrewInvitation)

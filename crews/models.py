@@ -126,11 +126,55 @@ class Crew(SearchableModel):
         """Check if a user can create events for this crew."""
         if not user.is_authenticated:
             return False
-        return self.memberships.filter(
-            user=user,
-            role__in=['OWNER', 'ADMIN', 'EVENT_MANAGER'],
-            is_active=True
-        ).exists()
+        
+        try:
+            membership = self.memberships.get(user=user, is_active=True)
+            return membership.has_event_permission('create')
+        except CrewMembership.DoesNotExist:
+            return False
+    
+    def can_edit_events(self, user):
+        """Check if a user can edit this crew's events."""
+        if not user.is_authenticated:
+            return False
+        
+        try:
+            membership = self.memberships.get(user=user, is_active=True)
+            return membership.has_event_permission('edit')
+        except CrewMembership.DoesNotExist:
+            return False
+    
+    def can_publish_events(self, user):
+        """Check if a user can publish this crew's events."""
+        if not user.is_authenticated:
+            return False
+        
+        try:
+            membership = self.memberships.get(user=user, is_active=True)
+            return membership.has_event_permission('publish')
+        except CrewMembership.DoesNotExist:
+            return False
+    
+    def can_delegate_permissions(self, user):
+        """Check if a user can delegate permissions for this crew."""
+        if not user.is_authenticated:
+            return False
+        
+        try:
+            membership = self.memberships.get(user=user, is_active=True)
+            return membership.has_event_permission('delegate')
+        except CrewMembership.DoesNotExist:
+            return False
+    
+    def get_user_membership(self, user):
+        """Get user's membership in this crew."""
+        if not user.is_authenticated:
+            return None
+        
+        try:
+            return self.memberships.get(user=user, is_active=True)
+        except CrewMembership.DoesNotExist:
+            return None
 
 
 class CrewMembership(models.Model):
@@ -151,6 +195,24 @@ class CrewMembership(models.Model):
     crew = models.ForeignKey(Crew, on_delete=models.CASCADE, related_name='memberships')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='crew_memberships')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='MEMBER')
+    
+    # Crew Permissions - Event Management
+    can_create_events = models.BooleanField(
+        default=False, 
+        help_text="Can create events on behalf of the crew"
+    )
+    can_edit_events = models.BooleanField(
+        default=False, 
+        help_text="Can edit crew events created by others"
+    )
+    can_publish_events = models.BooleanField(
+        default=False, 
+        help_text="Can publish draft events to make them public"
+    )
+    can_delegate_permissions = models.BooleanField(
+        default=False, 
+        help_text="Can grant/revoke permissions to other crew members"
+    )
     
     # Member profile within crew
     nickname = models.CharField(max_length=50, blank=True, help_text="Crew nickname (optional)")
@@ -190,6 +252,142 @@ class CrewMembership(models.Model):
     def can_manage_events(self):
         """Check if this member can manage crew events."""
         return self.role in ['OWNER', 'ADMIN', 'EVENT_MANAGER']
+    
+    # Enhanced Permission Methods
+    def has_event_permission(self, permission_type):
+        """
+        Check if member has specific event permission.
+        
+        Args:
+            permission_type (str): 'create', 'edit', 'publish', or 'delegate'
+        
+        Returns:
+            bool: True if member has the permission
+        """
+        if not self.is_active:
+            return False
+            
+        # Owners and Admins have all permissions by default
+        if self.role in ['OWNER', 'ADMIN']:
+            return True
+            
+        # Check specific permissions
+        permission_map = {
+            'create': self.can_create_events,
+            'edit': self.can_edit_events,
+            'publish': self.can_publish_events,
+            'delegate': self.can_delegate_permissions,
+        }
+        
+        return permission_map.get(permission_type, False)
+    
+    def can_delegate_to_member(self, target_member):
+        """
+        Check if this member can delegate permissions to another member.
+        
+        Args:
+            target_member (CrewMembership): Target member to delegate to
+            
+        Returns:
+            bool: True if delegation is allowed
+        """
+        if not self.has_event_permission('delegate'):
+            return False
+            
+        # Can't delegate to yourself
+        if target_member.user == self.user:
+            return False
+            
+        # Can't delegate to higher or equal role (except owners can delegate to admins)
+        role_hierarchy = {'OWNER': 4, 'ADMIN': 3, 'EVENT_MANAGER': 2, 'MEMBER': 1, 'PENDING': 0}
+        
+        my_level = role_hierarchy.get(self.role, 0)
+        target_level = role_hierarchy.get(target_member.role, 0)
+        
+        # Owners can delegate to anyone except other owners
+        if self.role == 'OWNER' and target_member.role != 'OWNER':
+            return True
+            
+        # Admins can delegate to event managers and members
+        if self.role == 'ADMIN' and target_member.role in ['EVENT_MANAGER', 'MEMBER']:
+            return True
+            
+        return False
+    
+    def grant_permission(self, permission_type, granted_by=None):
+        """
+        Grant a specific permission to this member.
+        
+        Args:
+            permission_type (str): 'create', 'edit', 'publish', or 'delegate'
+            granted_by (User): User who granted the permission
+        """
+        if permission_type == 'create':
+            self.can_create_events = True
+        elif permission_type == 'edit':
+            self.can_edit_events = True
+        elif permission_type == 'publish':
+            self.can_publish_events = True
+        elif permission_type == 'delegate':
+            self.can_delegate_permissions = True
+        
+        self.save()
+        
+        # Log the permission change
+        if granted_by:
+            CrewActivity.objects.create(
+                crew=self.crew,
+                activity_type='MEMBER_PROMOTED',
+                user=granted_by,
+                target_user=self.user,
+                description=f"Granted {permission_type} permission to {self.user.username}",
+                metadata={'permission_type': permission_type, 'action': 'granted'}
+            )
+    
+    def revoke_permission(self, permission_type, revoked_by=None):
+        """
+        Revoke a specific permission from this member.
+        
+        Args:
+            permission_type (str): 'create', 'edit', 'publish', or 'delegate'
+            revoked_by (User): User who revoked the permission
+        """
+        if permission_type == 'create':
+            self.can_create_events = False
+        elif permission_type == 'edit':
+            self.can_edit_events = False
+        elif permission_type == 'publish':
+            self.can_publish_events = False
+        elif permission_type == 'delegate':
+            self.can_delegate_permissions = False
+        
+        self.save()
+        
+        # Log the permission change
+        if revoked_by:
+            CrewActivity.objects.create(
+                crew=self.crew,
+                activity_type='MEMBER_PROMOTED',  # We'll use this for permission changes
+                user=revoked_by,
+                target_user=self.user,
+                description=f"Revoked {permission_type} permission from {self.user.username}",
+                metadata={'permission_type': permission_type, 'action': 'revoked'}
+            )
+    
+    def get_permission_summary(self):
+        """
+        Get a summary of all permissions for this member.
+        
+        Returns:
+            dict: Dictionary of permission types and their status
+        """
+        return {
+            'create': self.has_event_permission('create'),
+            'edit': self.has_event_permission('edit'),
+            'publish': self.has_event_permission('publish'),
+            'delegate': self.has_event_permission('delegate'),
+            'role_based': self.role in ['OWNER', 'ADMIN'],
+        }
 
 
 class CrewInvitation(models.Model):
