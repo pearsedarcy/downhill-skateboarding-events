@@ -1,0 +1,108 @@
+<!-- Crew Achievements Section -->
+{% if crew.achievements.all %}
+<div class="card bg-base-100 shadow-lg mb-6">
+    <div class="card-body">
+        <h2 class="card-title">
+            <i class="fas fa-trophy text-warning mr-2"></i>
+            Crew Achievements
+        </h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {% for achievement in crew.achievements.all %}
+            <div class="achievement-card relative p-3 rounded-lg border-2 border-{{ achievement.level_color }}/20 bg-{{ achievement.level_color }}/5 hover:bg-{{ achievement.level_color }}/10 transition-colors">
+                <!-- Achievement Level Badge -->
+                <div class="absolute top-2 right-2">
+                    <div class="badge badge-{{ achievement.level_color }} badge-xs">
+                        {{ achievement.get_level_display }}
+                    </div>
+                </div>
+                
+                <!-- Achievement Icon -->
+                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-{{ achievement.color }}/20 mb-3">
+                    <i class="{{ achievement.icon }} text-xl text-{{ achievement.color }}"></i>
+                </div>
+                
+                <!-- Achievement Info -->
+                <div>
+                    <h3 class="font-bold text-sm mb-1">{{ achievement.title }}</h3>
+                    <p class="text-xs opacity-70 mb-2">{{ achievement.description }}</p>
+                    
+                    <!-- Achievement Date -->
+                    <div class="flex items-center text-xs opacity-60">
+                        <i class="fas fa-calendar-alt mr-1"></i>
+                        Earned {{ achievement.earned_at|date:"M d, Y" }}
+                    </div>
+                    
+                    <!-- Achievement Criteria Met -->
+                    {% if achievement.criteria_met %}
+                    <div class="mt-2 text-xs">
+                        {% if achievement.criteria_met.member_count %}
+                        <div class="flex items-center justify-between">
+                            <span>Members:</span>
+                            <span class="font-bold">{{ achievement.criteria_met.member_count }}</span>
+                        </div>
+                        {% endif %}
+                        {% if achievement.criteria_met.event_count %}
+                        <div class="flex items-center justify-between">
+                            <span>Events:</span>
+                            <span class="font-bold">{{ achievement.criteria_met.event_count }}</span>
+                        </div>
+                        {% endif %}
+                        {% if achievement.criteria_met.crew_age_days %}
+                        <div class="flex items-center justify-between">
+                            <span>Age:</span>
+                            <span class="font-bold">{{ achievement.criteria_met.crew_age_days }} days</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Manual Award Attribution -->
+                {% if achievement.awarded_by %}
+                <div class="mt-2 pt-2 border-t border-current/10">
+                    <div class="text-xs opacity-60">
+                        <i class="fas fa-user-crown mr-1"></i>
+                        Awarded by {{ achievement.awarded_by.get_full_name|default:achievement.awarded_by.username }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Achievement Stats Summary -->
+        <div class="stats stats-horizontal bg-base-200 mt-4">
+            <div class="stat">
+                <div class="stat-title">Total Achievements</div>
+                <div class="stat-value text-primary">{{ crew.achievements.count }}</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-title">Latest Achievement</div>
+                <div class="stat-value text-sm">{{ crew.achievements.first.title|truncatechars:20 }}</div>
+                <div class="stat-desc">{{ crew.achievements.first.earned_at|timesince }} ago</div>
+            </div>
+            
+            <div class="stat">
+                <div class="stat-title">Achievement Level</div>
+                <div class="stat-value text-warning">
+                    {% with highest_achievement=crew.achievements.first %}
+                    {% if highest_achievement.level == 'LEGENDARY' %}
+                    <i class="fas fa-star"></i> Legendary
+                    {% elif highest_achievement.level == 'PLATINUM' %}
+                    <i class="fas fa-crown"></i> Platinum
+                    {% elif highest_achievement.level == 'GOLD' %}
+                    <i class="fas fa-trophy"></i> Gold
+                    {% elif highest_achievement.level == 'SILVER' %}
+                    <i class="fas fa-medal"></i> Silver
+                    {% else %}
+                    <i class="fas fa-award"></i> Bronze
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

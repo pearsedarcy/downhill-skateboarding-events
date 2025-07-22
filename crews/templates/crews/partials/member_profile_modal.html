@@ -1,0 +1,80 @@
+<!-- Enhanced Member Profile Modal -->
+<dialog id="member-profile-modal" class="modal">
+    <div class="modal-box w-11/12 max-w-2xl">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        
+        <div id="member-profile-content">
+            <!-- Content will be loaded dynamically -->
+            <div class="flex items-center justify-center py-12">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<!-- Member Profile Card Template (for AJAX) -->
+<template id="member-profile-template">
+    <div class="flex flex-col space-y-6">
+        <!-- Header -->
+        <div class="flex items-start space-x-4">
+            <div class="avatar">
+                <div class="w-16 h-16 rounded-xl">
+                    <img class="member-avatar" alt="Member avatar">
+                </div>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-xl font-bold member-name"></h3>
+                <p class="text-sm opacity-70 member-username"></p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <div class="badge badge-primary member-role"></div>
+                    <div class="badge badge-outline member-join-date"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Bio in Crew -->
+        <div class="member-bio-section" style="display: none;">
+            <h4 class="font-semibold mb-2">Role in {{ crew.name }}</h4>
+            <p class="text-sm opacity-80 member-bio"></p>
+        </div>
+
+        <!-- Permissions & Role Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card bg-base-200">
+                <div class="card-body p-4">
+                    <h5 class="font-semibold mb-3">Permissions</h5>
+                    <div class="space-y-2 member-permissions">
+                        <!-- Permissions will be inserted here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-base-200">
+                <div class="card-body p-4">
+                    <h5 class="font-semibold mb-3">Crew Statistics</h5>
+                    <div class="space-y-2 member-stats">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="member-activity-section">
+            <h4 class="font-semibold mb-3">Recent Activity</h4>
+            <div class="space-y-2 member-recent-activity">
+                <!-- Recent activities will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Member's Events with Crew -->
+        <div class="member-events-section">
+            <h4 class="font-semibold mb-3">Events Organized</h4>
+            <div class="grid gap-2 member-events">
+                <!-- Events will be inserted here -->
+            </div>
+        </div>
+    </div>
+</template>

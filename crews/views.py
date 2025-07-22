@@ -21,6 +21,7 @@ from .permissions import (
     CrewNotFoundError,
     InsufficientPermissionError
 )
+from .views_member_profiles import member_profile_detail, update_member_permissions
 
 
 def crew_list(request):
