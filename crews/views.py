@@ -85,8 +85,10 @@ def crew_detail(request, slug):
     if request.user.is_authenticated:
         for event in upcoming_events:
             event.user_can_manage = event.can_manage(request.user)
+            event.user_can_publish = event.can_publish(request.user)
         for event in past_events:
             event.user_can_manage = event.can_manage(request.user)
+            event.user_can_publish = event.can_publish(request.user)
     
     return render(request, 'crews/crew_detail.html', {
         'crew': crew,

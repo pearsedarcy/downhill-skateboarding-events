@@ -72,14 +72,17 @@ class EventForm(forms.ModelForm):
         self.fields['continent'].required = False
         self.fields['created_by_crew'].required = False
         
-        # Set crew choices based on user's crew memberships
+        # Set crew choices based on user's crew permissions
         if user and user.is_authenticated:
-            # Get crews where user can create events (OWNER, ADMIN, EVENT_MANAGER)
-            user_crews = Crew.objects.filter(
-                memberships__user=user,
-                memberships__role__in=['OWNER', 'ADMIN', 'EVENT_MANAGER']
+            # Get crews where user has create_events permission
+            user_crews = []
+            for membership in CrewMembership.objects.filter(user=user, is_active=True):
+                if membership.can_create_events or membership.role == 'OWNER':
+                    user_crews.append(membership.crew)
+            
+            self.fields['created_by_crew'].queryset = Crew.objects.filter(
+                id__in=[crew.id for crew in user_crews]
             ).distinct()
-            self.fields['created_by_crew'].queryset = user_crews
         # League is now handled through the LeagueEvent model in results app
 
     def clean(self):

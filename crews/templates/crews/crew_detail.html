@@ -220,7 +220,7 @@
                     Crew Events ({{ total_events }})
                 </h2>
                 
-                {% if can_manage %}
+                {% if user_permissions.create or user_permissions.manage_crew %}
                 <a href="{% url 'events:submit' %}?crew={{ crew.slug }}" class="btn btn-secondary btn-sm">
                     <i class="fas fa-plus mr-2"></i>
                     Create Event
@@ -247,21 +247,44 @@
                                         </a>
                                     </h4>
                                     <div class="flex items-center gap-2">
-                                        <div class="badge badge-success badge-sm">{{ event.get_event_class_display }}</div>
+                                        <!-- Published status badge -->
+                                        {% if event.published %}
+                                            <div class="badge badge-success badge-sm">Published</div>
+                                        {% else %}
+                                            <div class="badge badge-warning badge-sm">Draft</div>
+                                        {% endif %}
+                                        <div class="badge badge-ghost badge-sm">{{ event.get_event_class_display }}</div>
+                                        
+                                        <!-- Management dropdown for users with appropriate permissions -->
                                         {% if event.user_can_manage %}
                                         <div class="dropdown dropdown-end">
                                             <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </div>
-                                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-2 shadow">
+                                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow border">
                                                 <li>
                                                     <a href="{% url 'events:edit_event' event.slug %}" class="text-sm">
                                                         <i class="fas fa-edit"></i>
                                                         Edit Event
                                                     </a>
                                                 </li>
+                                                <!-- Show publish/unpublish based on user permission -->
+                                                {% if event.user_can_publish %}
                                                 <li>
-                                                    <a href="{% url 'events:event_delete' event.slug %}" class="text-sm text-error">
+                                                    <a href="#" class="text-sm toggle-publish-btn" data-slug="{{ event.slug }}" data-published="{{ event.published|yesno:'true,false' }}">
+                                                        {% if event.published %}
+                                                            <i class="fas fa-eye-slash"></i>
+                                                            Unpublish
+                                                        {% else %}
+                                                            <i class="fas fa-eye"></i>
+                                                            Publish
+                                                        {% endif %}
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                <li><hr class="border-base-300 my-1"></li>
+                                                <li>
+                                                    <a href="#" class="text-sm text-error delete-event-btn" data-slug="{{ event.slug }}" data-title="{{ event.title }}">
                                                         <i class="fas fa-trash"></i>
                                                         Delete Event
                                                     </a>
@@ -322,21 +345,44 @@
                                         </a>
                                     </h4>
                                     <div class="flex items-center gap-2">
+                                        <!-- Published status badge -->
+                                        {% if event.published %}
+                                            <div class="badge badge-success badge-sm">Published</div>
+                                        {% else %}
+                                            <div class="badge badge-warning badge-sm">Draft</div>
+                                        {% endif %}
                                         <div class="badge badge-ghost badge-sm">{{ event.get_event_class_display }}</div>
+                                        
+                                        <!-- Management dropdown for users with appropriate permissions -->
                                         {% if event.user_can_manage %}
                                         <div class="dropdown dropdown-end">
                                             <div tabindex="0" role="button" class="btn btn-ghost btn-xs">
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </div>
-                                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-2 shadow">
+                                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow border">
                                                 <li>
                                                     <a href="{% url 'events:edit_event' event.slug %}" class="text-sm">
                                                         <i class="fas fa-edit"></i>
                                                         Edit Event
                                                     </a>
                                                 </li>
+                                                <!-- Show publish/unpublish based on user permission -->
+                                                {% if event.user_can_publish %}
                                                 <li>
-                                                    <a href="{% url 'events:event_delete' event.slug %}" class="text-sm text-error">
+                                                    <a href="#" class="text-sm toggle-publish-btn" data-slug="{{ event.slug }}" data-published="{{ event.published|yesno:'true,false' }}">
+                                                        {% if event.published %}
+                                                            <i class="fas fa-eye-slash"></i>
+                                                            Unpublish
+                                                        {% else %}
+                                                            <i class="fas fa-eye"></i>
+                                                            Publish
+                                                        {% endif %}
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                <li><hr class="border-base-300 my-1"></li>
+                                                <li>
+                                                    <a href="#" class="text-sm text-error delete-event-btn" data-slug="{{ event.slug }}" data-title="{{ event.title }}">
                                                         <i class="fas fa-trash"></i>
                                                         Delete Event
                                                     </a>
@@ -460,5 +506,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Event management functions
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle toggle publish buttons
+    document.querySelectorAll('.toggle-publish-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const eventSlug = this.dataset.slug;
+            const currentState = this.dataset.published;
+            togglePublish(eventSlug, currentState);
+        });
+    });
+    
+    // Handle delete event buttons
+    document.querySelectorAll('.delete-event-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const eventSlug = this.dataset.slug;
+            const eventTitle = this.dataset.title;
+            deleteEvent(eventSlug, eventTitle);
+        });
+    });
+});
+
+function togglePublish(eventSlug, currentState) {
+    // Create and submit a form dynamically
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/events/${eventSlug}/toggle-publish/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function deleteEvent(eventSlug, eventTitle) {
+    if (confirm(`Are you sure you want to delete the event "${eventTitle}"?`)) {
+        // Create and submit a form dynamically
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/events/${eventSlug}/delete/`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
 </script>
 {% endblock %}

@@ -154,20 +154,58 @@ class Event(SearchableModel):
         return self.results.filter(result_type='KNOCKOUT').first()
     
     def can_manage(self, user):
-        """Check if a user can manage this event."""
-        if not user.is_authenticated:
+        """
+        Check if a user can manage this event.
+        
+        Users can manage events if they are:
+        1. The original organizer
+        2. A superuser
+        3. A crew member with appropriate permissions (for crew events)
+        """
+        if not user or not user.is_authenticated:
             return False
         
         # Check if user is the original organizer
         if self.organizer and self.organizer.user == user:
             return True
             
+        # Superusers can always manage
+        if user.is_superuser:
+            return True
+            
         # If no crew is assigned, only organizer/admin can manage
         if not self.created_by_crew:
-            return user.is_superuser
+            return False
             
-        # Check crew permissions
-        return self.created_by_crew.can_create_events(user)
+        # Check crew permissions - user needs edit permission for existing events
+        return self.created_by_crew.can_edit_events(user)
+    
+    def can_publish(self, user):
+        """
+        Check if a user can publish/unpublish this event.
+        
+        Users can publish events if they are:
+        1. The original organizer
+        2. A superuser
+        3. A crew member with publish permissions (for crew events)
+        """
+        if not user or not user.is_authenticated:
+            return False
+        
+        # Check if user is the original organizer
+        if self.organizer and self.organizer.user == user:
+            return True
+            
+        # Superusers can always publish
+        if user.is_superuser:
+            return True
+            
+        # If no crew is assigned, only organizer/admin can publish
+        if not self.created_by_crew:
+            return False
+            
+        # Check crew permissions - user needs publish permission
+        return self.created_by_crew.can_publish_events(user)
     
     def get_user_rsvp(self, user):
         """Get the RSVP status for a specific user."""
