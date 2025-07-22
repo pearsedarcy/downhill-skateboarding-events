@@ -18,3 +18,4 @@ settings.json
 .vscode/*
 fixtures/
 .vscode/settings.json
+.bashrc

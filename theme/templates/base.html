@@ -1,6 +1,6 @@
 {% load static tailwind_tags custom_filters %}
 <!DOCTYPE html>
-<html lang="en" data-theme="">
+<html lang="en">
   <!-- Head Section: Meta tags, CSS, and initial scripts -->
   <head>
     <!-- Google tag (gtag.js) -->
@@ -13,6 +13,13 @@
   
 </script>
 
+    <script>
+      // Immediately set the theme before the page renders
+      (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <title>{% block title %}Downhill Skateboarding Events{% endblock %}</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,17 +29,29 @@
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/sdh-favicon.ico' %}">
     {% tailwind_css %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <script src="{% static 'js/theme-init.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+    <!-- <script src="{% static 'js/theme-init.js' %}"></script> -->
     <style>
       .logo-light {
-        filter: invert(1);
+        filter: brightness(0) invert(1); /* Makes the logo white */
       }
       .logo-dark {
-        filter: invert(0);
+        filter: brightness(0) invert(0); /* Makes the logo black */
       }
     </style>
+    
     {% block extra_css %}{% endblock %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K95R1793H4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-K95R1793H4');
+    </script>
   </head>
 
   <body class="bg-base-100 text-base-content font-sans">
@@ -69,7 +88,11 @@
             >
               <li><a href="/" aria-label="Home"><i class="fas fa-home"></i> Home</a></li>
               <li><a href="{% url 'events:event_list' %}" aria-label="Browse events"><i class="fas fa-calendar-alt"></i> Events</a></li>
-              <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li>
+              <!-- <li><a href="{% url 'results:results_list' %}" aria-label="View
+              results"><i class="fas fa-trophy"></i>Results</a></li> -->
+              <li><a href="{% url 'results:league_list' %}" aria-label="View Leagues"><i class="fas fa-ranking-star"></i>Leagues</a></li>
+              <li><a href="{% url 'crews:list' %}" aria-label="View Crews"><i class="fas fa-users"></i>Crews</a></li>
+              <!-- <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li> -->
               <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
           </div>
@@ -79,7 +102,7 @@
               <img
                 src="{% static 'images/sdh-icon.webp' %}"
                 alt="SDH Logo"
-                class="logo-light"
+                class="logo-dark"
                 style="width: 50px; height: auto; min-width: 50px;"
               />
               </a>
@@ -108,13 +131,13 @@
         </div>
         <!-- Right side of navbar: User Menu -->
         <div class="navbar-end gap-2">
-          <!-- Mobile Search Button -->
+          <!-- Mobile Search Button
           <button class=" sm:hidden btn btn-ghost btn-circle" onclick="document.getElementById('mobile-search-modal').showModal()">
             <i class="fas fa-search"></i>
-          </button>
+          </button> -->
 
           <!-- Desktop Search Form -->
-          <form class="form-control flex-row hidden sm:block" action="{% url 'search:global-search' %}" method="GET">
+          <!-- <form class="form-control flex-row hidden sm:block" action="{% url 'search:global-search' %}" method="GET">
             <div class="join relative">
               <input 
                 type="text" 
@@ -132,9 +155,9 @@
                 <i class="fas fa-search"></i>
               </button>
             </div>
-          </form>
+          </form> -->
 
-          <!-- Mobile Search Modal -->
+          <!-- Mobile Search Modal
           <dialog id="mobile-search-modal" class="modal modal-bottom sm:hidden">
             <div class="modal-box">
               <form method="dialog">
@@ -158,7 +181,9 @@
             <form method="dialog" class="modal-backdrop">
               <button>close</button>
             </form>
-          </dialog>
+          </dialog> -->
+          <!-- DaisyUI Theme Swapper Dropdown -->
+          {% include "partials/theme_switcher.html" %}
           <!-- Add Post Button -->
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-sm btn-bordered
@@ -174,9 +199,21 @@
               <li>
                 <a href="{% url 'events:submit' %}" class="btn btn-secondary">Add Event</a>
               </li>
+              <li>
+                <a href="{% url 'results:create_league' %}" class="btn btn-secondary">Add League</a>
+              </li>
+              <li>
+                <a href="{% url 'crews:create' %}" class="btn btn-secondary">Create Crew</a>
+              </li>
               {% else %}
               <li>
                 <a href="{% url 'account_login' %}?next={% url 'events:submit' %}" class="btn btn-secondary">Add Event</a>
+              </li>
+              <li>
+                <a href="{% url 'account_login' %}?next={% url 'results:create_league' %}" class="btn btn-secondary">Add League</a>
+              </li>
+              <li>
+                <a href="{% url 'account_login' %}?next={% url 'crews:create' %}" class="btn btn-secondary">Create Crew</a>
               </li>
               {% endif %}
             </ul>
@@ -239,10 +276,15 @@
       <!-- Left Sidebar - Navigation (XL+) -->
       <aside class="hidden xl:block fixed left-0 top-[64px] h-[calc(100vh-64px)] w-48 border-r border-base-300 bg-base-100/95 backdrop-blur p-4">
         <div class="flex flex-col gap-2">
-          <a href="/" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="Home"><i class="fas fa-home mr-4"></i>Home</a>
-          <a href="{% url 'events:event_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-calendar-alt mr-4"></i>Events</a>
-          <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i>Users</a>
-          <a href="#" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i>About</a>
+          <a href="/" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg" aria-label="Home"><i class="fas fa-home mr-4"></i> Home</a>
+          <a href="{% url 'events:event_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-calendar-alt mr-4"></i> Events</a>
+          <!-- <a href="{% url 'results:results_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-trophy mr-3"></i> Results</a> -->
+          <a href="{% url 'results:league_list' %}" class="menu-item btn-ghost
+          p-2 hover:bg-base-200 rounded-lg" aria-label="View Leagues"><i
+          class="fas fa-ranking-star mr-3"></i> Leagues</a>
+            <a href="{% url 'crews:list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-4"></i> Crews</a>
+          <!-- <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i> Users</a> -->
+          <a href="{% url 'events:about' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i> About</a>
         </div>
       </aside>
 
@@ -256,7 +298,9 @@
               fa-user-shield mr-3"></i>Admin</a>
             {% endif %}
             <a href="{% url 'profiles:user_profile' username=user.username %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-user mr-4"></i>My Profile</a>
-            <a href="{% url 'account_logout' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-sign-out-alt mr-4"></i>Log Out</a>
+            <a href="{% url 'account_logout' %}" class="menu-item btn-ghost p-2
+            hover:bg-base-200 rounded-lg"><i class="fas fa-sign-out-alt
+            mr-4"></i>Log Out</a>
           {% else %}
             <a href="{% url 'account_login' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-sign-in-alt mr-4"></i>Login</a>
             <a href="{% url 'account_signup' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-user-plus mr-4"></i>Sign Up</a>
@@ -271,7 +315,7 @@
       </div>
 
       <!-- Theme Toggle Button: Fixed position in bottom right -->
-      <div class="fixed bottom-4 right-4 z-50">
+      <!-- <div class="fixed bottom-4 right-4 z-50">
         <label class="relative inline-grid grid-cols-2 cursor-pointer rounded-lg">
           <input
             type="checkbox"
@@ -300,10 +344,38 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
         </label>
-      </div>
+      </div> -->
 
       <!-- Theme Control Script -->
-      <script src="{% static 'js/theme-control.js' %}"></script>
+      <!-- <script src="{% static 'js/theme-control.js' %}"></script> -->
+      <!-- DaisyUI Theme Switcher Script  -->
+      <script>
+      const darkThemes = ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'night', 'coffee', 'dim', 'sunset'];
+      
+      function updateLogoTheme(theme) {
+        const logo = document.querySelector('img[alt="SDH Logo"]');
+        if (logo) {
+          if (darkThemes.includes(theme)) {
+            logo.classList.remove('logo-dark');
+            logo.classList.add('logo-light');
+          } else {
+            logo.classList.remove('logo-light');
+            logo.classList.add('logo-dark');
+          }
+        }
+      }
+
+      function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        updateLogoTheme(theme);
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+      });
+      </script>
       <script>
         document.addEventListener('keydown', function(e) {
           // Check for Alt + S
@@ -313,6 +385,8 @@
           }
         });
       </script>
+      <!-- DaisyUI Dropdown JavaScript -->
+      <script src="{% static 'js/dropdown.js' %}"></script>
     </div>
     {% block extra_js %}{% endblock %}
   </body>

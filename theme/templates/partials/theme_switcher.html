@@ -1,0 +1,85 @@
+{% comment %} DaisyUI Theme Switcher Partial {% endcomment %}
+<div class="dropdown dropdown-left relative ">
+  <label tabindex="0" class="m-1 btn btn-ghost hover:cursor-help transition-all duration-200" aria-label="Change theme">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+    fill="none" viewBox="0 0 24 24" stroke="currentColor"
+    class="hover:scale-125 hover:cursor-help transition-all duration-200">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71m16.97 0l-.71-.71M4.05 4.93l-.71-.71M21 12h-1M4 12H3m9 5a5 5 0 100-10 5 5 0 000 10z" />
+    </svg>
+  </label>
+  <ul tabindex="0" class="dropdown-content absolute right-0 z-50 bg-base-200
+  rounded-box w-40 sm:w-64 p-1 sm:p-3 shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto">
+    <li class="px-2 py-1 sm:py-2 text-xs sm:text-sm text-base-content/70 font-semibold">Theme</li>
+    {% for theme in daisyui_themes %}
+    <li>
+      <button type="button" class="gap-2 sm:gap-4 px-2 py-1.5 sm:py-2 w-full flex items-center justify-between rounded-lg hover:bg-base-300 transition" data-set-theme="{{ theme }}">
+        <div class="flex items-center gap-2 sm:gap-4">
+          <div data-theme="{{ theme }}" class="bg-base-100 grid shrink-0 grid-cols-2 gap-0.5 sm:gap-1 rounded-md p-1.5 sm:p-2 shadow-sm w-[1.8rem] h-[1.8rem] sm:w-[2.2rem] sm:h-[2.2rem]">
+            <div class="bg-base-content w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"></div>
+            <div class="bg-primary w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"></div>
+            <div class="bg-secondary w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"></div>
+            <div class="bg-accent w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"></div>
+          </div>
+          <div class="text-left text-xs sm:text-base truncate capitalize">{{ theme }}</div>
+        </div>
+        <svg data-theme-checkmark xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-[22px] sm:h-[22px]" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"></path></svg>
+      </button>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+<script>
+  
+// DaisyUI theme swapper logic for checkmark visibility and theme persistence
+// Define dark themes that need light logo
+const darkThemes = ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'night', 'coffee', 'aqua'];
+
+function updateLogoForTheme(theme) {
+  const logo = document.querySelector('img[alt="SDH Logo"]');
+  if (logo) {
+    // Set the initial class based on the current theme
+    if (darkThemes.includes(theme)) {
+      logo.classList.remove('logo-dark');
+      logo.classList.add('logo-light');
+    } else {
+      logo.classList.remove('logo-light');
+      logo.classList.add('logo-dark');
+    }
+  }
+}
+
+function setTheme(theme) {
+  // Update theme attribute and storage
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  
+  // Update logo classes
+  updateLogoForTheme(theme);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  // Don't need to call setTheme here since theme is already set in <head>,
+  // just need to update the logo and checkmarks
+  updateLogoForTheme(savedTheme);
+  
+  // Update checkmarks to match current theme
+  document.querySelectorAll('[data-set-theme]').forEach(btn => {
+    btn.querySelector('[data-theme-checkmark]').style.display = 'none';
+    if (btn.getAttribute('data-set-theme') === savedTheme) {
+      btn.querySelector('[data-theme-checkmark]').style.display = 'inline';
+    }
+  });
+  document.querySelectorAll('[data-set-theme]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      setTheme(this.getAttribute('data-set-theme'));
+      // Hide all checkmarks
+      document.querySelectorAll('[data-theme-checkmark]').forEach(svg => {
+        svg.style.display = 'none';
+      });
+      // Show only the clicked button's checkmark
+      this.querySelector('[data-theme-checkmark]').style.display = 'inline';
+    });
+  });
+});
+</script> 

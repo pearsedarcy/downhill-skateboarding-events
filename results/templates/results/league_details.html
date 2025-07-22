@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">{{ league.name }} {{ league.season }}</h2>
+          <div class="flex gap-2">
+            <a href="{% url 'results:leagues' %}" class="btn btn-ghost">
+              <i class="fas fa-arrow-left mr-2"></i> Back to Leagues
+            </a>
+            <a href="{% url 'results:manage_league' league.slug %}" class="btn btn-primary">
+              <i class="fas fa-cog mr-2"></i> Manage
+            </a>
+          </div>
+        </div>
+        
+        {% if disciplines %}
+        <div class="mb-6">
+          <div class="tabs tabs-boxed">
+            {% for discipline in disciplines %}
+            <a href="?discipline={{ discipline.id }}" 
+               class="tab {% if discipline.id == selected_discipline %}tab-active{% endif %}">
+              {{ discipline.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Competitor</th>
+                <th>Total Points</th>
+                {% for event in league_events %}
+                <th>
+                  <div class="tooltip" data-tip="{{ event.event.title }}">
+                    {{ event.event.title|truncatechars:15 }}
+                  </div>
+                </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for standing in standings %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ standing.competitor_name }}</td>
+                <td class="font-bold">{{ standing.total_points }}</td>
+                {% for event_points in standing.event_points %}
+                  <td>
+                    {% if event_points %}
+                      <div class="tooltip" data-tip="Position: {{ event_points.position }}">
+                        {{ event_points.points }}
+                      </div>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="{{ 3|add:league_events|length }}" class="text-center">No standings available</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="flex justify-end mt-4">
+          <a href="{% url 'results:export_league_standings' league.slug %}?discipline={{ selected_discipline }}" 
+             class="btn btn-outline btn-sm">
+            <i class="fas fa-download mr-2"></i> Export CSV
+          </a>
+        </div>
+        
+        <div class="mt-6">
+          <h3 class="font-bold mb-2">League Events</h3>
+          <div class="overflow-x-auto">
+            <table class="table table-compact w-full">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Date</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for event in league_events %}
+                <tr>
+                  <td>
+                    <a href="{% url 'events:event_details' event.event.slug %}" class="link font-medium">
+                      {{ event.event.title }}
+                    </a>
+                  </td>
+                  <td>{{ event.event.start_date|date:"M j, Y" }}</td>
+                  <td>{{ event.event.location.city }}, {{ event.event.location.country }}</td>
+                  <td>
+                    {% if event.has_results %}
+                      <span class="badge badge-success">Results Added</span>
+                    {% elif event.event.is_past %}
+                      <span class="badge badge-warning">Needs Results</span>
+                    {% else %}
+                      <span class="badge badge-info">Upcoming</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        {% else %}
+        <div class="alert alert-info">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>No disciplines have been added to this league yet.</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

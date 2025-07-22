@@ -6,6 +6,7 @@
     position: relative;
     z-index: 1;
     --hero-gradient: linear-gradient(to bottom, rgba(0,0,0,0) 0%, hsl(var(--b1)) 100%);
+    height: 500px; /* Adjust as needed */
 }
 
 .hero-container::after {
@@ -20,30 +21,58 @@
   z-index: 2;
 }
 
-  .hero-slider {
+/* Add base Swiper styles */
+.swiper {
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  overflow: hidden;
+  list-style: none;
+  padding: 0;
+  z-index: 1;
+}
+
+.swiper-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  transition-property: transform;
+  box-sizing: content-box;
+}
+
+.swiper-slide {
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition-property: transform;
+}
+
+.hero-slider {
     width: 100%;
-    height: 600px;
-  }
-  .hero-slide {
+    height: 100%;
+}
+.hero-slide {
     position: relative;
     width: 100%;
     height: 100%;
     background: #000;
-  }
-  .hero-image {
+}
+.hero-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     opacity: 0.9;
-  }
-  .hero-content {
+}
+.hero-content {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 1rem;
+    padding: 2rem;
     padding-bottom: 7rem;
-   
     color: white;
     z-index: 3; /* Increased to sit above the fade */
     display: flex;
@@ -51,40 +80,41 @@
     gap: 0.5rem;
     text-shadow: #000 1px 1px 5px;
     max-width: 100%;
-  }
-  .hero-title {
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+}
+.hero-title {
     width: 100%;
     line-height: 1.2;
     margin: 0;
     z-index: 4; /* Ensure text is always on top */
-  }
-  .hero-info {
+}
+.hero-info {
     width: 100%;
     line-height: 1.4;
     position: relative;
     z-index: 4; /* Ensure text is always on top */
-  }
-  .swiper-button-next,
-  .swiper-button-prev {
-    color: rgba(255, 255, 255, 0.603) !important;
+}
+.swiper-button-next,
+.swiper-button-prev {
+    color: white !important;
     transform: scale(0.7); /* Make buttons 70% of original size */
-  }
-  .swiper-button-next:after,
-  .swiper-button-prev:after {
+}
+.swiper-button-next:after,
+.swiper-button-prev:after {
     font-size: 1.5rem !important; /* Reduce the arrow size */
-  }
-  .swiper-pagination {
+}
+.swiper-pagination {
     top: 10px !important;
     bottom: auto !important;
-  }
-  .swiper-pagination-bullet {
+}
+.swiper-pagination-bullet {
     background: white !important;
     opacity: 0.6;
-  }
-  .swiper-pagination-bullet-active {
+}
+.swiper-pagination-bullet-active {
     opacity: 1;
-  }
-  @media (max-width: 768px) {
+}
+@media (max-width: 768px) {
     .hero-slider {
       height: 300px;
     }
@@ -92,13 +122,10 @@
     .swiper-button-prev:after {
       font-size: 1.2rem !important; /* Even smaller on mobile */
     }
-    /* Add container margin adjustment for mobile */
-    .container {
-      margin-top: -16px !important;
-    }
+ 
 
     .hero-content {
       padding: 0.5rem;
       padding-bottom: 4rem;
     }
-  }
+}

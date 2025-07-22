@@ -1,0 +1,311 @@
+{% load static %}
+
+<div class="mb-4 sm:mb-8">
+    <div class="overflow-x-auto bg-base-100 p-3 sm:p-3 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-2 sm:mb-4">Open Inline Standings</h2>
+        
+        <table class="table table-xs table-zebra w-full">
+            <thead>
+                <tr>
+                    <th class="text-start cursor-pointer" onclick="sortTableInline(0)">
+                        Rank
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-start cursor-pointer" onclick="sortTableInline(1)">
+                        Name
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-end cursor-pointer" onclick="sortTableInline(2)">
+                        Points
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableInline(3)">
+                        Events
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableInline(4)">
+                        Avg. Rank
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableInline(5)">
+                        Alva
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableInline(6)">
+                        Veko
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableInline(7)">
+                        Vercors
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableInline(8)">
+                        Sornetan
+                        <span class="sort-icon">↕</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Top 3 with medals -->
+                <tr>
+                    <td class="whitespace-nowrap text-center">
+                        <span title="Gold" class="text-base sm:text-xl">🥇</span>
+                    </td>
+                    <td>Jaime Urquidi Diaz</td>
+                    <td class="text-center"><div class="badge badge-primary">1000</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">1</td>
+                    <td class="text-center">1000 (1st)</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="whitespace-nowrap text-center">
+                        <span title="Gold" class="text-base sm:text-xl">🥇</span>
+                    </td>
+                    <td>Valentin Bataille</td>
+                    <td class="text-center"><div class="badge badge-primary">1000</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">2</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">1000 (1st)</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="whitespace-nowrap text-center">
+                        <span title="Bronze" class="text-base sm:text-xl">🥉</span>
+                    </td>
+                    <td>Diogo Oliva Nunes de Alvuqierq Osório</td>
+                    <td class="text-center"><div class="badge badge-primary">961</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">5</td>
+                    <td class="text-center">961 (2nd)</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <!-- Rest of the riders -->
+                <tr>
+                    <td class="text-center">3</td>
+                    <td>Ambroise Nicolao</td>
+                    <td class="text-center"><div class="badge badge-primary">961</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">4</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">961 (2nd)</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">5</td>
+                    <td>Nicolas Varin</td>
+                    <td class="text-center"><div class="badge badge-primary">943</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">5</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">943 (3rd)</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">6</td>
+                    <td>Ioannis Pyrovolou</td>
+                    <td class="text-center"><div class="badge badge-primary">926</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">6</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">926 (4th)</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">7</td>
+                    <td>Brian Aguilar</td>
+                    <td class="text-center"><div class="badge badge-primary">911</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">0</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">911 (5th)</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">8</td>
+                    <td>Juan Azzollini</td>
+                    <td class="text-center"><div class="badge badge-primary">896</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">0</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">896 (6th)</td>
+                    <td class="text-center">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Initialize sorting directions for inline table
+let sortDirectionsInline = {
+    0: 'desc',  // Rank - initially descending
+    1: 'desc',  // Name - initially descending
+    2: 'asc',   // Points - initially ascending
+    3: 'desc',  // Events - initially descending
+    4: 'desc',  // Avg. Rank - initially descending
+    5: 'asc',   // Alva - initially ascending
+    6: 'asc',   // Veko - initially ascending
+    7: 'asc',   // Vercors - initially ascending
+    8: 'asc'    // Sornetan - initially ascending
+};
+
+// Initialize table when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default sort direction for each column
+    const table = document.querySelector('.table');
+    const headers = table.querySelectorAll('thead th');
+    
+    // Make sure all headers have sort icons
+    headers.forEach((header, index) => {
+        const sortIcon = header.querySelector('.sort-icon');
+        if (!sortIcon) {
+            const span = document.createElement('span');
+            span.className = 'sort-icon';
+            span.textContent = '↕';
+            header.appendChild(span);
+        }
+    });
+});
+
+function sortTableInline(columnIndex) {
+    const table = document.querySelector('.table');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const headers = table.querySelectorAll('thead th');
+    
+    // Update sort direction
+    sortDirectionsInline[columnIndex] = sortDirectionsInline[columnIndex] === 'asc' ? 'desc' : 'asc';
+    
+    // Reset all sort icons
+    headers.forEach(header => {
+        const sortIcon = header.querySelector('.sort-icon');
+        if (sortIcon) {
+            sortIcon.textContent = '↕';
+        }
+    });
+    
+    // Update clicked header's sort icon
+    const clickedSortIcon = headers[columnIndex]?.querySelector('.sort-icon');
+    if (clickedSortIcon) {
+        clickedSortIcon.textContent = sortDirectionsInline[columnIndex] === 'asc' ? '↑' : '↓';
+    }
+
+    // Sort the rows - only sort rows that have actual data
+    const validRows = rows.filter(row => row.cells.length >= 2);
+    
+    validRows.sort((a, b) => {
+        let aValue, bValue;
+        
+        // Make sure cells exist at the specified index
+        if (!a.cells[columnIndex] || !b.cells[columnIndex]) {
+            return 0;
+        }
+        
+        if (columnIndex === 0) {  // Rank
+            // Handle medal emojis in the first column
+            const aText = a.cells[0].textContent.trim();
+            const bText = b.cells[0].textContent.trim();
+            
+            // Check if the cell contains medal emoji
+            if (aText.includes('🥇')) aValue = 1;
+            else if (aText.includes('🥈')) aValue = 2;
+            else if (aText.includes('🥉')) aValue = 3;
+            else aValue = parseInt(aText) || 999;
+            
+            if (bText.includes('🥇')) bValue = 1;
+            else if (bText.includes('🥈')) bValue = 2;
+            else if (bText.includes('🥉')) bValue = 3;
+            else bValue = parseInt(bText) || 999;
+            
+        } else if (columnIndex === 1) {  // Name
+            aValue = a.cells[1].textContent.trim();
+            bValue = b.cells[1].textContent.trim();
+            
+        } else if (columnIndex >= 2 && columnIndex <= 4) {  // Points, Events, Avg. Rank
+            const aBadge = a.cells[columnIndex].querySelector('.badge');
+            const bBadge = b.cells[columnIndex].querySelector('.badge');
+            
+            aValue = aBadge ? parseInt(aBadge.textContent.trim()) : parseInt(a.cells[columnIndex].textContent.trim());
+            bValue = bBadge ? parseInt(bBadge.textContent.trim()) : parseInt(b.cells[columnIndex].textContent.trim());
+            
+            if (isNaN(aValue)) aValue = -1;
+            if (isNaN(bValue)) bValue = -1;
+            
+        } else {  // Alva, Veko, Vercors, Sornetan
+            const aText = a.cells[columnIndex].textContent.trim();
+            const bText = b.cells[columnIndex].textContent.trim();
+            
+            if (aText === '-') {
+                aValue = -1;
+            } else {
+                const aMatch = aText.match(/(\d+)/);
+                aValue = aMatch ? parseInt(aMatch[0]) : -1;
+            }
+            
+            if (bText === '-') {
+                bValue = -1;
+            } else {
+                const bMatch = bText.match(/(\d+)/);
+                bValue = bMatch ? parseInt(bMatch[0]) : -1;
+            }
+        }
+        
+        // Compare the values
+        if (columnIndex === 1) {  // String comparison for names
+            return sortDirectionsInline[columnIndex] === 'asc' 
+                ? aValue.localeCompare(bValue)
+                : bValue.localeCompare(aValue);
+        } else {  // Numeric comparison for other columns
+            return sortDirectionsInline[columnIndex] === 'asc'
+                ? aValue - bValue
+                : bValue - aValue;
+        }
+    });
+
+    // Reorder only the valid rows, leaving any spacer or header rows in place
+    const nonSortableRows = rows.filter(row => row.cells.length < 2);
+    tbody.innerHTML = '';
+    
+    // First add back any non-sortable rows at the top
+    nonSortableRows.forEach(row => tbody.appendChild(row));
+    
+    // Then add the sorted data rows
+    validRows.forEach(row => tbody.appendChild(row));
+}
+</script>
+
+<style>
+.sort-icon {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.8em;
+    color: #666;
+    font-weight: bold;
+}
+
+/* Highlight header on hover */
+th.cursor-pointer:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Make sure headers are visible and stand out */
+th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: inherit;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+</style>

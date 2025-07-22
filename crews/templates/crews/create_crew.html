@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Crew - Downhill Skateboarding Events{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-base-content mb-2">
+            <i class="fas fa-users text-primary mr-3"></i>
+            Create Your Crew
+        </h1>
+        <p class="text-base-content/70 text-lg">
+            Start building your skateboarding community and organize events together.
+        </p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Display form errors -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                
+                <!-- Basic Information Section -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-primary mr-2"></i>
+                        Basic Information
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.name.label }}</span>
+                                <span class="label-text-alt text-error">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.name.errors.0 }}</span>
+                                </label>
+                            {% else %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ form.name.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.description.label }}</span>
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+                                </label>
+                            {% else %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ form.description.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Visual Identity Section -->
+                <div class="divider"></div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-image text-primary mr-2"></i>
+                        Visual Identity
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.logo.label }}</span>
+                            </label>
+                            {{ form.logo }}
+                            {% if form.logo.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.logo.errors.0 }}</span>
+                                </label>
+                            {% else %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ form.logo.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.banner.label }}</span>
+                            </label>
+                            {{ form.banner }}
+                            {% if form.banner.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.banner.errors.0 }}</span>
+                                </label>
+                            {% else %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ form.banner.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location & Type Section -->
+                <div class="divider"></div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-map-marker-alt text-primary mr-2"></i>
+                        Location & Type
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.country.label }}</span>
+                            </label>
+                            {{ form.country }}
+                            {% if form.country.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.country.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.city.label }}</span>
+                            </label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.city.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.crew_type.label }}</span>
+                            </label>
+                            {{ form.crew_type }}
+                            {% if form.crew_type.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.crew_type.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.primary_discipline.label }}</span>
+                            </label>
+                            {{ form.primary_discipline }}
+                            {% if form.primary_discipline.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.primary_discipline.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Social Links Section -->
+                <div class="divider"></div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-link text-primary mr-2"></i>
+                        Social Links
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.website.label }}</span>
+                            </label>
+                            {{ form.website }}
+                            {% if form.website.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.website.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.instagram.label }}</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="bg-base-200 px-3 flex items-center border border-r-0 border-base-300 rounded-l-lg">@</span>
+                                {{ form.instagram }}
+                            </div>
+                            {% if form.instagram.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.instagram.errors.0 }}</span>
+                                </label>
+                            {% else %}
+                                <label class="label">
+                                    <span class="label-text-alt">{{ form.instagram.help_text }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">{{ form.youtube.label }}</span>
+                            </label>
+                            {{ form.youtube }}
+                            {% if form.youtube.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.youtube.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Section -->
+                <div class="divider"></div>
+                <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                    <a href="{% url 'crews:list' %}" class="btn btn-ghost">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i>
+                        Create Crew
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Help Text -->
+    <div class="alert alert-info mt-6">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <h4 class="font-semibold">Getting Started</h4>
+            <p class="text-sm">
+                Once you create your crew, you'll be the owner and can invite members, 
+                create events, and manage leagues collaboratively with your team.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

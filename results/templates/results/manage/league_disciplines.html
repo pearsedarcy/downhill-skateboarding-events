@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">Manage Disciplines - {{ league.name }}</h2>
+          <div class="flex gap-2">
+            <a href="{% url 'results:manage_league_events' slug=league.slug %}" class="btn btn-outline">
+              <i class="fas fa-calendar mr-2"></i> Manage Events
+            </a>
+            <a href="{% url 'results:league_standings' slug=league.slug %}" class="btn btn-ghost">
+              <i class="fas fa-arrow-left mr-2"></i> Back to League
+            </a>
+          </div>
+        </div>
+
+        <!-- Add Discipline Form -->
+        <div class="card bg-base-200 mb-6">
+          <div class="card-body">
+            <h3 class="card-title text-lg">Add New Discipline</h3>
+            <form method="POST" class="space-y-4">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="add_discipline">
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Discipline Name</span>
+                  </label>
+                  {{ form.name }}
+                  <label class="label">
+                    <span class="label-text-alt">e.g. "Open Skate", "Women's", "Luge"</span>
+                  </label>
+                </div>
+                
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Description</span>
+                  </label>
+                  {{ form.description }}
+                  <label class="label">
+                    <span class="label-text-alt">Optional description</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="card-actions">
+                <button type="submit" class="btn btn-primary">Add Discipline</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Current Disciplines -->
+        <div class="card bg-base-100">
+          <div class="card-body">
+            <h3 class="card-title text-lg">Current Disciplines ({{ disciplines.count }})</h3>
+            
+            {% if disciplines %}
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for discipline in disciplines %}
+                <div class="card bg-base-200">
+                  <div class="card-body">
+                    <div class="flex justify-between items-start">
+                      <div class="flex-1">
+                        <h4 class="font-semibold">{{ discipline.name }}</h4>
+                        {% if discipline.description %}
+                          <p class="text-sm opacity-70 mt-1">{{ discipline.description }}</p>
+                        {% endif %}
+                        <div class="text-xs opacity-50 mt-2">
+                          Slug: {{ discipline.slug }}
+                        </div>
+                      </div>
+                      
+                      <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
+                          <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                          <li>
+                            <button onclick="editDiscipline({{ discipline.id }}, '{{ discipline.name }}', '{{ discipline.description|escapejs }}')">
+                              <i class="fas fa-edit"></i> Edit
+                            </button>
+                          </li>
+                          <li>
+                            <form method="POST" class="w-full">
+                              {% csrf_token %}
+                              <input type="hidden" name="action" value="remove_discipline">
+                              <input type="hidden" name="discipline_id" value="{{ discipline.id }}">
+                              <button 
+                                type="submit" 
+                                class="text-error w-full justify-start"
+                                onclick="return confirm('Remove this discipline? This will also remove all associated standings.')"
+                              >
+                                <i class="fas fa-trash"></i> Remove
+                              </button>
+                            </form>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-center py-8 text-base-content/70">
+                <i class="fas fa-list text-4xl mb-4"></i>
+                <p>No disciplines defined for this league yet.</p>
+                <p class="text-sm">Add your first discipline using the form above.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Discipline Modal -->
+<dialog id="edit-discipline-modal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Edit Discipline</h3>
+    <form method="POST" id="edit-discipline-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_discipline">
+      <input type="hidden" name="discipline_id" id="edit-discipline-id">
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Name</span>
+        </label>
+        <input type="text" name="name" id="edit-discipline-name" class="input input-bordered" required>
+      </div>
+      
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Description</span>
+        </label>
+        <textarea name="description" id="edit-discipline-description" class="textarea textarea-bordered"></textarea>
+      </div>
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">Update</button>
+        <form method="dialog">
+          <button class="btn">Cancel</button>
+        </form>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script>
+function editDiscipline(id, name, description) {
+  document.getElementById('edit-discipline-id').value = id;
+  document.getElementById('edit-discipline-name').value = name;
+  document.getElementById('edit-discipline-description').value = description;
+  document.getElementById('edit-discipline-modal').showModal();
+}
+</script>
+{% endblock %}

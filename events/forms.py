@@ -2,6 +2,7 @@ from django import forms
 from django.forms import inlineformset_factory
 from .models import Event, Location
 from django.core.exceptions import ValidationError
+from crews.models import Crew, CrewMembership
 
 class LocationForm(forms.ModelForm):
     def clean_location_title(self):
@@ -49,7 +50,18 @@ class LocationForm(forms.ModelForm):
         }
 
 class EventForm(forms.ModelForm):
+    created_by_crew = forms.ModelChoiceField(
+        queryset=Crew.objects.none(),  # Will be set in __init__
+        required=False,
+        empty_label="Personal Event (no crew)",
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered select-primary w-full'
+        }),
+        help_text="Select a crew to organize this event (optional)"
+    )
+    
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['cover_image'].required = False
         self.fields['end_date'].required = False
@@ -57,6 +69,18 @@ class EventForm(forms.ModelForm):
         self.fields['cost'].required = False
         self.fields['max_attendees'].required = False
         self.fields['published'].initial = True
+        self.fields['continent'].required = False
+        self.fields['created_by_crew'].required = False
+        
+        # Set crew choices based on user's crew memberships
+        if user and user.is_authenticated:
+            # Get crews where user can create events (OWNER, ADMIN, EVENT_MANAGER)
+            user_crews = Crew.objects.filter(
+                memberships__user=user,
+                memberships__role__in=['OWNER', 'ADMIN', 'EVENT_MANAGER']
+            ).distinct()
+            self.fields['created_by_crew'].queryset = user_crews
+        # League is now handled through the LeagueEvent model in results app
 
     def clean(self):
         cleaned_data = super().clean()
@@ -101,9 +125,9 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = [
-            'title', 'description', 'event_type', 'skill_level',
+            'title', 'description', 'event_type', 'event_class', 'skill_level',
             'start_date', 'end_date', 'tickets_link', 'cover_image',
-            'cost', 'max_attendees', 'published'
+            'cost', 'max_attendees', 'published', 'continent', 'created_by_crew'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -115,6 +139,9 @@ class EventForm(forms.ModelForm):
                 'placeholder': 'Describe your event'
             }),
             'event_type': forms.Select(attrs={
+                'class': 'select select-bordered select-primary w-full'
+            }),
+            'event_class': forms.Select(attrs={
                 'class': 'select select-bordered select-primary w-full'
             }),
             'skill_level': forms.Select(attrs={
@@ -150,5 +177,9 @@ class EventForm(forms.ModelForm):
             'published': forms.CheckboxInput(attrs={
                 'class': 'toggle toggle-primary',
                 'role': 'switch'
+            }),
+            # League field removed
+            'continent': forms.Select(attrs={
+                'class': 'select select-bordered select-primary w-full'
             })
         }

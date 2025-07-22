@@ -1,0 +1,235 @@
+{% load static %}
+<thead>
+                <tr>
+                    <th class="text-start cursor-pointer" onclick="sortTableLuge(0)">
+                        Rank
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-start cursor-pointer" onclick="sortTableLuge(1)">
+                        Name
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-end cursor-pointer" onclick="sortTableLuge(2)">
+                        Points
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableLuge(3)">
+                        Events
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableLuge(4)">
+                        Avg. Rank
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableLuge(5)">
+                        Alva
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableLuge(6)">
+                        Veko
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableLuge(7)">
+                        Vercors
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableLuge(8)">
+                        Sornetan
+                        <span class="sort-icon">↕</span>
+                    </th>
+                    <th class="text-center cursor-pointer" onclick="sortTableLuge(9)">
+                        Arena
+                        <span class="sort-icon">↕</span>
+                    </th>
+                </tr>
+</thead>
+<tbody>
+<!-- Top 3 with medals -->
+                <tr>
+                    <td class="whitespace-nowrap text-center">
+                        <span title="Gold" class="text-base sm:text-xl">🥇</span>
+                    </td>
+                    <td>David Frega</td>
+                    <td class="text-center"><div class="badge badge-primary">2883</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">3</div></td>
+                    <td class="text-center">2</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">961 (2nd)</td>
+                    <td class="text-center">961 (2nd)</td>
+                    <td class="text-center">961 (2nd)</td>
+                </tr>
+                <tr>
+                    <td class="whitespace-nowrap text-center">
+                        <span title="Silver" class="text-base sm:text-xl">🥈</span>
+                    </td>
+                    <td>Andrej Ilic</td>
+                    <td class="text-center"><div class="badge badge-primary">2869</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">3</div></td>
+                    <td class="text-center">3</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">926 (4th)</td>
+                    <td class="text-center">943 (3rd)</td>
+                    <td class="text-center">1000 (1st)</td>
+                </tr>
+                <tr>
+                    <td class="whitespace-nowrap text-center">
+                        <span title="Bronze" class="text-base sm:text-xl">🥉</span>
+                    </td>
+                    <td>Charlotte Farges</td>
+                    <td class="text-center"><div class="badge badge-primary">2586</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">3</div></td>
+                    <td class="text-center">9</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">846 (10th)</td>
+                    <td class="text-center">857 (9th)</td>
+                    <td class="text-center">883 (7th)</td>
+                </tr>
+                <!-- Rest of the riders -->
+                <tr>
+                    <td class="text-center">4</td>
+                    <td>Jennifer Kampa</td>
+                    <td class="text-center"><div class="badge badge-primary">2550</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">3</div></td>
+                    <td class="text-center">10</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">834 (11th)</td>
+                    <td class="text-center">870 (8th)</td>
+                    <td class="text-center">846 (10th)</td>
+                </tr>
+                <tr>
+                    <td class="text-center">5</td>
+                    <td>Arkadiusz Kowalski</td>
+                    <td class="text-center"><div class="badge badge-primary">1911</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">2</div></td>
+                    <td class="text-center">3</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">1000 (1st)</td>
+                    <td class="text-center">911 (5th)</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">6</td>
+                    <td>Martin Witzigmann</td>
+                    <td class="text-center"><div class="badge badge-primary">1837</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">2</div></td>
+                    <td class="text-center">5</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">926 (4th)</td>
+                    <td class="text-center">911 (5th)</td>
+                </tr>
+                <tr>
+                    <td class="text-center">7</td>
+                    <td>Lionel Gygli</td>
+                    <td class="text-center"><div class="badge badge-primary">1823</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">2</div></td>
+                    <td class="text-center">7</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">823 (12th)</td>
+                    <td class="text-center">1000 (1st)</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">8</td>
+                    <td>Lucas Mancini</td>
+                    <td class="text-center"><div class="badge badge-primary">1740</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">2</div></td>
+                    <td class="text-center">8</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">883 (7th)</td>
+                    <td class="text-center">857 (9th)</td>
+                </tr>
+                <tr>
+                    <td class="text-center">9</td>
+                    <td>Odd Steinar Syversen</td>
+                    <td class="text-center"><div class="badge badge-primary">1000</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">1</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">1000 (1st)</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">10</td>
+                    <td>Hussain Al-Nasrallah</td>
+                    <td class="text-center"><div class="badge badge-primary">961</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">2</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">961 (2nd)</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">11</td>
+                    <td>Garrett Belanger</td>
+                    <td class="text-center"><div class="badge badge-primary">943</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">3</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">943 (3rd)</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">11</td>
+                    <td>Jules Chaperon</td>
+                    <td class="text-center"><div class="badge badge-primary">943</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">3</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">943 (3rd)</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+                <tr>
+                    <td class="text-center">13</td>
+                    <td>Ulrich Becker</td>
+                    <td class="text-center"><div class="badge badge-primary">926</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">3</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">926 (3rd)</td>
+                </tr>
+                <tr>
+                    <td class="text-center">13</td>
+                    <td>Maurizio De Pollo</td>
+                    <td class="text-center"><div class="badge badge-primary">926</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">4</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">926 (4th)</td>
+                </tr>
+                <tr>
+                    <td class="text-center">13</td>
+                    <td>Ambroise Trauet</td>
+                    <td class="text-center"><div class="badge badge-primary">926</div></td>
+                    <td class="text-center"><div class="badge badge-ghost">1</div></td>
+                    <td class="text-center">4</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">926 (4th)</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+</tbody>

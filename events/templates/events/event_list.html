@@ -7,36 +7,49 @@
 {% block meta_description %}Browse upcoming downhill skateboarding events, races, and competitions. Find events near you and connect with the downhill skating community.{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+<link href="{% static 'css/swiper-bundle.min.css' %}" rel="stylesheet">
 <link href="{% static 'css/swiper_slider.css' %}" rel="stylesheet">
-<script src="{% static 'js/theme_gradient.js' %}"></script>
 {% endblock %}
 
 
 
 {% block content %}
 
-{% if featured_events %}
+
 <div class="hero-container z-10">
   <div class="hero-slider swiper">
+    
     <div class="swiper-wrapper">
-      {% for event in featured_events %}
-      <div class="swiper-slide hero-slide">
-        <a href="{% url 'events:event_details' event.slug %}">
-          {% if event.cover_image %}
-          <img src="{{ event.cover_image.url }}" alt="{{ event.title }}" class="hero-image">
-          {% else %}
-          <img src="{% static 'images/default-event-cover.jpg' %}" alt="{{ event.title }}" class="hero-image">
-          {% endif %}
+      {% if featured_events %}
+        {% for event in featured_events %}
+        <div class="swiper-slide hero-slide">
+          <a href="{% url 'events:event_details' event.slug %}">
+            {% if event.cover_image %}
+            <img src="{{ event.cover_image.url }}" alt="{{ event.title }}" class="hero-image">
+            {% else %}
+            <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}" alt="{{ event.title }}" class="hero-image">
+            {% endif %}
+            <div class="hero-content">
+              <h2 class="hero-title text-2xl md:text-3xl font-bold mb-2">{{ event.title }}</h2>
+              <div class="hero-info text-sm md:text-base">
+                {{ event.start_date|date:"M j, Y" }} • {{ event.location.city }}, {{ event.location.country.name }}
+              </div>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="swiper-slide hero-slide">
+          <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}" alt="Welcome to Events" class="hero-image">
           <div class="hero-content">
-            <h2 class="hero-title text-2xl md:text-3xl font-bold mb-2">{{ event.title }}</h2>
+            <h2 class="hero-title text-2xl md:text-3xl font-bold mb-2">Check out
+            Upcoming Events</h2>
             <div class="hero-info text-sm md:text-base">
-              {{ event.start_date|date:"M j, Y" }} • {{ event.location.city }}, {{ event.location.country.name }}
+              Discover upcoming downhill skateboarding events, races, and competitions.
             </div>
           </div>
-        </a>
-      </div>
-      {% endfor %}
+        </div>
+      {% endif %}
     </div>
     <div class="theme-gradient-overlay"></div>
     <div class="swiper-pagination"></div>
@@ -44,10 +57,10 @@
     <div class="swiper-button-next"></div>
   </div>
 </div>
-{% endif %}
+
 
 <!-- Main container with responsive grid layout -->
-<div class="container mx-auto px-1 max-w-[1400px] relative -mt-10 z-20"> 
+<div class="container mx-auto px-1 max-w-[1400px] relative z-20"> 
   <!-- Filter Form -->
   <form method="get" class="flex flex-wrap gap-2 items-center mb-4 rounded-lg">
     <div class="flex-1 flex flex-wrap gap-2 items-center">
@@ -70,6 +83,13 @@
         <option value="">Country</option>
         {% for code, name in countries %}
           <option value="{{ code }}" {% if request.GET.country == code %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+      <select id="continent" name="continent" class="select select-sm
+      select-bordered w-20 sm:w-40 text-xs p-0 pl-2">
+        <option value="">Continent</option>
+        {% for code, name in continents %}
+          <option value="{{ code }}" {% if request.GET.continent == code %}selected{% endif %}>{{ name }}</option>
         {% endfor %}
       </select>
       <button type="submit" class="btn btn-sm btn-primary text-xs">Filter</button>
@@ -118,56 +138,30 @@
 <!-- Add Litepicker library -->
 <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
 <script src="{% static 'js/infinite_scroll.js' %}"></script>
-<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script src="{% static 'js/swiper-bundle.min.js' %}"></script>
+<script src="{% static 'js/theme_gradient.js' %}"></script>
+<script src="{% static 'js/event_slider.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Litepicker initialization
-  try {
-    const picker = new Litepicker({
-      element: document.getElementById('daterange'),
-      singleMode: false,
-      numberOfMonths: 1,
-      numberOfColumns: 1,
-      format: 'YYYY-MM-DD',
-      delimiter: ' - ',
-      startDate: '{{ request.GET.start_date|default:"" }}' || null,
-      endDate: '{{ request.GET.end_date|default:"" }}' || null,
-      setup: (picker) => {
-        picker.on('selected', (date1, date2) => {
-          if (date1 && date2) {
-            document.getElementById('start_date').value = date1.format('YYYY-MM-DD');
-            document.getElementById('end_date').value = date2.format('YYYY-MM-DD');
-          }
-        });
-        picker.on('clear', () => {
-          document.getElementById('start_date').value = '';
-          document.getElementById('end_date').value = '';
-        });
+// Litepicker initialization
+const picker = new Litepicker({
+  element: document.getElementById('daterange'),
+  singleMode: false,
+  numberOfMonths: 1,
+  numberOfColumns: 1,
+  format: 'YYYY-MM-DD',
+  delimiter: ' - ',
+  startDate: '{{ request.GET.start_date|default:"" }}' || null,
+  endDate: '{{ request.GET.end_date|default:"" }}' || null,
+  setup: (picker) => {
+    picker.on('selected', (date1, date2) => {
+      if (date1 && date2) {
+        document.getElementById('start_date').value = date1.format('YYYY-MM-DD');
+        document.getElementById('end_date').value = date2.format('YYYY-MM-DD');
       }
     });
-  } catch (e) {
-    console.error('Error initializing Litepicker:', e);
-  }
-
-  if (document.querySelector('.hero-slider')) {
-    const swiper = new Swiper('.hero-slider', {
-      loop: true,
-      autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
-      },
-      effect: 'fade',
-      fadeEffect: {
-        crossFade: true
-      },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
+    picker.on('clear', () => {
+      document.getElementById('start_date').value = '';
+      document.getElementById('end_date').value = '';
     });
   }
 });

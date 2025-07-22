@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ crew.name }} Members - Crews{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{% url 'crews:list' %}">Crews</a></li>
+            <li><a href="{% url 'crews:detail' crew.slug %}">{{ crew.name }}</a></li>
+            <li>Members</li>
+        </ul>
+    </div>
+
+    <!-- Header -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-4xl font-bold text-base-content mb-2">
+                <i class="fas fa-users text-primary mr-3"></i>
+                Crew Members
+            </h1>
+            <p class="text-base-content/70 text-lg">
+                {{ memberships.count }} member{{ memberships.count|pluralize }} in {{ crew.name }}
+            </p>
+        </div>
+        
+        {% if user_membership and user_membership.can_manage %}
+        <div class="flex gap-2">
+            <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-primary">
+                <i class="fas fa-user-plus mr-2"></i>
+                Invite Members
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Members Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for membership in memberships %}
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <!-- Member Info -->
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="avatar">
+                        <div class="w-16 h-16 rounded-full">
+                            {% if membership.user.profile.avatar %}
+                                <img src="{{ membership.user.profile.avatar.url }}" alt="{{ membership.user.get_full_name|default:membership.user.username }}">
+                            {% else %}
+                                <div class="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center">
+                                    <span class="text-xl font-bold">
+                                        {{ membership.user.first_name|first|default:membership.user.username|first|upper }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <h3 class="font-bold text-lg">
+                            {{ membership.user.get_full_name|default:membership.user.username }}
+                            {% if membership.user == request.user %}
+                                <span class="text-sm text-primary font-normal">(You)</span>
+                            {% endif %}
+                        </h3>
+                        
+                        <!-- Role Badge -->
+                        <div class="flex items-center gap-2 mt-1">
+                            {% if membership.role == 'OWNER' %}
+                                <div class="badge badge-accent">
+                                    <i class="fas fa-crown mr-1"></i>
+                                    Owner
+                                </div>
+                            {% elif membership.role == 'ADMIN' %}
+                                <div class="badge badge-primary">
+                                    <i class="fas fa-shield-alt mr-1"></i>
+                                    Admin
+                                </div>
+                            {% elif membership.role == 'EVENT_MANAGER' %}
+                                <div class="badge badge-secondary">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    Event Manager
+                                </div>
+                            {% else %}
+                                <div class="badge badge-neutral">
+                                    <i class="fas fa-user mr-1"></i>
+                                    Member
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Member Stats -->
+                <div class="stats stats-vertical bg-base-200/50 rounded-lg text-center">
+                    <div class="stat py-2">
+                        <div class="stat-title text-xs">Joined</div>
+                        <div class="stat-value text-sm">{{ membership.joined_at|date:"M d, Y" }}</div>
+                    </div>
+                    {% if membership.user.profile.country %}
+                    <div class="stat py-2">
+                        <div class="stat-title text-xs">Country</div>
+                        <div class="stat-value text-sm">{{ membership.user.profile.country.name }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions -->
+                {% if user_membership and user_membership.can_manage %}
+                <div class="card-actions justify-end mt-4">
+                    {% if membership.user == request.user %}
+                        <!-- Self Management -->
+                        <div class="dropdown dropdown-end">
+                            <tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                                <i class="fas fa-user-cog"></i>
+                            </tabindex>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                {% if membership.role == 'OWNER' %}
+                                <li>
+                                    <a href="{% url 'crews:edit' crew.slug %}">
+                                        <i class="fas fa-cog mr-2"></i>
+                                        Crew Settings
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'crews:edit_member' crew.slug membership.user.id %}">
+                                        <i class="fas fa-crown mr-2"></i>
+                                        Transfer Ownership
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li>
+                                    <a href="{% url 'crews:edit_member' crew.slug membership.user.id %}">
+                                        <i class="fas fa-edit mr-2"></i>
+                                        Edit My Role
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <a href="{% url 'crews:leave' crew.slug %}" class="text-warning">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>
+                                        Leave Crew
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <!-- Member Management -->
+                        <div class="dropdown dropdown-end">
+                            <tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </tabindex>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                {% if membership.role != 'OWNER' %}
+                                <li>
+                                    <a href="{% url 'crews:edit_member' crew.slug membership.user.id %}">
+                                        <i class="fas fa-edit mr-2"></i>
+                                        Edit Role
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'crews:remove_member' crew.slug membership.user.id %}" class="text-error">
+                                        <i class="fas fa-user-times mr-2"></i>
+                                        Remove Member
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li><span class="text-base-content/50 px-2">Owner cannot be modified</span></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="text-6xl text-base-content/20 mb-4">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-base-content/60 mb-2">No Members Yet</h3>
+            <p class="text-base-content/50 mb-6">
+                This crew doesn't have any members yet.
+            </p>
+            {% if user_membership and user_membership.can_manage %}
+            <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-primary">
+                <i class="fas fa-user-plus mr-2"></i>
+                Invite First Member
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Single Member Call-to-Action -->
+    {% if memberships.count == 1 and user_membership and user_membership.can_manage %}
+    <div class="card bg-gradient-to-r from-primary/10 to-secondary/10 shadow-lg mt-8">
+        <div class="card-body text-center">
+            <div class="text-4xl mb-4">
+                <i class="fas fa-user-friends text-primary"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Ready to Build Your Team?</h3>
+            <p class="text-base-content/70 mb-6">
+                You're the only member in {{ crew.name }}. Invite other skaters to join your crew and start organizing events together!
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Invite Your First Member
+                </a>
+                <a href="{% url 'crews:edit' crew.slug %}" class="btn btn-outline">
+                    <i class="fas fa-edit mr-2"></i>
+                    Edit Crew Settings
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Back to Crew -->
+    <div class="text-center mt-8">
+        <a href="{% url 'crews:detail' crew.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to {{ crew.name }}
+        </a>
+    </div>
+</div>
+{% endblock %}

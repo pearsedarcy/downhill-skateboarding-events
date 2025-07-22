@@ -44,6 +44,7 @@ def event_list(request):
     end_date = request.GET.get('end_date')
     event_type = request.GET.get('event_type')
     country = request.GET.get('country')
+    continent = request.GET.get('continent')
 
     if start_date:
         event_list = event_list.filter(start_date__gte=start_date)
@@ -53,6 +54,8 @@ def event_list(request):
         event_list = event_list.filter(event_type=event_type)
     if country:
         event_list = event_list.filter(location__country=country)
+    if continent:
+        event_list = event_list.filter(continent=continent)
     
     # Ordering
     event_list = event_list.order_by("-is_future", "start_date", "-created")
@@ -86,6 +89,7 @@ def event_list(request):
         'featured_events': featured_events,
         'event_types': Event._meta.get_field('event_type').choices,
         'countries': list(countries),
+        'continents': Event.CONTINENT_CHOICES,
     }
     return render(request, "events/event_list.html", context)
 
@@ -183,7 +187,7 @@ def event_submission(request, slug=None):
         location = event.location
 
     if request.method == 'POST':
-        form = EventForm(request.POST, request.FILES, instance=event)
+        form = EventForm(request.POST, request.FILES, instance=event, user=request.user)
         location_form = LocationForm(request.POST, instance=location)
         
         if form.is_valid() and location_form.is_valid():
@@ -207,7 +211,20 @@ def event_submission(request, slug=None):
                     location.delete()
                 raise e
     else:
-        form = EventForm(instance=event)
+        # Handle crew pre-selection from URL parameter
+        initial_data = {}
+        crew_slug = request.GET.get('crew')
+        if crew_slug:
+            from crews.models import Crew
+            try:
+                crew = Crew.objects.get(slug=crew_slug, is_active=True)
+                # Check if user can create events for this crew
+                if crew.can_create_events(request.user):
+                    initial_data['created_by_crew'] = crew
+            except Crew.DoesNotExist:
+                pass
+        
+        form = EventForm(instance=event, user=request.user, initial=initial_data)
         location_form = LocationForm(instance=location)
 
     return render(request, 'events/event_submission.html', {
@@ -224,7 +241,7 @@ def edit_event(request, slug):
         raise Http404("You don't have permission to edit this event")
     
     if request.method == "POST":
-        form = EventForm(request.POST, request.FILES, instance=event)
+        form = EventForm(request.POST, request.FILES, instance=event, user=request.user)
         location_form = LocationForm(request.POST, instance=event.location)
         
         if form.is_valid() and location_form.is_valid():
@@ -247,7 +264,7 @@ def edit_event(request, slug):
                 print(f"Error updating event: {str(e)}")
                 form.add_error(None, f"Error updating event: {str(e)}")
     else:
-        form = EventForm(instance=event)
+        form = EventForm(instance=event, user=request.user)
         location_form = LocationForm(instance=event.location)
 
     return render(request, 'events/event_submission.html', {

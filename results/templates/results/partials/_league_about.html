@@ -1,0 +1,12 @@
+{% comment %}
+This partial displays the league description section if one exists
+{% endcomment %}
+
+{% if league.description %}
+<div class="mb-4 sm:mb-8">
+    <div class="prose max-w-none bg-base-100 p-3 sm:p-6 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-2 sm:mb-4">About this League</h2>
+        <p>{{ league.description }}</p>
+    </div>
+</div>
+{% endif %}

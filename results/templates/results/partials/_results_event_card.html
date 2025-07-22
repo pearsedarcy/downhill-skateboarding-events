@@ -1,0 +1,111 @@
+{% load static %}
+{% load countries %}
+{% load i18n %}
+
+<a href="{% url 'events:event_details' event.slug %}" class="block">
+  <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
+    <div class="card-body p-0">
+      <!-- Event image/banner with leaders table overlay -->
+      <div class="relative">
+        <!-- Event Cover Image Background -->
+        <div class="h-[220px] bg-base-300 rounded-lg overflow-hidden relative">
+          <div class="skeleton w-full h-full rounded-lg"></div>
+          {% if event.cover_image %}
+            <img src="{{ event.cover_image.url }}" 
+                alt="event poster" 
+                class="absolute top-0 left-0 w-full h-full object-cover opacity-30"
+                onload="this.parentElement.querySelector('.skeleton').style.display='none'">
+          {% else %}
+            <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}"
+                alt="Default Event Poster" 
+                class="absolute top-0 left-0 w-full h-full object-cover opacity-30"
+                onload="this.parentElement.querySelector('.skeleton').style.display='none'">
+          {% endif %}
+          
+          <!-- Event info overlay -->
+          <div class="absolute inset-0 bg-gradient-to-t from-base-300 to-transparent z-10"></div>
+          
+          <!-- Leaders Table overlay covering entire banner -->
+          <div class="absolute inset-0 flex flex-col justify-start z-20 p-4">
+            <table class="table table-xs w-full">
+              <thead>
+                <tr>
+                  <th class="w-8 bg-transparent">#</th>
+                  <th class="bg-transparent">Rider</th>
+                  <th class="text-right bg-transparent">{% if event.has_results %}Time{% else %}Points{% endif %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if event.has_results %}
+                  {% for result in event.top_results|slice:":3" %}
+                    <tr>
+                      <td class="w-8 bg-transparent">
+                        {% if forloop.counter == 1 %}
+                          <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                          </svg>
+                        {% elif forloop.counter == 2 %}
+                          <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                          </svg>
+                        {% elif forloop.counter == 3 %}
+                          <svg class="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                          </svg>
+                        {% else %}
+                          {{ forloop.counter }}
+                        {% endif %}
+                      </td>
+                      <td class="text-xs font-semibold bg-transparent">{{ result.competitor.user.get_full_name }}</td>
+                      <td class="text-right text-xs bg-transparent">
+                        <span class="badge badge-primary">{{ result.time_display }}</span>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="3" class="text-center text-xs bg-transparent">
+                        No results yet
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="3" class="text-center text-xs bg-transparent">
+                      No results yet
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Event title and info at the bottom -->
+          <div class="absolute bottom-0 left-0 w-full p-4 z-20">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="font-bold text-lg text-base-content">
+                {{ event.title }}
+              </h3>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+              {% if event.location and event.location.country %}
+              <img src="/static/flags/{{ event.location.country.code|lower }}.gif" 
+                  alt="{{ event.location.country.name }} flag" 
+                  class="w-6 h-4 object-cover rounded-sm">
+              <span class="text-xs">{{ event.location.city }}</span>
+              {% endif %}
+              <span class="text-xs ml-1">
+                <i class="far fa-calendar-alt mr-1"></i>
+                {% if event.end_date %}
+                  {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
+                {% else %}
+                  {{ event.start_date|date:"F j, Y" }}
+                {% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</a>

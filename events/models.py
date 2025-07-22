@@ -8,6 +8,24 @@ from search.models import SearchableModel
 
 
 class Event(SearchableModel):
+    CONTINENT_CHOICES = [
+        ('AF', 'Africa'),
+        ('AS', 'Asia'),
+        ('EU', 'Europe'),
+        ('NA', 'North America'),
+        ('SA', 'South America'),
+        ('OC', 'Oceania'),
+        ('AN', 'Antarctica'),
+    ]
+
+    CLASS_CHOICES = [
+        ('LOCAL', 'Local'),
+        ('REGIONAL', 'Regional'),
+        ('NATIONAL', 'National'),
+        ('CONTINENTAL', 'Continental'),
+        ('WORLD', 'World'),
+    ]
+    
     organizer = models.ForeignKey(
         UserProfile,
         on_delete=models.CASCADE,
@@ -22,7 +40,8 @@ class Event(SearchableModel):
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(null=True, blank=True, default=None)
     location = models.ForeignKey(
-        "Location", on_delete=models.CASCADE, related_name="event"
+        "Location", on_delete=models.CASCADE, related_name="event",
+        null=True, blank=True  # Allow null in development for easier migrations
     )
     event_type = models.CharField(
         max_length=200,
@@ -39,6 +58,18 @@ class Event(SearchableModel):
         ],
         default=None,
     )
+    event_class = models.CharField(
+        max_length=20,
+        choices=CLASS_CHOICES,
+        default='LOCAL',
+        verbose_name="Event Class"
+    )
+    continent = models.CharField(
+        max_length=2,
+        choices=CONTINENT_CHOICES,
+        null=True,
+        blank=True,
+    )
     skill_level = models.CharField(
         max_length=50,
         choices=[
@@ -48,6 +79,19 @@ class Event(SearchableModel):
             ("Professional", "Professional"),
         ],
     )
+    # Removed direct league foreign key to prevent circular dependency
+    # Events are linked to leagues through the LeagueEvent model in results app
+    
+    # Crew ownership
+    created_by_crew = models.ForeignKey(
+        'crews.Crew', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='created_events',
+        help_text="Crew that created and manages this event"
+    )
+    
     tickets_link = models.URLField(null=True, blank=True)
     cover_image = CloudinaryField("image", null=True, blank=True)
     created = models.DateTimeField(default=timezone.now)
@@ -61,6 +105,7 @@ class Event(SearchableModel):
     )
     max_attendees = models.IntegerField(null=True, blank=True, default=0)
     featured = models.BooleanField(default=False)
+    has_results = models.BooleanField(default=False)
 
     search_fields = ['title', 'description', 'location', 'event_type']
     search_field_weights = {
@@ -92,6 +137,34 @@ class Event(SearchableModel):
 
     def __str__(self):
         return self.title
+
+    def has_time_trial_results(self):
+        return self.results.filter(result_type='TIME_TRIAL').exists()
+
+    def get_time_trial_results(self):
+        return self.results.filter(result_type='TIME_TRIAL').first()
+
+    def has_knockout_results(self):
+        return self.results.filter(result_type='KNOCKOUT').exists()
+
+    def get_knockout_results(self):
+        return self.results.filter(result_type='KNOCKOUT').first()
+    
+    def can_manage(self, user):
+        """Check if a user can manage this event."""
+        if not user.is_authenticated:
+            return False
+        
+        # Check if user is the original organizer
+        if self.organizer and self.organizer.user == user:
+            return True
+            
+        # If no crew is assigned, only organizer/admin can manage
+        if not self.created_by_crew:
+            return user.is_superuser
+            
+        # Check crew permissions
+        return self.created_by_crew.can_create_events(user)
 
 
 class Location(models.Model):

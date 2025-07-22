@@ -12,8 +12,8 @@
       <div class="max-w-[900px] w-full mx-auto relative">
         <div class="hero-content p-0">
           <img id="coverPreview" 
-               src="{% if edit_mode and event.cover_image %}{{ event.cover_image.url }}{% else %}{% static 'images/default_cover_image.jpg' %}{% endif %}" 
-               class="w-full object-cover" 
+               src="{% if edit_mode and event.cover_image %}{{ event.cover_image.url }}{% else %}{% static 'images/sdh-bg-wpopo-100q.webp' %}{% endif %}" 
+               class="w-full object-cover opacity-80" 
                alt="Event Cover Preview">
           <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-50 transition-all">
             <label class="flex flex-col items-center cursor-pointer">
@@ -112,6 +112,37 @@
                   <span class="label-text-alt text-error">{{ form.event_type.errors|join:", " }}</span>
                 </label>
                 {% endif %}
+              </div>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text flex items-center gap-2 text-primary">
+                    <i class="fas fa-tag"></i>
+                    Event Class*
+                  </span>
+                </label>
+                {{ form.event_class }}
+                {% if form.event_class.errors %}
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ form.event_class.errors|join:", " }}</span>
+                </label>
+                {% endif %}
+              </div>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text flex items-center gap-2 text-primary">
+                    <i class="fas fa-users"></i>
+                    Organizing Crew
+                  </span>
+                </label>
+                {{ form.created_by_crew }}
+                {% if form.created_by_crew.errors %}
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ form.created_by_crew.errors|join:", " }}</span>
+                </label>
+                {% endif %}
+                <label class="label">
+                  <span class="label-text-alt">{{ form.created_by_crew.help_text }}</span>
+                </label>
               </div>
             </div>
 
@@ -497,6 +528,74 @@ function openDeleteModal() {
     const modal = document.getElementById('delete_modal');
     modal.showModal();
 }
+
+// Country to Continent mapping
+const countryToContinentMap = {
+    // Europe
+    'AL': 'EU', 'AD': 'EU', 'AT': 'EU', 'BE': 'EU', 'BG': 'EU', 'HR': 'EU', 'CY': 'EU', 'CZ': 'EU',
+    'DK': 'EU', 'EE': 'EU', 'FI': 'EU', 'FR': 'EU', 'DE': 'EU', 'GR': 'EU', 'HU': 'EU', 'IS': 'EU',
+    'IE': 'EU', 'IT': 'EU', 'LV': 'EU', 'LI': 'EU', 'LT': 'EU', 'LU': 'EU', 'MT': 'EU', 'MC': 'EU',
+    'NL': 'EU', 'NO': 'EU', 'PL': 'EU', 'PT': 'EU', 'RO': 'EU', 'SM': 'EU', 'SK': 'EU', 'SI': 'EU',
+    'ES': 'EU', 'SE': 'EU', 'CH': 'EU', 'GB': 'EU', 'VA': 'EU',
+    
+    // North America
+    'US': 'NA', 'CA': 'NA', 'MX': 'NA', 'GL': 'NA', 'BM': 'NA', 'PM': 'NA',
+    
+    // South America
+    'AR': 'SA', 'BO': 'SA', 'BR': 'SA', 'CL': 'SA', 'CO': 'SA', 'EC': 'SA',
+    'GY': 'SA', 'PY': 'SA', 'PE': 'SA', 'SR': 'SA', 'UY': 'SA', 'VE': 'SA',
+    
+    // Asia
+    'AF': 'AS', 'AM': 'AS', 'AZ': 'AS', 'BH': 'AS', 'BD': 'AS', 'BT': 'AS', 'BN': 'AS',
+    'KH': 'AS', 'CN': 'AS', 'GE': 'AS', 'IN': 'AS', 'ID': 'AS', 'IR': 'AS', 'IQ': 'AS',
+    'IL': 'AS', 'JP': 'AS', 'JO': 'AS', 'KZ': 'AS', 'KW': 'AS', 'KG': 'AS', 'LA': 'AS',
+    'LB': 'AS', 'MY': 'AS', 'MV': 'AS', 'MN': 'AS', 'MM': 'AS', 'NP': 'AS', 'OM': 'AS',
+    'PK': 'AS', 'PH': 'AS', 'QA': 'AS', 'RU': 'AS', 'SA': 'AS', 'SG': 'AS', 'KR': 'AS',
+    'LK': 'AS', 'SY': 'AS', 'TW': 'AS', 'TJ': 'AS', 'TH': 'AS', 'TR': 'AS', 'TM': 'AS',
+    'AE': 'AS', 'UZ': 'AS', 'VN': 'AS', 'YE': 'AS',
+    
+    // Africa
+    'DZ': 'AF', 'AO': 'AF', 'BJ': 'AF', 'BW': 'AF', 'BF': 'AF', 'BI': 'AF', 'CM': 'AF',
+    'CV': 'AF', 'CF': 'AF', 'TD': 'AF', 'KM': 'AF', 'CD': 'AF', 'DJ': 'AF', 'EG': 'AF',
+    'GQ': 'AF', 'ER': 'AF', 'ET': 'AF', 'GA': 'AF', 'GM': 'AF', 'GH': 'AF', 'GN': 'AF',
+    'GW': 'AF', 'CI': 'AF', 'KE': 'AF', 'LS': 'AF', 'LR': 'AF', 'LY': 'AF', 'MG': 'AF',
+    'MW': 'AF', 'ML': 'AF', 'MR': 'AF', 'MU': 'AF', 'MA': 'AF', 'MZ': 'AF', 'NA': 'AF',
+    'NE': 'AF', 'NG': 'AF', 'CG': 'AF', 'RW': 'AF', 'ST': 'AF', 'SN': 'AF', 'SC': 'AF',
+    'SL': 'AF', 'SO': 'AF', 'ZA': 'AF', 'SS': 'AF', 'SD': 'AF', 'SZ': 'AF', 'TZ': 'AF',
+    'TG': 'AF', 'TN': 'AF', 'UG': 'AF', 'ZM': 'AF', 'ZW': 'AF',
+    
+    // Oceania
+    'AU': 'OC', 'FJ': 'OC', 'KI': 'OC', 'MH': 'OC', 'FM': 'OC', 'NR': 'OC', 'NZ': 'OC',
+    'PW': 'OC', 'PG': 'OC', 'WS': 'OC', 'SB': 'OC', 'TO': 'OC', 'TV': 'OC', 'VU': 'OC',
+    
+    // Antarctica
+    'AQ': 'AN'
+};
+
+// Function to update continent based on country selection
+function updateContinent() {
+    const countrySelect = document.getElementById('{{ location_form.country.id_for_label }}');
+    const continentSelect = document.getElementById('{{ form.continent.id_for_label }}');
+    
+    if (countrySelect && continentSelect) {
+        const selectedCountry = countrySelect.value;
+        const continent = countryToContinentMap[selectedCountry];
+        
+        if (continent) {
+            continentSelect.value = continent;
+        }
+    }
+}
+
+// Add event listener to country select
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('{{ location_form.country.id_for_label }}');
+    if (countrySelect) {
+        countrySelect.addEventListener('change', updateContinent);
+        // Set initial continent if country is already selected
+        updateContinent();
+    }
+});
 </script>
 
 <!-- Styles to reset border colors -->

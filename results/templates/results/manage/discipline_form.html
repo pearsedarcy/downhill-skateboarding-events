@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">League Disciplines</h2>
+          <a href="{% url 'results:manage_league' league.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to League
+          </a>
+        </div>
+
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Name</span>
+            </label>
+            {{ form.name }}
+            <label class="label">
+              <span class="label-text-alt">The name of the discipline (e.g. Open Skateboard, Women's Luge)</span>
+            </label>
+            {% if form.name.errors %}
+              <div class="text-error text-sm mt-1">{{ form.name.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Description</span>
+            </label>
+            {{ form.description }}
+            <label class="label">
+              <span class="label-text-alt">A brief description of this discipline (optional)</span>
+            </label>
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Display Order</span>
+            </label>
+            {{ form.display_order }}
+            <label class="label">
+              <span class="label-text-alt">Lower numbers will be displayed first</span>
+            </label>
+          </div>
+          
+          <div class="card-actions justify-end mt-6">
+            <button type="submit" class="btn btn-primary">
+              {% if is_edit %}Save Changes{% else %}Add Discipline{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

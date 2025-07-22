@@ -3,8 +3,8 @@
 {% load i18n %}
 
 {% block meta_description %}
-
 {% endblock %}
+
 <div class="card bg-base-100 shadow-xl">
     {% if not event.published %}
     <div class="absolute top-2 left-2 z-10">
@@ -38,41 +38,39 @@
         {% endif %}
 
         <!-- Event card content -->
-        <a href="{% url 'events:event_details' event.slug|default:'no-slug' %}" aria-label="View details for {{ event.title }}">
-          <div class="card-body p-0">
-            <div class="relative h-[240px]">
-              <div class="skeleton w-full h-[240px] rounded-lg"></div>
-              {% if event.cover_image %}
-                <img src="{{ event.cover_image.url }}" 
-                     alt="event poster" 
-                     class="rounded-t-lg absolute top-0 left-0 w-full h-[240px] object-cover"
-                     onload="this.parentElement.querySelector('.skeleton').style.display='none'">
-              {% else %}
-                <img src="{% static 'images/default_cover_image.jpg' %}"
-                     alt="Default Event Poster" 
-                     class="rounded-t-lg absolute top-0 left-0 w-full h-[240px] object-cover"
-                     onload="this.parentElement.querySelector('.skeleton').style.display='none'">
+        <a href="{% url 'events:event_details' event.slug %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200" aria-label="View details for {{ event.title }}">
+          <figure class="relative aspect-[16/9]">
+            {% if event.cover_image %}
+              <img src="{{ event.cover_image.url }}" alt="{{ event.title }}" class="w-full h-full object-cover">
+            {% else %}
+              <img src="{% static 'images/sdh-bg-wpopo-100q.webp' %}" alt="Default Event Image" class="w-full h-full object-cover">
+            {% endif %}
+          </figure>
+          <div class="card-body p-4">
+            <div class="flex justify-between items-start gap-2">
+              <h2 class="card-title line-clamp-2">{{ event.title }}</h2>
+            </div>
+            <div class="flex flex-wrap gap-1 mt-2">
+              <div class="badge badge-outline">{{ event.event_type }}</div>
+              {% if event.league %}
+              <div class="badge badge-primary">{{ event.league.name }}</div>
               {% endif %}
             </div>
-            <div class="px-4 mb-4">
-              <div class="flex justify-between items-center">
-                <h2 class="card-title text-md sm:text-l text-secondary">{{ event.title }}</h2>
-                <div class="badge badge-primary">{{ event.event_type }}</div>
-              </div>
-              <div class="flex items-center space-x-2 mb-2 mt-2">
-                {% with country=event.location.country %}
-                <img src="/static/flags/{{ country.code|lower }}.gif" alt="{{ country.name }} flag" class="w-6 h-4 object-cover rounded-sm">
-                <span class="text-xs text-300">{{ event.location.city }}</span>
-                {% endwith %}
-              </div>
-                <p class="text-xs text-300">
-                  <span class="text-lg mr-1">📅</span> 
-                  {% if event.end_date %}
+            <div class="flex items-center gap-2 mt-4 text-sm">
+              <i class="fas fa-calendar text-primary"></i>
+                {% if event.end_date %}
+                {% if event.start_date|date:"F" == event.end_date|date:"F" %}
+                  {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"j, Y" }}
+                {% else %}
                   {{ event.start_date|date:"F j" }} - {{ event.end_date|date:"F j, Y" }}
-                  {% else %}
-                  {{ event.start_date|date:"F j, Y" }}
-                  {% endif %}
-              </p>
+                {% endif %}
+                {% else %}
+                {{ event.start_date|date:"F j, Y" }}
+                {% endif %}
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <i class="fas fa-map-marker-alt text-primary"></i>
+              <span>{{ event.location.city }}, {{ event.location.country.name }}</span>
             </div>
           </div>
         </a>

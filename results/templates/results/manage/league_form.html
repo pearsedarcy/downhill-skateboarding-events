@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">{{ title }}</h2>
+          <a href="{% url 'results:league_list' %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Leagues
+          </a>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+          {% csrf_token %}
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">League Name</span>
+            </label>
+            {{ form.name }}
+            <label class="label">
+              <span class="label-text-alt">The name of your league (e.g. "European Downhill Cup")</span>
+            </label>
+            {% if form.name.errors %}
+              <div class="text-error text-sm mt-1">{{ form.name.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Season</span>
+            </label>
+            {{ form.season }}
+            <label class="label">
+              <span class="label-text-alt">The season year (e.g. "2023")</span>
+            </label>
+            {% if form.season.errors %}
+              <div class="text-error text-sm mt-1">{{ form.season.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Description</span>
+            </label>
+            {{ form.description }}
+            <label class="label">
+              <span class="label-text-alt">Brief description of the league</span>
+            </label>
+            {% if form.description.errors %}
+              <div class="text-error text-sm mt-1">{{ form.description.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">League Class</span>
+            </label>
+            {{ form.league_class }}
+            <label class="label">
+              <span class="label-text-alt">The classification level of this league</span>
+            </label>
+            {% if form.league_class.errors %}
+              <div class="text-error text-sm mt-1">{{ form.league_class.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Country</span>
+            </label>
+            {{ form.country }}
+            <label class="label">
+              <span class="label-text-alt">Primary country for this league</span>
+            </label>
+            {% if form.country.errors %}
+              <div class="text-error text-sm mt-1">{{ form.country.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Continent</span>
+            </label>
+            {{ form.continent }}
+            <label class="label">
+              <span class="label-text-alt">Continental region for this league</span>
+            </label>
+            {% if form.continent.errors %}
+              <div class="text-error text-sm mt-1">{{ form.continent.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Points System</span>
+            </label>
+            {{ form.points_system }}
+            <label class="label">
+              <span class="label-text-alt">How points are calculated for this league</span>
+            </label>
+            {% if form.points_system.errors %}
+              <div class="text-error text-sm mt-1">{{ form.points_system.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Banner Image</span>
+            </label>
+            {{ form.banner }}
+            <label class="label">
+              <span class="label-text-alt">Banner image for the league (optional)</span>
+            </label>
+            {% if form.banner.errors %}
+              <div class="text-error text-sm mt-1">{{ form.banner.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Logo Image</span>
+            </label>
+            {{ form.logo }}
+            <label class="label">
+              <span class="label-text-alt">Logo image for the league (optional)</span>
+            </label>
+            {% if form.logo.errors %}
+              <div class="text-error text-sm mt-1">{{ form.logo.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="card-actions justify-end mt-6">
+            <button type="submit" class="btn btn-primary">
+              {% if league %}Update League{% else %}Create League{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

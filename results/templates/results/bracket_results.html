@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 py-8">
+  <div class="max-w-[1100px] mx-auto px-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="card-title text-2xl">Bracket Results: {{ event.title }}</h2>
+          <a href="{% url 'events:event_details' event.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Event
+          </a>
+        </div>
+        
+        {% if disciplines %}
+          <div class="tabs tabs-boxed mb-4">
+            {% for discipline in disciplines %}
+            <a href="?discipline={{ discipline.id }}" 
+               class="tab {% if discipline.id == selected_discipline %}tab-active{% endif %}">
+              {{ discipline.name }}
+            </a>
+            {% endfor %}
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Competitor</th>
+                  <th>Points</th>
+                  {% if results.0.country %}
+                  <th>Country</th>
+                  {% endif %}
+                  {% if results.0.team %}
+                  <th>Team</th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for result in results %}
+                <tr>
+                  <td class="font-bold">{{ result.rank }}</td>
+                  <td>
+                    {% if result.profile %}
+                      <a href="{% url 'profiles:profile_detail' result.profile.username %}" class="link">
+                        {{ result.name }}
+                      </a>
+                    {% else %}
+                      {{ result.name }}
+                    {% endif %}
+                  </td>
+                  <td>{{ result.points }}</td>
+                  {% if result.country %}
+                  <td>
+                    {% if result.country_code %}
+                      <div class="tooltip" data-tip="{{ result.country }}">
+                        <img src="{% static 'flags/'|add:result.country_code|add:'.svg' %}" 
+                             alt="{{ result.country }}" class="w-6 h-4">
+                      </div>
+                    {% else %}
+                      {{ result.country }}
+                    {% endif %}
+                  </td>
+                  {% endif %}
+                  {% if result.team %}
+                  <td>{{ result.team }}</td>
+                  {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center">No results found</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          {% if is_staff %}
+          <div class="flex justify-end mt-4">
+            <div class="dropdown dropdown-end">
+              <label tabindex="0" class="btn btn-outline btn-sm">
+                <i class="fas fa-ellipsis-v mr-2"></i> Actions
+              </label>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li>
+                  <a href="{% url 'results:upload_bracket_results' event.slug %}">
+                    <i class="fas fa-upload mr-2"></i> Update Results
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'results:export_bracket_results' event.slug %}?discipline={{ selected_discipline }}">
+                    <i class="fas fa-download mr-2"></i> Export CSV
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'results:delete_bracket_results' event.slug %}?discipline={{ selected_discipline }}"
+                     onclick="return confirm('Are you sure you want to delete these results?')">
+                    <i class="fas fa-trash mr-2 text-error"></i> Delete Results
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+          
+          {% if league %}
+          <div class="alert alert-info mt-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>
+              This event is part of the 
+              <a href="{% url 'results:league_details' league.slug %}" class="link font-bold">
+                {{ league.name }} {{ league.season }}
+              </a> league.
+            </span>
+            <div>
+              <a href="{% url 'results:league_details' league.slug %}" class="btn btn-xs">View Standings</a>
+            </div>
+          </div>
+          {% endif %}
+          
+        {% else %}
+          <div class="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>No bracket results have been added for this event yet.</span>
+            {% if is_staff %}
+            <div>
+              <a href="{% url 'results:upload_bracket_results' event.slug %}" class="btn btn-sm">Add Results</a>
+            </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
