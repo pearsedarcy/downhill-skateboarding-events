@@ -1,10 +1,10 @@
-<div class="dropdown ">
-  <button id="rsvpBtn" 
+<div class="dropdown dropdown-end">
+  <div tabindex="0" role="button" id="rsvpBtn" 
           class="btn flex-nowrap whitespace-nowrap {% if rsvp_status %}
-            {% if rsvp_status == 'Going' %}btn-primary flex-nowrap whitespace-nowrap
-            {% elif rsvp_status == 'Not interested' %}btn-error flex-nowrap whitespace-nowrap
-            {% else %}btn-secondary flex-nowrap whitespace-nowrap{% endif %}
-          {% else %}btn-ghost flex-nowrap whitespace-nowrap{% endif %} 
+            {% if rsvp_status == 'Going' %}btn-primary
+            {% elif rsvp_status == 'Not interested' %}btn-error
+            {% else %}btn-secondary{% endif %}
+          {% else %}btn-ghost{% endif %} 
           btn-sm gap-2"
           data-url="{% url 'events:toggle_rsvp' event.slug %}"
           {% if not user.is_authenticated %}
@@ -17,32 +17,42 @@
     <span id="rsvpBtnText">
       {{ rsvp_status|default:"RSVP" }}
     </span>
+    <span id="rsvpCount" class="badge badge-sm">
+      {{ rsvp_counts.going|default:0 }}
+    </span>
     {% if user.is_authenticated %}
     <i class="fas fa-chevron-down"></i>
     {% endif %}
-  </button>
+  </div>
+  
   {% if user.is_authenticated %}
-  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-60">
     <li>
       <a onclick="updateRSVP('Going')" class="flex justify-between items-center py-2">
         <span class="flex items-center gap-2">
-          <i class="fas fa-check-circle w-4"></i>
+          <i class="fas fa-check-circle w-4 text-success"></i>
           <span>Going</span>
         </span>
-        {% if rsvp_status == 'Going' %}
-        <i class="fas fa-check text-success"></i>
-        {% endif %}
+        <span class="flex items-center gap-1">
+          <span id="goingCount" class="text-sm">{{ rsvp_counts.going|default:0 }}</span>
+          {% if rsvp_status == 'Going' %}
+          <i class="fas fa-check text-success"></i>
+          {% endif %}
+        </span>
       </a>
     </li>
     <li>
       <a onclick="updateRSVP('Interested')" class="flex justify-between items-center py-2">
         <span class="flex items-center gap-2">
-          <i class="fas fa-star w-4"></i>
+          <i class="fas fa-star w-4 text-warning"></i>
           <span>Interested</span>
         </span>
-        {% if rsvp_status == 'Interested' %}
-        <i class="fas fa-check text-success"></i>
-        {% endif %}
+        <span class="flex items-center gap-1">
+          <span id="interestedCount" class="text-sm">{{ rsvp_counts.interested|default:0 }}</span>
+          {% if rsvp_status == 'Interested' %}
+          <i class="fas fa-check text-success"></i>
+          {% endif %}
+        </span>
       </a>
     </li>
     <li class="border-t border-base-200 mt-2 pt-2">
@@ -51,11 +61,157 @@
           <i class="fas fa-times-circle w-4"></i>
           <span>Not interested</span>
         </span>
-        {% if rsvp_status == 'Not interested' %}
-        <i class="fas fa-check text-success"></i>
-        {% endif %}
+        <span class="flex items-center gap-1">
+          <span id="notInterestedCount" class="text-sm">{{ rsvp_counts.not_interested|default:0 }}</span>
+          {% if rsvp_status == 'Not interested' %}
+          <i class="fas fa-check text-success"></i>
+          {% endif %}
+        </span>
       </a>
     </li>
+    {% if event.max_attendees and event.max_attendees > 0 %}
+    <li class="border-t border-base-200 mt-2 pt-2">
+      <div class="text-sm text-base-content/70 px-4 py-2">
+        <div class="flex justify-between">
+          <span>Capacity:</span>
+          <span>{{ rsvp_counts.going|default:0 }}/{{ event.max_attendees }}</span>
+        </div>
+        {% if is_full %}
+        <div class="text-error text-xs mt-1">Event is full</div>
+        {% endif %}
+      </div>
+    </li>
+    {% endif %}
   </ul>
   {% endif %}
 </div>
+
+<script>
+function updateRSVP(status) {
+  console.log('Updating RSVP to:', status);
+  
+  const btn = document.getElementById('rsvpBtn');
+  const btnText = document.getElementById('rsvpBtnText');
+  const rsvpCount = document.getElementById('rsvpCount');
+  const url = btn.getAttribute('data-url');
+  
+  // Close the dropdown
+  if (btn.blur) btn.blur();
+  document.activeElement.blur();
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: `status=${encodeURIComponent(status)}`
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('RSVP updated successfully:', data.status);
+    
+    if (data.error) {
+      if (data.is_full) {
+        alert('Event is full! Cannot RSVP as Going.');
+      } else {
+        alert('Error: ' + data.error);
+      }
+      return;
+    }
+    
+    // Update button appearance
+    btn.className = 'btn flex-nowrap whitespace-nowrap btn-sm gap-2 ';
+    const icon = btn.querySelector('i:first-child');
+    
+    if (data.status) {
+      btnText.textContent = data.status;
+      if (data.status === 'Going') {
+        btn.className += 'btn-primary';
+        icon.className = 'fas fa-check-circle';
+      } else if (data.status === 'Not interested') {
+        btn.className += 'btn-error';
+        icon.className = 'fas fa-times-circle';
+      } else if (data.status === 'Interested') {
+        btn.className += 'btn-secondary';
+        icon.className = 'fas fa-star';
+      }
+    } else {
+      btnText.textContent = 'RSVP';
+      btn.className += 'btn-ghost';
+      icon.className = 'fas fa-calendar-check';
+    }
+    
+    // Update counts
+    if (data.counts) {
+      rsvpCount.textContent = data.counts.going || 0;
+      
+      const goingCount = document.getElementById('goingCount');
+      const interestedCount = document.getElementById('interestedCount');
+      const notInterestedCount = document.getElementById('notInterestedCount');
+      
+      if (goingCount) goingCount.textContent = data.counts.going || 0;
+      if (interestedCount) interestedCount.textContent = data.counts.interested || 0;
+      if (notInterestedCount) notInterestedCount.textContent = data.counts.not_interested || 0;
+    }
+    
+    // Update checkmarks
+    document.querySelectorAll('.dropdown-content .fa-check').forEach(check => {
+      check.style.display = 'none';
+    });
+    
+    if (data.status) {
+      document.querySelectorAll('.dropdown-content a').forEach(link => {
+        // Find the text content more safely
+        const spans = link.querySelectorAll('span span');
+        if (spans.length > 0) {
+          const linkText = spans[0].textContent.trim();
+          if (linkText === data.status) {
+            const check = link.querySelector('.fa-check');
+            if (check) check.style.display = 'inline';
+          }
+        }
+      });
+    }
+  })
+  .catch(error => {
+    console.error('Error details:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    alert(`An error occurred: ${error.message}. Check console for details.`);
+  });
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Debug: Log when script loads
+console.log('RSVP script loaded');
+
+// Add click event listener for debugging
+document.addEventListener('DOMContentLoaded', function() {
+  const rsvpBtn = document.getElementById('rsvpBtn');
+  if (rsvpBtn) {
+    console.log('RSVP button initialized successfully');
+  } else {
+    console.log('RSVP button not found!');
+  }
+});
+</script>

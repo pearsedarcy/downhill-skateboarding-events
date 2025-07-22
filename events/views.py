@@ -114,22 +114,57 @@ def toggle_favorite(request, slug):
 
 @login_required
 def toggle_rsvp(request, slug):
+    """Handle RSVP status changes with proper validation."""
     event = get_object_or_404(Event, slug=slug)
-    status = request.POST.get("status", "Going")
-
-    rsvp, created = RSVP.objects.get_or_create(
-        user=request.user.profile, event=event, defaults={"status": status}
-    )
-
-    if not created:
-        if rsvp.status != status:
-            rsvp.status = status
-            rsvp.save()
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    status = request.POST.get("status")
+    if not status or status not in ['Going', 'Interested', 'Not interested']:
+        return JsonResponse({'error': 'Invalid status'}, status=400)
+    
+    # Check if event is full (only for 'Going' status)
+    if status == 'Going' and event.is_full():
+        current_rsvp = event.get_user_rsvp(request.user)
+        # Allow if user is already going (updating existing RSVP)
+        if not current_rsvp or current_rsvp.status != 'Going':
+            return JsonResponse({
+                'error': 'Event is full',
+                'is_full': True
+            }, status=400)
+    
+    try:
+        rsvp, created = RSVP.objects.get_or_create(
+            user=request.user.profile, 
+            event=event,
+            defaults={'status': status}
+        )
+        
+        if not created:
+            if rsvp.status == status:
+                # Same status clicked - remove RSVP
+                rsvp.delete()
+                current_status = None
+            else:
+                # Different status - update RSVP
+                rsvp.status = status
+                rsvp.save()
+                current_status = status
         else:
-            rsvp.delete()
-            status = None
-
-    return JsonResponse({"status": status, "count": event.rsvps.count()})
+            current_status = status
+        
+        # Get updated counts
+        counts = event.get_attendee_counts()
+        
+        return JsonResponse({
+            'status': current_status,
+            'counts': counts,
+            'is_full': event.is_full()
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def event_details(request, slug):
@@ -152,16 +187,14 @@ def event_details(request, slug):
             user=request.user.profile, 
             event=event
         ).exists()
-        rsvp = RSVP.objects.filter(
-            user=request.user.profile, 
-            event=event
-        ).first()
-        if rsvp:
-            rsvp_status = rsvp.status
+        rsvp_status = event.get_user_rsvp_status(request.user)
 
     maps_api_key = settings.GOOGLE_MAPS_API_KEY
     if not maps_api_key:
         logger.error("Google Maps API key is not configured")
+
+    # Get RSVP counts
+    rsvp_counts = event.get_attendee_counts()
 
     return render(
         request,
@@ -170,7 +203,8 @@ def event_details(request, slug):
             "event": event,
             "is_favorited": is_favorited,
             "rsvp_status": rsvp_status,
-            "rsvp_count": event.rsvps.count(),
+            "rsvp_counts": rsvp_counts,
+            "is_full": event.is_full(),
             "maps_api_key": maps_api_key,
         },
     )
