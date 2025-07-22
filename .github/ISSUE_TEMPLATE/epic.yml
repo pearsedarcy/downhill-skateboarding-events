@@ -1,0 +1,195 @@
+name: 📋 Epic/Project Phase
+description: Create an epic for major features or project phases (like crews implementation phases)
+title: "[EPIC] "
+labels: ["epic", "project-management"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for large features or project phases that span multiple issues and development tasks.
+
+  - type: dropdown
+    id: epic-category
+    attributes:
+      label: Epic Category
+      description: What major area does this epic cover?
+      options:
+        - Crews System
+        - Events Management
+        - Results/Leagues System
+        - User Management
+        - Search & Discovery
+        - Performance & Optimization
+        - Security & Authentication
+        - UI/UX Overhaul
+        - API Development
+        - Mobile Responsiveness
+        - Admin Tools
+        - Analytics & Reporting
+        - Integration
+        - Infrastructure
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: epic-priority
+    attributes:
+      label: Epic Priority
+      description: Overall priority of this epic
+      options:
+        - Low - Future enhancement
+        - Medium - Planned for upcoming releases
+        - High - Important for core functionality
+        - Critical - Essential for app success
+    validations:
+      required: true
+
+  - type: textarea
+    id: epic-overview
+    attributes:
+      label: Epic Overview
+      description: High-level description of what this epic aims to accomplish
+      placeholder: Describe the overall goal and scope of this epic
+    validations:
+      required: true
+
+  - type: textarea
+    id: business-value
+    attributes:
+      label: Business Value
+      description: Why is this epic important? What value does it provide to users?
+      placeholder: Explain the user value and business justification for this epic
+    validations:
+      required: true
+
+  - type: textarea
+    id: epic-goals
+    attributes:
+      label: Epic Goals
+      description: Specific goals and outcomes this epic should achieve
+      placeholder: |
+        - Goal 1: Enable users to...
+        - Goal 2: Improve...
+        - Goal 3: Provide...
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-stories
+    attributes:
+      label: Key User Stories
+      description: Main user stories that will be addressed in this epic
+      placeholder: |
+        - As a [user type], I want [functionality] so that [benefit]
+        - As a [user type], I want [functionality] so that [benefit]
+        - As a [user type], I want [functionality] so that [benefit]
+
+  - type: textarea
+    id: epic-phases
+    attributes:
+      label: Epic Phases/Milestones
+      description: Break down the epic into logical phases or milestones
+      placeholder: |
+        ## Phase 1: [Phase Name]
+        - Milestone description
+        - Key deliverables
+        
+        ## Phase 2: [Phase Name]
+        - Milestone description
+        - Key deliverables
+        
+        ## Phase 3: [Phase Name]
+        - Milestone description
+        - Key deliverables
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Epic Acceptance Criteria
+      description: High-level criteria that define when this epic is complete
+      placeholder: |
+        - [ ] All core functionality implemented
+        - [ ] User acceptance testing passed
+        - [ ] Performance requirements met
+        - [ ] Documentation completed
+        - [ ] Security review passed
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-considerations
+    attributes:
+      label: Technical Considerations
+      description: Major technical considerations, architecture decisions, or constraints
+      placeholder: |
+        - Database schema changes required
+        - New Django apps or major model changes
+        - Frontend framework considerations
+        - Performance implications
+        - Security considerations
+        - Third-party integrations
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies & Prerequisites
+      description: Other epics, features, or technical requirements that must be completed first
+      placeholder: |
+        - Epic: User authentication system
+        - Technical: Database optimization
+        - External: Third-party API availability
+
+  - type: input
+    id: estimated-timeline
+    attributes:
+      label: Estimated Timeline
+      description: Rough estimate of how long this epic will take to complete
+      placeholder: e.g., 2-3 weeks, 1-2 months, 1 quarter
+
+  - type: textarea
+    id: success-metrics
+    attributes:
+      label: Success Metrics
+      description: How will you measure the success of this epic?
+      placeholder: |
+        - User engagement metrics
+        - Performance benchmarks  
+        - Feature adoption rates
+        - User feedback scores
+
+  - type: textarea
+    id: risks-assumptions
+    attributes:
+      label: Risks & Assumptions
+      description: Potential risks and key assumptions for this epic
+      placeholder: |
+        Risks:
+        - Technical complexity may cause delays
+        - User adoption uncertainty
+        
+        Assumptions:
+        - Users will find this valuable
+        - Technical approach is feasible
+
+  - type: checkboxes
+    id: epic-impact
+    attributes:
+      label: Epic Impact Assessment
+      description: What areas of the application will this epic affect?
+      options:
+        - label: Database schema changes
+        - label: New Django models/apps
+        - label: Major UI/UX changes
+        - label: API changes or additions
+        - label: Authentication/authorization changes
+        - label: Performance impact
+        - label: Security implications
+        - label: Third-party integrations
+        - label: Mobile responsiveness
+        - label: SEO considerations
+        - label: Analytics/tracking changes
+        - label: Documentation overhaul needed

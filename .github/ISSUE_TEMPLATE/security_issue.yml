@@ -1,0 +1,182 @@
+name: 🔒 Security Issue
+description: Report a security vulnerability or propose security improvements
+title: "[SECURITY] "
+labels: ["security", "critical"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **IMPORTANT**: If this is a critical security vulnerability that could be exploited, please report it privately first before creating a public issue.
+
+  - type: dropdown
+    id: security-type
+    attributes:
+      label: Security Issue Type
+      description: What type of security issue is this?
+      options:
+        - Vulnerability Report
+        - Security Enhancement
+        - Authentication Issue
+        - Authorization/Permissions
+        - Data Privacy
+        - Input Validation
+        - SQL Injection
+        - XSS (Cross-Site Scripting)
+        - CSRF (Cross-Site Request Forgery)
+        - Insecure Configuration
+        - Dependency Vulnerability
+        - Information Disclosure
+        - Session Management
+        - Password Security
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity Level
+      description: How severe is this security issue?
+      options:
+        - Low - Minor security improvement
+        - Medium - Moderate security risk
+        - High - Significant security vulnerability
+        - Critical - Severe vulnerability requiring immediate attention
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-component
+    attributes:
+      label: Affected Component
+      description: Which part of the application is affected?
+      options:
+        - User Authentication
+        - User Authorization/Permissions
+        - Event Management
+        - Crew Management
+        - Results System
+        - File Uploads
+        - User Profiles
+        - Admin Interface
+        - Database
+        - API Endpoints
+        - Session Management
+        - Password Handling
+        - Third-party Integrations
+        - Configuration
+        - Multiple Components
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: security-description
+    attributes:
+      label: Security Issue Description
+      description: Describe the security issue or vulnerability (be specific but avoid providing exploit details in public)
+      placeholder: Provide a clear description of the security concern
+    validations:
+      required: true
+
+  - type: textarea
+    id: potential-impact
+    attributes:
+      label: Potential Impact
+      description: What could happen if this security issue is exploited?
+      placeholder: |
+        - Data exposure risk
+        - Unauthorized access potential
+        - System compromise possibilities
+        - User privacy implications
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce (if applicable)
+      description: How can this issue be reproduced? (Avoid providing detailed exploit instructions in public)
+      placeholder: |
+        1. General steps to reproduce the issue
+        2. Note: Detailed exploit instructions provided privately
+
+  - type: textarea
+    id: affected-versions
+    attributes:
+      label: Affected Versions/Environment
+      description: What versions or environment configurations are affected?
+      placeholder: |
+        - Django version: 5.1.3
+        - Python version: 3.12
+        - Deployment environment: Development/Production
+        - Browser/platform if relevant
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: If you have suggestions for fixing this issue, describe them here
+      placeholder: |
+        - Recommended security measures
+        - Code changes needed
+        - Configuration updates
+        - Best practices to implement
+
+  - type: textarea
+    id: mitigation-steps
+    attributes:
+      label: Temporary Mitigation
+      description: Any temporary measures that can reduce risk while working on a permanent fix
+      placeholder: |
+        - Immediate steps to reduce risk
+        - Configuration changes
+        - Access restrictions
+
+  - type: textarea
+    id: security-references
+    attributes:
+      label: Security References
+      description: Links to relevant security documentation, CVE numbers, or security advisories
+      placeholder: |
+        - OWASP references
+        - CVE numbers
+        - Security best practices documentation
+        - Django security documentation
+
+  - type: checkboxes
+    id: security-checklist
+    attributes:
+      label: Security Review Checklist
+      options:
+        - label: I have verified this is a legitimate security concern
+          required: true
+        - label: I have checked if this affects user data privacy
+        - label: I have considered the impact on user authentication
+        - label: I have reviewed relevant security best practices
+        - label: I have checked for similar known vulnerabilities
+        - label: I have tested this in a safe environment only
+
+  - type: checkboxes
+    id: security-areas
+    attributes:
+      label: Security Areas to Review
+      description: Which security aspects should be examined as part of fixing this issue?
+      options:
+        - label: Input validation and sanitization
+        - label: Output encoding
+        - label: Authentication mechanisms
+        - label: Authorization and access controls
+        - label: Session management
+        - label: Password handling and storage
+        - label: CSRF protection
+        - label: SQL injection prevention
+        - label: XSS prevention
+        - label: File upload security
+        - label: API security
+        - label: Configuration security
+        - label: Dependency security
+        - label: Error handling and logging

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/pearsedarcy/downhill-skateboarding-events/discussions
+    about: For general discussions, ideas, and community questions
+  - name: 📧 Direct Contact
+    url: mailto:your-email@example.com
+    about: For sensitive security issues or private matters

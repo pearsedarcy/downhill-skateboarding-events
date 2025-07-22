@@ -1,0 +1,129 @@
+name: 🐛 Bug Report
+description: Report a bug or issue with the downhill skateboarding events app
+title: "[BUG] "
+labels: ["bug", "needs-investigation"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please provide as much detail as possible to help us fix it quickly.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Bug Severity
+      description: How severe is this bug?
+      options:
+        - Low - Minor issue, workaround available
+        - Medium - Affects functionality but not critical
+        - High - Major functionality broken
+        - Critical - App unusable or data loss risk
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the app is affected?
+      options:
+        - Events Management
+        - Crews System
+        - Results/Leagues
+        - User Authentication
+        - User Profiles
+        - Search Functionality
+        - Admin Interface
+        - Database
+        - Frontend/UI
+        - Backend/API
+        - Performance
+        - Security
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the bug
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: A clear description of what you expected to happen
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: A clear description of what actually happened
+
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Error Messages/Logs
+      description: Any error messages, console logs, or stack traces
+      placeholder: Paste any relevant error messages or logs here
+      render: shell
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Information about your environment
+      placeholder: |
+        - OS: [e.g., Windows 11, macOS 12.0, Ubuntu 20.04]
+        - Browser: [e.g., Chrome 96, Firefox 95, Safari 15]
+        - Python version: [e.g., 3.12]
+        - Django version: [e.g., 5.1.3]
+        - Device: [e.g., Desktop, Mobile, Tablet]
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots/Screen Recording
+      description: Add screenshots or screen recordings if applicable
+      placeholder: Drag and drop images here or paste links
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other context or information about the problem
+      placeholder: Add any other context about the problem here
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Bug Report Checklist
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided clear steps to reproduce the issue
+          required: true
+        - label: I have included relevant error messages or logs
+        - label: I have tested this on the latest version

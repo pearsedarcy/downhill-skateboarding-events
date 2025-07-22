@@ -1,0 +1,167 @@
+name: 🔧 Development Task
+description: Create a development task for implementing features or improvements
+title: "[TASK] "
+labels: ["development", "task"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for specific development tasks, implementation work, or technical improvements.
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Task Type
+      description: What type of development task is this?
+      options:
+        - Feature Implementation
+        - Bug Fix
+        - Code Refactoring
+        - Performance Optimization
+        - Security Enhancement
+        - Database Migration
+        - Testing
+        - Documentation
+        - Configuration
+        - Deployment
+        - Technical Debt
+        - Code Review
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component/App
+      description: Which Django app or component does this affect?
+      options:
+        - events
+        - crews
+        - results
+        - profiles
+        - search
+        - theme
+        - downhill_skateboarding_events (main)
+        - Database/Models
+        - Frontend/Templates
+        - Static Files/CSS
+        - Configuration
+        - Testing
+        - Documentation
+        - Multiple Components
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Task priority level
+      options:
+        - Low
+        - Medium  
+        - High
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: task-description
+    attributes:
+      label: Task Description
+      description: Detailed description of what needs to be done
+      placeholder: Describe the task, what needs to be implemented or changed
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-requirements
+    attributes:
+      label: Technical Requirements
+      description: Specific technical requirements or constraints
+      placeholder: |
+        - Django models to create/modify
+        - Views and URL patterns needed
+        - Templates to create/update
+        - Static files changes
+        - Database migrations required
+        - Third-party packages needed
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Definition of done - what must be completed for this task to be finished?
+      placeholder: |
+        - [ ] Requirement 1
+        - [ ] Requirement 2
+        - [ ] Unit tests written
+        - [ ] Integration tests passing
+        - [ ] Documentation updated
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation Notes
+      description: Technical implementation details, approach, or considerations
+      placeholder: |
+        - Code structure considerations
+        - Database design notes
+        - Integration points
+        - Performance considerations
+        - Security considerations
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Other issues, tasks, or requirements that must be completed first
+      placeholder: |
+        - Issue #123 must be completed first
+        - Requires database migration
+        - Depends on external API
+        - Needs design approval
+
+  - type: textarea
+    id: testing-requirements
+    attributes:
+      label: Testing Requirements
+      description: What testing is needed for this task?
+      placeholder: |
+        - Unit tests for new models/functions
+        - Integration tests for views
+        - Frontend testing for UI changes
+        - Manual testing scenarios
+
+  - type: input
+    id: estimated-effort
+    attributes:
+      label: Estimated Effort
+      description: Rough estimate of time/effort required
+      placeholder: e.g., 2-4 hours, 1-2 days, 1 week
+
+  - type: checkboxes
+    id: task-checklist
+    attributes:
+      label: Task Checklist
+      description: Areas that will be affected by this task
+      options:
+        - label: Database schema changes
+        - label: New or modified Django models
+        - label: New or modified views
+        - label: URL pattern changes
+        - label: Template updates
+        - label: Static files (CSS/JS) changes
+        - label: Migration scripts needed
+        - label: Unit tests required
+        - label: Integration tests required
+        - label: Documentation updates needed
+        - label: Configuration changes
+        - label: Third-party package installation

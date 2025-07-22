@@ -1,0 +1,179 @@
+name: 🎨 UI/UX Improvement
+description: Suggest improvements to user interface, user experience, or design
+title: "[UI/UX] "
+labels: ["ui/ux", "design", "frontend"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for UI/UX improvements, design changes, or user experience enhancements.
+
+  - type: dropdown
+    id: improvement-type
+    attributes:
+      label: Improvement Type
+      description: What type of UI/UX improvement is this?
+      options:
+        - Visual Design
+        - User Experience Flow
+        - Accessibility
+        - Mobile Responsiveness
+        - Performance/Loading
+        - Navigation
+        - Forms & Input
+        - Information Architecture
+        - Interaction Design
+        - Typography
+        - Color Scheme
+        - Layout/Grid
+        - Component Design
+        - Error Handling
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected Area
+      description: Which part of the app does this improvement target?
+      options:
+        - Home Page
+        - Event Listings
+        - Event Details
+        - Event Creation/Edit
+        - Crew Management
+        - Crew Details
+        - Results/Leagues
+        - User Profile
+        - Navigation/Header
+        - Search Interface
+        - Forms
+        - Admin Interface
+        - Mobile Experience
+        - Overall Theme
+        - Multiple Areas
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this improvement?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve user experience
+        - High - Important for usability
+        - Critical - Major usability issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-issue
+    attributes:
+      label: Current Issue/Problem
+      description: Describe the current UI/UX issue or area for improvement
+      placeholder: What's currently problematic or could be improved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed improvement or solution
+      placeholder: How would you like to see this improved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-benefit
+    attributes:
+      label: User Benefit
+      description: How will this improvement benefit users?
+      placeholder: What positive impact will this have on user experience?
+    validations:
+      required: true
+
+  - type: textarea
+    id: design-requirements
+    attributes:
+      label: Design Requirements
+      description: Specific design requirements or constraints
+      placeholder: |
+        - Must work on mobile devices
+        - Should follow current design system
+        - Accessibility requirements
+        - Performance considerations
+
+  - type: textarea
+    id: technical-implementation
+    attributes:
+      label: Technical Implementation Notes
+      description: Technical considerations for implementing this improvement
+      placeholder: |
+        - CSS/SCSS changes needed
+        - Template modifications required
+        - JavaScript functionality
+        - DaisyUI component usage
+        - Responsive design considerations
+
+  - type: textarea
+    id: mockups-examples
+    attributes:
+      label: Mockups/Examples/References
+      description: Visual examples, mockups, or references for the proposed improvement
+      placeholder: |
+        Add screenshots, mockups, or links to examples of:
+        - Current state (before)
+        - Proposed improvement (after)
+        - Similar implementations on other sites
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How will we know this improvement is successfully implemented?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Works on mobile devices
+        - [ ] Passes accessibility tests
+        - [ ] Performance not negatively impacted
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: device-testing
+    attributes:
+      label: Device/Browser Testing Required
+      description: Which devices and browsers should be tested?
+      options:
+        - label: Desktop (Chrome, Firefox, Safari, Edge)
+        - label: Mobile phones (iOS Safari, Android Chrome)
+        - label: Tablets (iPad, Android tablets)
+        - label: Accessibility tools (screen readers)
+        - label: Different screen resolutions
+        - label: Dark/light theme compatibility
+
+  - type: checkboxes
+    id: design-impact
+    attributes:
+      label: Design Impact Assessment
+      description: What aspects of the design will this improvement affect?
+      options:
+        - label: Component library updates
+        - label: Color scheme adjustments
+        - label: Typography changes
+        - label: Layout/grid modifications
+        - label: Animation/interaction updates
+        - label: Icon or imagery changes
+        - label: Form design updates
+        - label: Navigation structure changes
+        - label: Responsive design updates
+        - label: Accessibility improvements

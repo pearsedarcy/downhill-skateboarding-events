@@ -1,0 +1,180 @@
+name: 📚 Documentation
+description: Request documentation updates, improvements, or new documentation
+title: "[DOCS] "
+labels: ["documentation"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for documentation-related requests, improvements, or new documentation needs.
+
+  - type: dropdown
+    id: documentation-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation is needed?
+      options:
+        - User Guide/Manual
+        - Developer Documentation
+        - API Documentation
+        - Installation Guide
+        - Configuration Guide
+        - Troubleshooting Guide
+        - Code Comments
+        - README Updates
+        - Architecture Documentation
+        - Database Schema Documentation
+        - Deployment Documentation
+        - Security Documentation
+        - Testing Documentation
+        - Contributing Guidelines
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-audience
+    attributes:
+      label: Target Audience
+      description: Who is this documentation for?
+      options:
+        - End Users
+        - Developers/Contributors
+        - System Administrators
+        - Project Maintainers
+        - New Contributors
+        - API Users
+        - DevOps/Deployment Teams
+        - Security Teams
+        - Multiple Audiences
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this documentation?
+      options:
+        - Low - Nice to have
+        - Medium - Would help users/developers
+        - High - Important for understanding
+        - Critical - Blocking development or usage
+    validations:
+      required: true
+
+  - type: textarea
+    id: documentation-request
+    attributes:
+      label: Documentation Request
+      description: What documentation needs to be created, updated, or improved?
+      placeholder: Describe what documentation is needed and why
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-state
+    attributes:
+      label: Current State
+      description: What documentation currently exists (if any) and what's missing or needs improvement?
+      placeholder: |
+        - What documentation currently exists
+        - What's outdated or incorrect
+        - What's completely missing
+
+  - type: textarea
+    id: proposed-content
+    attributes:
+      label: Proposed Content Structure
+      description: Outline of what the documentation should include
+      placeholder: |
+        ## Section 1: [Title]
+        - Topic 1
+        - Topic 2
+        
+        ## Section 2: [Title]
+        - Topic 1
+        - Topic 2
+        
+        ## Examples/Code Samples
+        - Example scenarios
+        - Code snippets needed
+
+  - type: textarea
+    id: user-scenarios
+    attributes:
+      label: User Scenarios
+      description: What scenarios or use cases should this documentation address?
+      placeholder: |
+        - Scenario 1: User trying to...
+        - Scenario 2: Developer wanting to...
+        - Scenario 3: Admin needing to...
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success Criteria
+      description: How will we know this documentation is successful?
+      placeholder: |
+        - [ ] Users can successfully complete task X
+        - [ ] Developers can understand concept Y
+        - [ ] Common questions are answered
+        - [ ] Documentation is easy to find and navigate
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where should this documentation be located?
+      placeholder: e.g., README.md, docs/ folder, Wiki, inline code comments
+
+  - type: textarea
+    id: related-features
+    attributes:
+      label: Related Features/Code
+      description: What features, code, or functionality does this documentation relate to?
+      placeholder: |
+        - Django apps: events, crews, results
+        - Specific models, views, or functions
+        - Configuration files
+        - Deployment scripts
+
+  - type: checkboxes
+    id: documentation-format
+    attributes:
+      label: Documentation Format
+      description: What format should this documentation use?
+      options:
+        - label: Markdown files
+        - label: Inline code comments
+        - label: README sections
+        - label: Separate documentation site
+        - label: API documentation (auto-generated)
+        - label: Video tutorials/recordings
+        - label: Diagrams/flowcharts
+        - label: Screenshots/visual guides
+
+  - type: checkboxes
+    id: content-requirements
+    attributes:
+      label: Content Requirements
+      description: What should be included in this documentation?
+      options:
+        - label: Step-by-step instructions
+        - label: Code examples
+        - label: Screenshots or diagrams
+        - label: Common troubleshooting issues
+        - label: Best practices and recommendations
+        - label: Security considerations
+        - label: Performance considerations
+        - label: Links to related documentation
+        - label: FAQ section
+        - label: Glossary of terms
+        - label: Prerequisites and requirements
+        - label: Testing/validation steps

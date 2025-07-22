@@ -1,0 +1,155 @@
+name: ❓ Question/Support
+description: Ask questions about the codebase, get help, or request support
+title: "[QUESTION] "
+labels: ["question", "help-wanted"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for questions about the codebase, functionality, or when you need help understanding something.
+
+  - type: dropdown
+    id: question-category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Code Understanding
+        - Feature Usage
+        - Configuration
+        - Development Setup
+        - Django/Python Help
+        - Database Questions
+        - Deployment Issues
+        - Performance Questions
+        - Security Questions
+        - Testing Help
+        - Best Practices
+        - Architecture Decisions
+        - Third-party Integration
+        - Troubleshooting
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency Level
+      description: How urgent is getting an answer to this question?
+      options:
+        - Low - Curiosity/learning
+        - Medium - Would help with development
+        - High - Blocking current work
+        - Critical - Production issue or urgent deadline
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know or understand?
+      placeholder: Ask your question clearly and provide context
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide context about what you're trying to accomplish or understand
+      placeholder: |
+        - What are you trying to achieve?
+        - What have you already tried?
+        - What specific part is confusing?
+
+  - type: textarea
+    id: current-understanding
+    attributes:
+      label: Current Understanding
+      description: What do you currently understand about this topic?
+      placeholder: Share what you think you know - this helps provide better answers
+
+  - type: textarea
+    id: code-snippets
+    attributes:
+      label: Relevant Code/Files
+      description: Include any relevant code snippets, file names, or error messages
+      placeholder: |
+        ```python
+        # Relevant code here
+        ```
+        
+        Or mention specific files like:
+        - crews/models.py
+        - events/views.py
+      render: shell
+
+  - type: textarea
+    id: attempted-solutions
+    attributes:
+      label: What Have You Tried?
+      description: What approaches or solutions have you already attempted?
+      placeholder: |
+        - Searched the codebase for...
+        - Tried reading Django documentation about...
+        - Attempted to modify...
+        - Looked at similar implementations in...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Information
+      description: Relevant environment details (if applicable)
+      placeholder: |
+        - Django version: 5.1.3
+        - Python version: 3.12
+        - Operating system: Windows/macOS/Linux
+        - Development/Production environment
+        - Browser (if frontend-related)
+
+  - type: textarea
+    id: expected-outcome
+    attributes:
+      label: Expected Outcome
+      description: What kind of answer or help are you looking for?
+      placeholder: |
+        - Explanation of how X works
+        - Step-by-step guide for Y
+        - Code example showing Z
+        - Recommendation for best approach
+        - Clarification about concept W
+
+  - type: checkboxes
+    id: research-checklist
+    attributes:
+      label: Research Checklist
+      description: Have you already checked these resources?
+      options:
+        - label: Searched existing issues and discussions
+        - label: Checked the project README and documentation
+        - label: Looked through relevant code files
+        - label: Searched Django documentation
+        - label: Checked relevant online resources
+        - label: Asked in development team chat (if applicable)
+
+  - type: checkboxes
+    id: help-type
+    attributes:
+      label: Type of Help Needed
+      description: What kind of assistance would be most helpful?
+      options:
+        - label: Conceptual explanation
+        - label: Code example or snippet
+        - label: Step-by-step instructions
+        - label: Pointer to relevant documentation
+        - label: Architecture or design guidance
+        - label: Debugging assistance
+        - label: Best practices recommendation
+        - label: Alternative approaches
+        - label: Performance optimization tips
+        - label: Security considerations

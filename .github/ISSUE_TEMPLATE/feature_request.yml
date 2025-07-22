@@ -1,0 +1,102 @@
+name: 🚀 Feature Request
+description: Suggest a new feature or enhancement for the downhill skateboarding events app
+title: "[FEATURE] "
+labels: ["enhancement", "feature-request"]
+projects: ["pearsedarcy/1"]
+assignees:
+  - pearsedarcy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature! Please fill out the form below.
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature Category
+      description: Which part of the app does this feature relate to?
+      options:
+        - Events Management
+        - Crews System
+        - Results/Leagues
+        - User Profiles
+        - Search Functionality
+        - UI/UX
+        - Admin/Backend
+        - Performance
+        - Security
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve user experience
+        - High - Important for core functionality
+        - Critical - Blocking other work
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: Describe the feature you'd like to see implemented
+      placeholder: A clear and concise description of what you want to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: Describe this feature from a user's perspective
+      placeholder: "As a [type of user], I want [an action] so that [a benefit/value]"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What conditions must be met for this feature to be considered complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Implementation Notes
+      description: Any technical considerations, dependencies, or implementation ideas
+      placeholder: Django models, views, templates, or other technical details to consider
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Examples
+      description: Links to mockups, similar implementations, or examples
+      placeholder: Add any visual examples or links to similar features
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact Assessment
+      description: What areas of the app will this feature affect?
+      options:
+        - label: Database schema changes required
+        - label: New Django models needed
+        - label: Frontend UI changes
+        - label: New URL patterns/views
+        - label: Migration scripts needed
+        - label: Testing updates required
+        - label: Documentation updates needed
