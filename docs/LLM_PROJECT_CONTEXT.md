@@ -6,7 +6,7 @@
 **Project Name**: Downhill Skateboarding Events Platform  
 **Purpose**: Community platform for downhill skateboarding enthusiasts to organize events, form crews, track results, and connect  
 **Tech Stack**: Django 4.2+ | PostgreSQL | TailwindCSS | DaisyUI | Cloudinary | Allauth  
-**Current Status**: Profile system with social features complete (~70%), moving to crew system enhancements
+**Current Status**: Profile system with social features **COMPLETE** (~85%), crew permission system enhanced, ready for events system development
 
 ## 📁 **Project Structure & App Architecture**
 
@@ -85,15 +85,39 @@ class UserProfile(SearchableModel):
 ```
 profiles/templates/profiles/
 ├── user_profile.html          # Main profile page (single-page layout)
+├── users_list.html           # Community directory with following system
 ├── partials/
 │   ├── edit_modal.html        # Profile editing modal
 │   ├── events_tab.html        # Events section
 │   ├── activity_tab.html      # Activity timeline
 │   ├── social_tab.html        # Social links and connections
-│   └── settings_tab.html      # Privacy and preferences
+│   ├── settings_tab.html      # Privacy and preferences
+│   └── toast_notifications.html  # Global toast notification system
 └── signup_enhanced.html       # 4-step signup flow
 ```
 
+### **🎉 RECENTLY COMPLETED (December 2024)**
+
+#### **✅ Profile Following System**
+- **Full social following functionality**: Follow/unfollow users with real-time AJAX updates
+- **Privacy-aware following**: Respects profile visibility settings (PUBLIC/COMMUNITY/CREWS/PRIVATE)
+- **Community directory**: Enhanced users list with follow buttons and user stats
+- **Database optimization**: Efficient queries with select_related for follower counts
+- **Mobile-responsive design**: Touch-friendly follow buttons and user cards
+
+#### **✅ Toast Notification System Enhancement**
+- **Modal-aware notifications**: Toast messages appear above DaisyUI modals instead of underneath
+- **Dynamic container detection**: Automatically detects active modals and creates in-modal toast containers
+- **Z-index conflict resolution**: Intelligent toast positioning with fallback to global container
+- **Crew permission integration**: Seamless user feedback for permission toggle operations
+- **Cross-browser compatibility**: Works with all DaisyUI modal implementations
+
+#### **✅ Technical Infrastructure Improvements**
+- **Enhanced UserProfile model**: Complete skateboarding-specific fields with privacy controls
+- **Advanced privacy manager**: Field-level privacy control with viewer-specific filtering
+- **Template modularization**: 7 reusable profile partial templates for maintainability
+- **AJAX-powered interactions**: Real-time updates without page refreshes
+- **Performance optimizations**: Efficient database queries and caching strategies
 ## 🎨 **Design System & Styling**
 
 ### **DaisyUI + TailwindCSS Pattern**

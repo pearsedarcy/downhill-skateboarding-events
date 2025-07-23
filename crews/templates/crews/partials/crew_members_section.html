@@ -104,6 +104,21 @@
 <!-- Include Member Profile Modal -->
 {% include 'crews/partials/member_profile_modal.html' %}
 
+<!-- Force modal z-index down specifically for this modal -->
+<style>
+#member-profile-modal {
+    z-index: 50 !important;
+}
+
+#member-profile-modal .modal-box {
+    z-index: 51 !important;
+}
+
+#member-profile-modal .modal-backdrop {
+    z-index: 49 !important;
+}
+</style>
+
 <script>
 function openMemberProfile(userId) {
     const modal = document.getElementById('member-profile-modal');
@@ -209,7 +224,7 @@ function handlePermissionToggle(event) {
     .then(data => {
         if (data.success) {
             // Show success message
-            showToast(data.message, 'success');
+            ToastManager.success(data.message);
             
             // Update the member card's permission indicators
             updateMemberCardPermissions(userId, data.new_permissions);
@@ -219,52 +234,14 @@ function handlePermissionToggle(event) {
         } else {
             // Revert toggle and show error
             toggle.checked = !toggle.checked;
-            showToast('Error: ' + data.error, 'error');
+            ToastManager.error('Error: ' + data.error);
         }
     })
     .catch(error => {
         // Revert toggle and show error
         toggle.checked = !toggle.checked;
-        showToast('Error updating permission. Please try again.', 'error');
+        ToastManager.error('Error updating permission. Please try again.');
     });
-}
-
-function showToast(message, type = 'success') {
-    // Remove any existing toasts first
-    const existingToasts = document.querySelectorAll('.custom-toast');
-    existingToasts.forEach(toast => toast.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = 'custom-toast';
-    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-    
-    // Use inline styles with !important and very high z-index
-    toast.style.cssText = `
-        position: fixed !important;
-        top: 20px !important;
-        right: 20px !important;
-        z-index: 2147483647 !important;
-        pointer-events: auto !important;
-        width: auto !important;
-        min-width: 300px !important;
-        max-width: 500px !important;
-    `;
-    
-    toast.innerHTML = `
-        <div class="alert ${alertClass} shadow-lg">
-            <span>${message}</span>
-        </div>
-    `;
-    
-    // Append directly to document.body, not inside any containers
-    document.body.appendChild(toast);
-    
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-        if (toast && toast.parentNode) {
-            toast.remove();
-        }
-    }, 3000);
 }
 
 function updateMemberCardPermissions(userId, permissions) {

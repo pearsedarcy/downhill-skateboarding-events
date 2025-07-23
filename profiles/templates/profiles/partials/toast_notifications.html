@@ -1,5 +1,5 @@
 <!-- Toast Notification System -->
-<div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 space-y-2 pointer-events-none">
+<div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] space-y-2 pointer-events-none">
     <!-- Toasts will be dynamically inserted here -->
 </div>
 
@@ -18,8 +18,24 @@ window.ToastManager = {
     show: function(message, type = 'info', duration = 4000) {
         if (!this.container) this.init();
         
+        // Check if we're inside a modal and use modal container if available
+        const activeModal = document.querySelector('.modal:target, .modal[open], dialog[open]');
+        let targetContainer = this.container;
+        
+        if (activeModal) {
+            // Create or get modal toast container
+            let modalContainer = activeModal.querySelector('.modal-toast-container');
+            if (!modalContainer) {
+                modalContainer = document.createElement('div');
+                modalContainer.className = 'modal-toast-container fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] space-y-2 pointer-events-none';
+                modalContainer.style.cssText = 'position: absolute !important; top: 1rem !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 99999 !important;';
+                activeModal.appendChild(modalContainer);
+            }
+            targetContainer = modalContainer;
+        }
+        
         const toast = this.createToast(message, type);
-        this.container.appendChild(toast);
+        targetContainer.appendChild(toast);
         
         // Trigger animation
         setTimeout(() => {
@@ -110,6 +126,44 @@ window.showToast = function(message, type, duration) {
 </script>
 
 <style>
+/* Aggressively lower the z-index of ALL modal-related elements */
+dialog.modal,
+.modal,
+[data-modal],
+#member-profile-modal,
+dialog {
+    z-index: 100 !important;
+}
+
+dialog.modal .modal-box,
+.modal .modal-box,
+.modal-box {
+    z-index: 101 !important;
+}
+
+dialog.modal .modal-backdrop,
+.modal .modal-backdrop,
+.modal-backdrop,
+dialog::backdrop {
+    z-index: 99 !important;
+}
+
+/* Force ALL DaisyUI modals to have lower z-index */
+[class*="modal"] {
+    z-index: 100 !important;
+}
+
+/* Ensure toasts appear above everything */
+#toast-container {
+    z-index: 999999 !important;
+    position: fixed !important;
+}
+
+.toast-notification {
+    z-index: 999999 !important;
+    position: relative !important;
+}
+
 .toast-notification.toast-enter {
     transform: translateY(0);
     opacity: 1;
@@ -143,6 +197,20 @@ window.showToast = function(message, type, duration) {
 /* Animation for stacking toasts */
 .toast-notification + .toast-notification {
     margin-top: 0.5rem;
+}
+
+/* Modal-specific toast container */
+.modal-toast-container {
+    position: absolute !important;
+    top: 1rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 99999 !important;
+    pointer-events: none !important;
+}
+
+.modal-toast-container .toast-notification {
+    pointer-events: auto !important;
 }
 
 /* Hover effects */
