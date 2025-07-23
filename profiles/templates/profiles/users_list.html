@@ -1,71 +1,500 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block content %}
-<div class="min-h-screen bg-base-200 py-8">
-    <div class="max-w-[1200px] mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {% for profile in page_obj %}
-            <a href="{% url 'profiles:user_profile' profile.user.username %}" 
-               class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-200">
-                <div class="card-body items-center text-center">
-                    <div class="avatar">
-                        <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                            {% if profile.avatar %}
-                            <img src="{{ profile.avatar.url }}" alt="{{ profile.user.username }}'s avatar" />
-                            {% else %}
-                            <img src="{% static 'images/default-profile.webp' %}" alt="Default avatar" />
-                            {% endif %}
-                        </div>
-                    </div>
-                    <h2 class="card-title">{{ profile.user.username }}</h2>
-                    <div class="stats stats-horizontal shadow mt-2">
-                        <div class="stat place-items-center">
-                            <div class="stat-value">{{ profile.organized_events.count }}</div>
-                            <div class="stat-desc">Events</div>
-                        </div>
-                        <div class="stat place-items-center">
-                            <div class="stat-value">{{ profile.reviews.count }}</div>
-                            <div class="stat-desc">Reviews</div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-            {% empty %}
-            <div class="col-span-full text-center py-8">
-                <div class="alert">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
-                         class="stroke-info shrink-0 w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span>No users found.</span>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+{% block title %}Community Members - Downhill Skateboarding Events{% endblock %}
 
-        {% if page_obj.has_other_pages %}
-        <div class="flex justify-center mt-8">
-            <div class="join">
-                {% if page_obj.has_previous %}
-                <a href="?page=1{% if query %}&q={{ query }}{% endif %}" class="join-item btn">«</a>
-                <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" 
-                   class="join-item btn">‹</a>
-                {% endif %}
+{% block meta_description %}
+Discover and connect with skateboarding enthusiasts in our community. Find riders, organizers, and fellow downhill skating lovers worldwide.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-card {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .user-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        border-color: hsl(var(--p));
+    }
+    
+    .user-avatar {
+        transition: transform 0.3s ease;
+    }
+    
+    .user-card:hover .user-avatar {
+        transform: scale(1.05);
+    }
+    
+    .user-stats {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+    }
+    
+    .verification-badge {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .search-highlight {
+        background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 600;
+    }
+    
+    .filter-badge {
+        transition: all 0.2s ease;
+    }
+    
+    .filter-badge:hover {
+        transform: scale(1.05);
+    }
+    
+    .empty-state {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-size: 200% 200%;
+        animation: gradient 15s ease infinite;
+    }
+    
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-base-100">
+    <!-- Header Section -->
+    <section class="bg-gradient-to-br from-primary via-secondary to-accent text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center max-w-4xl mx-auto">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                    Community Members
+                </h1>
+                <p class="text-xl md:text-2xl opacity-90 mb-8">
+                    Connect with passionate downhill skateboarders from around the world
+                </p>
                 
-                <button class="join-item btn">Page {{ page_obj.number }} of {{
-                page_obj.paginator.num_pages }}</button>
+                <!-- Search Stats -->
+                <div class="flex flex-wrap justify-center gap-8 text-center">
+                    <div class="user-stats rounded-xl p-4 min-w-[120px]">
+                        <div class="text-2xl font-bold">{{ total_users }}</div>
+                        <div class="text-sm opacity-80">Total Members</div>
+                    </div>
+                    <div class="user-stats rounded-xl p-4 min-w-[120px]">
+                        <div class="text-2xl font-bold">{{ page_obj.paginator.num_pages }}</div>
+                        <div class="text-sm opacity-80">Pages</div>
+                    </div>
+                    {% if query %}
+                        <div class="user-stats rounded-xl p-4 min-w-[120px]">
+                            <div class="text-2xl font-bold">{{ page_obj.paginator.count }}</div>
+                            <div class="text-sm opacity-80">Search Results</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Search and Filter Section -->
+    <section class="container mx-auto px-4 -mt-8 relative z-10">
+        <div class="card bg-base-100 shadow-2xl">
+            <div class="card-body p-6">
+                <!-- Search Form -->
+                <form method="GET" class="mb-6">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="form-control">
+                                <div class="input-group">
+                                    <input type="text" 
+                                           name="q" 
+                                           value="{{ query }}" 
+                                           placeholder="Search by name, location, skating style..." 
+                                           class="input input-bordered w-full">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if query %}
+                            <a href="{% url 'profiles:users_list' %}" class="btn btn-outline">
+                                <i class="fas fa-times mr-2"></i>
+                                Clear Search
+                            </a>
+                        {% endif %}
+                    </div>
+                </form>
                 
-                {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}" 
-                   class="join-item btn">›</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}" 
-                   class="join-item btn">»</a>
+                <!-- Quick Filters -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="text-sm font-semibold text-base-content/70 mr-2">Quick Filters:</span>
+                    <button class="filter-badge badge badge-outline hover:badge-primary" onclick="searchFilter('downhill')">
+                        Downhill
+                    </button>
+                    <button class="filter-badge badge badge-outline hover:badge-primary" onclick="searchFilter('freeride')">
+                        Freeride
+                    </button>
+                    <button class="filter-badge badge badge-outline hover:badge-primary" onclick="searchFilter('organizer')">
+                        Event Organizers
+                    </button>
+                    <button class="filter-badge badge badge-outline hover:badge-primary" onclick="searchFilter('verified')">
+                        Verified
+                    </button>
+                </div>
+                
+                <!-- Search Results Info -->
+                {% if query %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-search"></i>
+                        <div>
+                            <strong>Search Results for "{{ query }}"</strong>
+                            <div class="text-sm">
+                                Found {{ page_obj.paginator.count }} member{{ page_obj.paginator.count|pluralize }} 
+                                {% if page_obj.paginator.count != total_users %}
+                                    out of {{ total_users }} total
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
+    </section>
+    
+    <!-- Members Grid -->
+    <section class="container mx-auto px-4 py-12">
+        {% if page_obj %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for profile in page_obj %}
+                    <div class="user-card card bg-base-100 shadow-lg hover:shadow-xl">
+                        <div class="card-body p-6">
+                            <!-- Avatar and Basic Info -->
+                            <div class="text-center mb-4">
+                                <div class="avatar">
+                                    <div class="w-20 h-20 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                                        {% if profile.avatar %}
+                                            <img src="{{ profile.avatar.url }}" alt="{{ profile.get_display_name }}'s avatar" class="user-avatar">
+                                        {% else %}
+                                            <div class="user-avatar w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                                <i class="fas fa-user text-xl text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Verification Badge -->
+                                {% if profile.verification_status != 'UNVERIFIED' %}
+                                    <div class="verification-badge absolute -mt-6 ml-6 w-6 h-6 bg-success rounded-full flex items-center justify-center border-2 border-white">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <h3 class="font-bold text-lg mt-3 mb-1">
+                                    {% if query and profile.get_display_name|lower in query|lower %}
+                                        <span class="search-highlight">{{ profile.get_display_name }}</span>
+                                    {% else %}
+                                        {{ profile.get_display_name }}
+                                    {% endif %}
+                                </h3>
+                                
+                                <!-- Location -->
+                                {% if profile.get_location_display %}
+                                    <p class="text-sm text-base-content/70 mb-2">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        {% if query and profile.get_location_display|lower in query|lower %}
+                                            <span class="search-highlight">{{ profile.get_location_display }}</span>
+                                        {% else %}
+                                            {{ profile.get_location_display }}
+                                        {% endif %}
+                                    </p>
+                                {% endif %}
+                                
+                                <!-- Skating Style -->
+                                {% if profile.skating_style %}
+                                    <div class="badge badge-primary badge-sm mb-3">
+                                        {% if query and profile.get_skating_style_display|lower in query|lower %}
+                                            <span class="search-highlight">{{ profile.get_skating_style_display }}</span>
+                                        {% else %}
+                                            {{ profile.get_skating_style_display }}
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Bio Preview -->
+                            {% if profile.bio %}
+                                <p class="text-sm text-base-content/80 mb-4 line-clamp-3">
+                                    {{ profile.bio|truncatechars:100 }}
+                                </p>
+                            {% endif %}
+                            
+                            <!-- Stats -->
+                            <div class="grid grid-cols-2 gap-2 mb-4 text-center">
+                                <div class="stat bg-base-200 rounded-lg p-2">
+                                    <div class="stat-value text-sm">{{ profile.total_events_organized|default:0 }}</div>
+                                    <div class="stat-desc text-xs">Organized</div>
+                                </div>
+                                <div class="stat bg-base-200 rounded-lg p-2">
+                                    <div class="stat-value text-sm">{{ profile.total_events_attended|default:0 }}</div>
+                                    <div class="stat-desc text-xs">Attended</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Experience Info -->
+                            {% if profile.skill_level or profile.years_skating %}
+                                <div class="flex justify-center gap-4 mb-4 text-xs text-base-content/70">
+                                    {% if profile.skill_level %}
+                                        <span><i class="fas fa-star mr-1"></i>Level {{ profile.skill_level }}</span>
+                                    {% endif %}
+                                    {% if profile.years_skating %}
+                                        <span><i class="fas fa-clock mr-1"></i>{{ profile.years_skating }}y</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Social Links -->
+                            {% if profile.get_social_links %}
+                                <div class="flex justify-center gap-2 mb-4">
+                                    {% for platform, link in profile.get_social_links.items %}
+                                        <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" 
+                                           class="btn btn-circle btn-xs btn-ghost hover:btn-primary">
+                                            <i class="{{ link.icon }}"></i>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Action Buttons -->
+                            <div class="card-actions justify-center">
+                                <a href="{% url 'profiles:user_profile' profile.user.username %}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-user mr-2"></i>
+                                    View Profile
+                                </a>
+                                
+                                {% if user.is_authenticated and user != profile.user %}
+                                    <button class="btn btn-outline btn-sm" onclick="followUser('{{ profile.user.username }}')">
+                                        <i class="fas fa-user-plus mr-1"></i>
+                                        Follow
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <div class="flex justify-center mt-12">
+                    <div class="btn-group">
+                        {% if page_obj.has_previous %}
+                            <a href="?{% if query %}q={{ query }}&{% endif %}page=1" class="btn btn-outline">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.previous_page_number }}" class="btn btn-outline">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        <!-- Page Numbers -->
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="btn btn-primary">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?{% if query %}q={{ query }}&{% endif %}page={{ num }}" class="btn btn-outline">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.next_page_number }}" class="btn btn-outline">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Pagination Info -->
+                <div class="text-center mt-4 text-sm text-base-content/70">
+                    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} members
+                </div>
+            {% endif %}
+            
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state rounded-2xl text-white text-center py-16 px-8">
+                <div class="max-w-md mx-auto">
+                    {% if query %}
+                        <i class="fas fa-search text-6xl mb-6 opacity-80"></i>
+                        <h3 class="text-2xl font-bold mb-4">No Results Found</h3>
+                        <p class="text-lg opacity-90 mb-6">
+                            We couldn't find any members matching "{{ query }}". 
+                            Try a different search term or browse all members.
+                        </p>
+                        <div class="space-x-2">
+                            <a href="{% url 'profiles:users_list' %}" class="btn btn-outline btn-white">
+                                <i class="fas fa-users mr-2"></i>
+                                View All Members
+                            </a>
+                            <button class="btn btn-white" onclick="document.querySelector('input[name=q]').focus()">
+                                <i class="fas fa-search mr-2"></i>
+                                Try New Search
+                            </button>
+                        </div>
+                    {% else %}
+                        <i class="fas fa-users text-6xl mb-6 opacity-80"></i>
+                        <h3 class="text-2xl font-bold mb-4">No Members Yet</h3>
+                        <p class="text-lg opacity-90 mb-6">
+                            Be the first to join our skateboarding community!
+                        </p>
+                        {% if not user.is_authenticated %}
+                            <a href="{% url 'account_signup' %}" class="btn btn-white">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Join Community
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
         {% endif %}
-    </div>
+    </section>
+    
+    <!-- Call to Action -->
+    {% if not user.is_authenticated %}
+        <section class="bg-gradient-to-r from-primary to-secondary text-white py-16">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-3xl font-bold mb-4">Join Our Community</h2>
+                <p class="text-xl mb-8 opacity-90">
+                    Connect with fellow skateboarders, organize events, and share your passion for downhill skating
+                </p>
+                <div class="space-x-4">
+                    <a href="{% url 'account_signup' %}" class="btn btn-accent btn-lg">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Sign Up Free
+                    </a>
+                    <a href="{% url 'account_login' %}" class="btn btn-outline btn-white btn-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Sign In
+                    </a>
+                </div>
+            </div>
+        </section>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quick filter search
+function searchFilter(term) {
+    const searchInput = document.querySelector('input[name="q"]');
+    searchInput.value = term;
+    searchInput.form.submit();
+}
+
+// Follow user functionality (placeholder)
+function followUser(username) {
+    if (!{{ user.is_authenticated|yesno:"true,false" }}) {
+        alert('Please sign in to follow users');
+        window.location.href = '{% url "account_login" %}';
+        return;
+    }
+    
+    // Placeholder for follow functionality
+    alert(`Follow functionality coming soon! You wanted to follow ${username}`);
+}
+
+// Search suggestions and autocomplete
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[name="q"]');
+    
+    // Add search suggestions (could be enhanced with AJAX)
+    const suggestions = [
+        'downhill', 'freeride', 'freestyle', 'cruising', 'dancing', 'slalom',
+        'beginner', 'intermediate', 'expert', 'pro',
+        'longboard', 'skateboard', 'organizer', 'verified'
+    ];
+    
+    // Enhanced search with real-time feedback
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            // Could add real-time search suggestions here
+        }, 300);
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Focus search on Ctrl+K or Cmd+K
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+    });
+});
+
+// Smooth scrolling for pagination
+document.querySelectorAll('.btn-group a').forEach(link => {
+    link.addEventListener('click', function() {
+        // Scroll to top of results on page change
+        document.querySelector('.container').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
+});
+
+// Lazy loading for avatars
+document.addEventListener('DOMContentLoaded', function() {
+    const avatars = document.querySelectorAll('.user-avatar img');
+    
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.classList.add('animate-fade-in');
+                observer.unobserve(img);
+            }
+        });
+    });
+    
+    avatars.forEach(img => imageObserver.observe(img));
+});
+
+// Analytics tracking for user interactions
+function trackUserInteraction(action, username) {
+    if (typeof gtag !== 'undefined') {
+        gtag('event', action, {
+            event_category: 'User Directory',
+            event_label: username
+        });
+    }
+}
+
+// Track profile views
+document.querySelectorAll('a[href*="/profiles/"]').forEach(link => {
+    link.addEventListener('click', function() {
+        const username = this.href.split('/').pop();
+        trackUserInteraction('profile_view', username);
+    });
+});
+</script>
 {% endblock %}

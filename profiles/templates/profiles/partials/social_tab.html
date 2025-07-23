@@ -1,0 +1,534 @@
+<!-- Social Tab Content -->
+<div class="space-y-6">
+    <!-- Social Header -->
+    <div class="text-center mb-8">
+        <h3 class="text-2xl font-bold mb-2">Connect & Share</h3>
+        <p class="text-base-content/70">
+            {% if can_edit %}
+                Manage your social links and connect with the skateboarding community
+            {% else %}
+                Connect with {{ profile.get_display_name }} on social media
+            {% endif %}
+        </p>
+    </div>
+    
+    <!-- Connected Social Accounts -->
+    {% if social_links %}
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body p-2 lg:p-4">
+                <h2 class="card-title text-primary mb-4">
+                    <i class="fas fa-link mr-2"></i>
+                    Connected Accounts
+                </h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {% for platform, link in social_links.items %}
+                        <div class="social-link-card flex items-center gap-4 p-4 rounded-lg bg-base-200 hover:bg-base-300 transition-all duration-300 group">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center
+                                        {% if platform == 'instagram' %}bg-gradient-to-br from-purple-500 to-pink-500
+                                        {% elif platform == 'youtube' %}bg-red-500
+                                        {% elif platform == 'website' %}bg-blue-500
+                                        {% else %}bg-gray-500{% endif %}">
+                                <i class="{{ link.icon }} text-white text-lg"></i>
+                            </div>
+                            
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-lg">{{ platform|capfirst }}</h3>
+                                <p class="text-base-content/70">{{ link.display }}</p>
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" 
+                                   class="btn btn-sm btn-primary group-hover:btn-accent transition-colors">
+                                    <i class="fas fa-external-link-alt mr-1"></i>
+                                    Visit
+                                </a>
+                                
+                                {% if can_edit %}
+                                    <div class="dropdown dropdown-end">
+                                        <label tabindex="0" class="btn btn-sm btn-ghost">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </label>
+                                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-32">
+                                            <li><a onclick="editSocialLink('{{ platform }}', '{{ link.url }}')">
+                                                <i class="fas fa-edit mr-2"></i>Edit
+                                            </a></li>
+                                            <li><a onclick="removeSocialLink('{{ platform }}')" class="text-error">
+                                                <i class="fas fa-trash mr-2"></i>Remove
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Add Social Links (if owner) -->
+    {% if can_edit %}
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <h2 class="card-title text-secondary mb-4">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Add Social Links
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Instagram -->
+                    {% if 'instagram' not in social_links %}
+                        <div class="social-add-card card bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:shadow-xl transition-all duration-300 cursor-pointer" 
+                             onclick="addSocialLink('instagram')">
+                            <div class="card-body text-center">
+                                <i class="fab fa-instagram text-3xl mb-2"></i>
+                                <h3 class="font-semibold">Instagram</h3>
+                                <p class="text-sm opacity-90">Share your skating photos</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- YouTube -->
+                    {% if 'youtube' not in social_links %}
+                        <div class="social-add-card card bg-red-500 text-white hover:shadow-xl transition-all duration-300 cursor-pointer" 
+                             onclick="addSocialLink('youtube')">
+                            <div class="card-body text-center">
+                                <i class="fab fa-youtube text-3xl mb-2"></i>
+                                <h3 class="font-semibold">YouTube</h3>
+                                <p class="text-sm opacity-90">Share your skating videos</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Website -->
+                    {% if 'website' not in social_links %}
+                        <div class="social-add-card card bg-blue-500 text-white hover:shadow-xl transition-all duration-300 cursor-pointer" 
+                             onclick="addSocialLink('website')">
+                            <div class="card-body text-center">
+                                <i class="fas fa-globe text-3xl mb-2"></i>
+                                <h3 class="font-semibold">Website</h3>
+                                <p class="text-sm opacity-90">Your personal website</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Social Features -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Share Profile -->
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <h2 class="card-title text-accent mb-4">
+                    <i class="fas fa-share-alt mr-2"></i>
+                    Share Profile
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Profile URL</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="text" 
+                                   value="{{ request.build_absolute_uri }}" 
+                                   id="profile-url" 
+                                   class="input input-bordered flex-1" 
+                                   readonly>
+                            <button class="btn btn-square btn-primary" onclick="copyProfileUrl()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn btn-sm" onclick="shareOnPlatform('twitter')">
+                            <i class="fab fa-twitter mr-2"></i>
+                            Twitter
+                        </button>
+                        <button class="btn btn-sm" onclick="shareOnPlatform('facebook')">
+                            <i class="fab fa-facebook mr-2"></i>
+                            Facebook
+                        </button>
+                        <button class="btn btn-sm" onclick="shareOnPlatform('linkedin')">
+                            <i class="fab fa-linkedin mr-2"></i>
+                            LinkedIn
+                        </button>
+                        <button class="btn btn-sm" onclick="shareOnPlatform('email')">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QR Code -->
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <h2 class="card-title text-info mb-4">
+                    <i class="fas fa-qrcode mr-2"></i>
+                    QR Code
+                </h2>
+                
+                <div class="text-center">
+                    <div class="bg-white p-4 rounded-lg inline-block mb-4">
+                        <div id="qr-code" class="w-32 h-32 bg-base-200 rounded flex items-center justify-center">
+                            <i class="fas fa-qrcode text-4xl text-base-content/50"></i>
+                        </div>
+                    </div>
+                    <p class="text-sm text-base-content/70">
+                        Scan to view profile on mobile
+                    </p>
+                    <button class="btn btn-sm btn-info mt-2" onclick="downloadQR()">
+                        <i class="fas fa-download mr-2"></i>
+                        Download QR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Privacy & Visibility -->
+    {% if can_edit %}
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <h2 class="card-title text-warning mb-4">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    Privacy & Visibility
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Profile Visibility</span>
+                            <span class="label-text-alt">{{ profile.get_profile_visibility_display }}</span>
+                        </label>
+                        <select class="select select-bordered" id="profile-visibility" onchange="updateVisibility()">
+                            {% for value, display in profile_visibility_choices %}
+                                <option value="{{ value }}" {% if profile.profile_visibility == value %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">
+                                {% if profile.profile_visibility == 'PUBLIC' %}
+                                    Your profile is visible to everyone on the internet
+                                {% elif profile.profile_visibility == 'COMMUNITY' %}
+                                    Your profile is visible to registered community members
+                                {% elif profile.profile_visibility == 'CREWS' %}
+                                    Your profile is visible to your crew members only
+                                {% else %}
+                                    Your profile is private and only visible to you
+                                {% endif %}
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="cursor-pointer label">
+                            <span class="label-text">Show real name</span>
+                            <input type="checkbox" 
+                                   class="toggle toggle-primary" 
+                                   {% if profile.show_real_name %}checked{% endif %}
+                                   onchange="updatePrivacySetting('show_real_name', this.checked)">
+                        </label>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="cursor-pointer label">
+                            <span class="label-text">Show location</span>
+                            <input type="checkbox" 
+                                   class="toggle toggle-primary" 
+                                   {% if profile.show_location %}checked{% endif %}
+                                   onchange="updatePrivacySetting('show_location', this.checked)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Empty State -->
+    {% if not social_links and not can_edit %}
+        <div class="text-center py-12">
+            <i class="fas fa-link text-4xl text-base-content/30 mb-4"></i>
+            <p class="text-base-content/60">
+                {{ profile.get_display_name }} hasn't connected any social accounts yet.
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Social link management
+function addSocialLink(platform) {
+    const platformData = {
+        instagram: {
+            name: 'Instagram',
+            placeholder: 'Enter your Instagram username (without @)',
+            icon: 'fab fa-instagram'
+        },
+        youtube: {
+            name: 'YouTube',
+            placeholder: 'Enter your YouTube channel URL',
+            icon: 'fab fa-youtube'
+        },
+        website: {
+            name: 'Website',
+            placeholder: 'Enter your website URL',
+            icon: 'fas fa-globe'
+        }
+    };
+    
+    const data = platformData[platform];
+    const modal = document.createElement('div');
+    modal.className = 'modal modal-open';
+    modal.innerHTML = `
+        <div class="modal-box">
+            <h3 class="font-bold text-lg flex items-center gap-2">
+                <i class="${data.icon}"></i>
+                Add ${data.name}
+            </h3>
+            <div class="py-4">
+                <label class="label">
+                    <span class="label-text">${data.name} ${platform === 'instagram' ? 'Username' : 'URL'}</span>
+                </label>
+                <input type="text" 
+                       id="social-link-input" 
+                       class="input input-bordered w-full" 
+                       placeholder="${data.placeholder}">
+            </div>
+            <div class="modal-action">
+                <button class="btn" onclick="closeSocialModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSocialLink('${platform}')">Add Link</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.getElementById('social-link-input').focus();
+}
+
+function editSocialLink(platform, currentValue) {
+    const modal = document.createElement('div');
+    modal.className = 'modal modal-open';
+    modal.innerHTML = `
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Edit ${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
+            <div class="py-4">
+                <label class="label">
+                    <span class="label-text">URL</span>
+                </label>
+                <input type="text" 
+                       id="social-link-input" 
+                       class="input input-bordered w-full" 
+                       value="${currentValue}">
+            </div>
+            <div class="modal-action">
+                <button class="btn" onclick="closeSocialModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSocialLink('${platform}')">Save Changes</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.getElementById('social-link-input').focus();
+}
+
+function saveSocialLink(platform) {
+    const input = document.getElementById('social-link-input');
+    let value = input.value.trim();
+    
+    if (!value) {
+        alert('Please enter a value');
+        return;
+    }
+    
+    // Format Instagram username
+    if (platform === 'instagram' && !value.startsWith('@')) {
+        value = value.replace(/^@/, ''); // Remove @ if present
+    }
+    
+    // Validate URLs for YouTube and website
+    if ((platform === 'youtube' || platform === 'website') && !value.startsWith('http')) {
+        value = 'https://' + value;
+    }
+    
+    fetch('{% url "profiles:update_profile_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            field: platform,
+            value: value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while saving.');
+    });
+    
+    closeSocialModal();
+}
+
+function removeSocialLink(platform) {
+    if (!confirm(`Are you sure you want to remove your ${platform} link?`)) {
+        return;
+    }
+    
+    fetch('{% url "profiles:update_profile_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            field: platform,
+            value: ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while removing the link.');
+    });
+}
+
+function closeSocialModal() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (modal.classList.contains('modal-open')) {
+            modal.remove();
+        }
+    });
+}
+
+// Profile sharing
+function copyProfileUrl() {
+    const input = document.getElementById('profile-url');
+    input.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const button = event.target.closest('button');
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    button.classList.add('btn-success');
+    
+    setTimeout(() => {
+        button.innerHTML = originalContent;
+        button.classList.remove('btn-success');
+    }, 2000);
+}
+
+function shareOnPlatform(platform) {
+    const url = document.getElementById('profile-url').value;
+    const text = `Check out {{ profile.get_display_name }}'s skateboarding profile!`;
+    
+    let shareUrl;
+    switch (platform) {
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+            break;
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+            break;
+        case 'email':
+            shareUrl = `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(text + '\n\n' + url)}`;
+            break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+}
+
+// Privacy settings
+function updateVisibility() {
+    const select = document.getElementById('profile-visibility');
+    const value = select.value;
+    
+    fetch('{% url "profiles:update_profile_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            field: 'profile_visibility',
+            value: value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating visibility.');
+    });
+}
+
+function updatePrivacySetting(field, value) {
+    fetch('{% url "profiles:update_profile_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            field: field,
+            value: value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            alert('Error: ' + data.error);
+            // Revert the toggle
+            event.target.checked = !value;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating privacy setting.');
+        // Revert the toggle
+        event.target.checked = !value;
+    });
+}
+
+// QR Code generation (placeholder)
+function downloadQR() {
+    // This would generate and download a QR code
+    alert('QR code download feature coming soon!');
+}
+</script>

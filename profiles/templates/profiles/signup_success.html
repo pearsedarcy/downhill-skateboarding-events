@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Welcome to the Community! - Downhill Skateboarding Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .success-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "images/skateboard-pattern.svg" %}') repeat;
+        opacity: 0.1;
+        z-index: 1;
+    }
+    
+    .success-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 10;
+    }
+    
+    .celebration-animation {
+        animation: celebrate 2s ease-out;
+    }
+    
+    @keyframes celebrate {
+        0% { transform: scale(0.8) rotate(-5deg); opacity: 0; }
+        50% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    
+    .next-step-card {
+        background: white;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .next-step-card:hover {
+        border-color: hsl(var(--p));
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .next-step-card.completed {
+        border-color: hsl(var(--su));
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+    }
+    
+    .next-step-card.completed::before {
+        content: '';
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 24px;
+        height: 24px;
+        background: hsl(var(--su));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .next-step-card.completed::after {
+        content: '✓';
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 24px;
+        height: 24px;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+    
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(
+            hsl(var(--p)) var(--completion-angle),
+            #e5e7eb var(--completion-angle)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto;
+    }
+    
+    .progress-ring::before {
+        content: '';
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        position: absolute;
+    }
+    
+    .progress-ring .percentage {
+        position: relative;
+        z-index: 1;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: hsl(var(--p));
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container flex items-center justify-center p-4">
+    <div class="success-card rounded-2xl p-8 w-full max-w-4xl celebration-animation">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="text-6xl mb-4">🎉</div>
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Welcome to the Community!</h1>
+            <p class="text-xl text-gray-600">
+                Your account has been created successfully. Let's get you started!
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Next Steps -->
+            <div class="lg:col-span-2">
+                <h2 class="text-2xl font-bold mb-6">Your Next Steps</h2>
+                
+                <div class="space-y-4">
+                    {% for step in next_steps %}
+                    <div class="next-step-card rounded-xl p-6 {% if step.completed %}completed{% endif %}">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                                <i class="{{ step.icon }} text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold mb-2">{{ step.title }}</h3>
+                                <p class="text-gray-600 mb-4">{{ step.description }}</p>
+                                {% if not step.completed %}
+                                    <a href="{{ step.url }}" class="btn btn-primary btn-sm">
+                                        Get Started
+                                        <i class="fas fa-arrow-right ml-2"></i>
+                                    </a>
+                                {% else %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="mt-8 p-6 bg-gray-50 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{% url 'events:event_list' %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-calendar mr-2"></i>
+                            Browse Events
+                        </a>
+                        <a href="{% url 'profiles:users_list' %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-users mr-2"></i>
+                            Meet Riders
+                        </a>
+                        <a href="{% url 'profiles:my_profile' %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-user mr-2"></i>
+                            View My Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Status -->
+            <div class="space-y-6">
+                <!-- Completion Status -->
+                <div class="bg-white rounded-xl p-6 text-center shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4">Profile Status</h3>
+                    <div class="progress-ring mb-4" style="--completion-angle: {{ completion_percentage|mul:3.6 }}deg;">
+                        <div class="percentage">{{ completion_percentage }}%</div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">
+                        {% if completion_percentage < 30 %}
+                            Your profile is just getting started. Add some basic info to reach 50%!
+                        {% elif completion_percentage < 60 %}
+                            Good progress! A few more details will help you connect better.
+                        {% elif completion_percentage < 80 %}
+                            Almost there! Your profile is looking great.
+                        {% else %}
+                            Awesome! Your profile is nearly complete.
+                        {% endif %}
+                    </p>
+                    {% if completion_percentage < 70 %}
+                        <a href="{% url 'profiles:complete_signup' %}" class="btn btn-primary btn-sm">
+                            Complete Profile
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Community Stats -->
+                <div class="bg-gradient-to-r from-primary to-secondary text-white rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">Join Our Community</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span>Active Riders</span>
+                            <span class="font-bold">500+</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>Monthly Events</span>
+                            <span class="font-bold">50+</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>Countries</span>
+                            <span class="font-bold">25+</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-sm opacity-90">
+                        You're now part of a global skateboarding community!
+                    </div>
+                </div>
+                
+                <!-- Quick Tips -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                        Pro Tips
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-1 flex-shrink-0"></i>
+                            <span>Complete your profile to get better event recommendations</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-1 flex-shrink-0"></i>
+                            <span>Follow riders with similar interests</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-1 flex-shrink-0"></i>
+                            <span>RSVP to events to meet the community</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-green-500 mt-1 flex-shrink-0"></i>
+                            <span>Share your skating journey and experiences</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-8 pt-6 border-t border-gray-200">
+            <p class="text-gray-600 mb-4">
+                Need help getting started? Check out our 
+                <a href="#" class="link link-primary">Getting Started Guide</a>
+                or <a href="#" class="link link-primary">Contact Support</a>
+            </p>
+            <div class="flex justify-center gap-4">
+                <a href="{% url 'profiles:complete_signup' %}" class="btn btn-primary">
+                    <i class="fas fa-rocket mr-2"></i>
+                    Complete Setup
+                </a>
+                <a href="{% url 'events:event_list' %}" class="btn btn-outline">
+                    <i class="fas fa-calendar mr-2"></i>
+                    Explore Events
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some celebratory effects
+    setTimeout(() => {
+        // You could add confetti or other celebration effects here
+        console.log('Welcome to the community! 🎉');
+    }, 1000);
+    
+    // Track that user has seen the welcome page
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'signup_success', {
+            event_category: 'User Registration',
+            event_label: 'Welcome Page Viewed'
+        });
+    }
+    
+    // Auto-focus on primary CTA if user seems to be waiting
+    setTimeout(() => {
+        const primaryBtn = document.querySelector('.btn-primary');
+        if (primaryBtn && document.activeElement === document.body) {
+            primaryBtn.focus();
+        }
+    }, 3000);
+});
+</script>
+{% endblock %}

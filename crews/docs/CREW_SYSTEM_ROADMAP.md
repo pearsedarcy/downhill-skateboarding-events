@@ -830,6 +830,6 @@ This comprehensive roadmap provides a clear path from the current state to a wor
 
 ---
 
-*Last updated: {{ current_date }}*
+*Last updated: {{ 22/07/25 }}*
 *Document version: 1.0*
 *Next review: 2 weeks*
