@@ -1,0 +1,603 @@
+<!-- Settings Tab Content -->
+<div class="space-y-6">
+    <!-- Settings Header -->
+    <div class="text-center mb-8">
+        <h3 class="text-2xl font-bold mb-2">Profile Settings</h3>
+        <p class="text-base-content/70">
+            Manage your profile information, privacy settings, and account preferences
+        </p>
+    </div>
+    
+    <!-- Quick Settings -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title text-primary mb-6">
+                <i class="fas fa-sliders-h mr-2"></i>
+                Quick Settings
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Profile Visibility -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Profile Visibility</span>
+                        <span class="badge badge-sm">{{ profile.get_profile_visibility_display }}</span>
+                    </label>
+                    <select class="select select-bordered" 
+                            data-field="profile_visibility" 
+                            onchange="updateField(this)">
+                        <option value="PUBLIC" {% if profile.profile_visibility == 'PUBLIC' %}selected{% endif %}>
+                            Public to all
+                        </option>
+                        <option value="COMMUNITY" {% if profile.profile_visibility == 'COMMUNITY' %}selected{% endif %}>
+                            Skateboarding community only
+                        </option>
+                        <option value="CREWS" {% if profile.profile_visibility == 'CREWS' %}selected{% endif %}>
+                            My crews only
+                        </option>
+                        <option value="PRIVATE" {% if profile.profile_visibility == 'PRIVATE' %}selected{% endif %}>
+                            Private
+                        </option>
+                    </select>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">
+                            Control who can view your profile
+                        </span>
+                    </label>
+                </div>
+                
+                <!-- Skating Style -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Skating Style</span>
+                        {% if profile.skating_style %}
+                            <span class="badge badge-sm badge-primary">{{ profile.get_skating_style_display }}</span>
+                        {% endif %}
+                    </label>
+                    <select class="select select-bordered" 
+                            data-field="skating_style" 
+                            onchange="updateField(this)">
+                        <option value="">Select your style...</option>
+                        {% for value, display in skating_style_choices %}
+                            <option value="{{ value }}" {% if profile.skating_style == value %}selected{% endif %}>
+                                {{ display }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">
+                            Your preferred skating discipline
+                        </span>
+                    </label>
+                </div>
+                
+                <!-- Skill Level -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Skill Level</span>
+                        {% if profile.skill_level %}
+                            <span class="badge badge-sm badge-secondary">{{ profile.skill_level }}/10</span>
+                        {% endif %}
+                    </label>
+                    <input type="range" 
+                           min="1" max="10" 
+                           value="{{ profile.skill_level|default:5 }}" 
+                           class="range range-primary" 
+                           data-field="skill_level"
+                           onchange="updateField(this)">
+                    <div class="w-full flex justify-between text-xs px-2 mt-1">
+                        <span>Beginner</span>
+                        <span>Intermediate</span>
+                        <span>Expert</span>
+                        <span>Pro</span>
+                    </div>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">
+                            Rate your skating ability (1-10)
+                        </span>
+                    </label>
+                </div>
+                
+                <!-- Stance -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Stance</span>
+                        {% if profile.stance %}
+                            <span class="badge badge-sm badge-accent">{{ profile.get_stance_display }}</span>
+                        {% endif %}
+                    </label>
+                    <select class="select select-bordered" 
+                            data-field="stance" 
+                            onchange="updateField(this)">
+                        <option value="">Select your stance...</option>
+                        {% for value, display in stance_choices %}
+                            <option value="{{ value }}" {% if profile.stance == value %}selected{% endif %}>
+                                {{ display }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">
+                            Your natural skateboarding stance
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Privacy Toggles -->
+            <div class="divider mt-8 mb-6">Privacy Controls</div>
+            
+            <div class="space-y-4">
+                <div class="form-control">
+                    <label class="cursor-pointer label">
+                        <span class="label-text">
+                            <div class="flex flex-col">
+                                <span class="font-semibold">Show real name</span>
+                                <span class="text-sm text-base-content/60">
+                                    Display your first and last name on your profile
+                                </span>
+                            </div>
+                        </span>
+                        <input type="checkbox" 
+                               class="toggle toggle-primary" 
+                               {% if profile.show_real_name %}checked{% endif %}
+                               data-field="show_real_name"
+                               onchange="updateToggle(this)">
+                    </label>
+                </div>
+                
+                <div class="form-control">
+                    <label class="cursor-pointer label">
+                        <span class="label-text">
+                            <div class="flex flex-col">
+                                <span class="font-semibold">Show location</span>
+                                <span class="text-sm text-base-content/60">
+                                    Display your city and country on your profile
+                                </span>
+                            </div>
+                        </span>
+                        <input type="checkbox" 
+                               class="toggle toggle-primary" 
+                               {% if profile.show_location %}checked{% endif %}
+                               data-field="show_location"
+                               onchange="updateToggle(this)">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Information -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title text-secondary mb-6">
+                <i class="fas fa-user-edit mr-2"></i>
+                Profile Information
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-4">
+                    <!-- Display Name -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Display Name</span>
+                        </label>
+                        <input type="text" 
+                               value="{{ profile.display_name|default:profile.user.username }}" 
+                               class="input input-bordered" 
+                               data-field="display_name"
+                               onblur="updateField(this)"
+                               placeholder="Your display name">
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">
+                                How you want to be known in the community
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <!-- Bio -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Bio</span>
+                            <span class="label-text-alt">{{ profile.bio|length|default:0 }}/500</span>
+                        </label>
+                        <textarea class="textarea textarea-bordered h-32" 
+                                  data-field="bio"
+                                  onblur="updateField(this)"
+                                  maxlength="500"
+                                  placeholder="Tell us about yourself, your skating journey, favorite spots...">{{ profile.bio }}</textarea>
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">
+                                Share your story with the community
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">City</span>
+                            </label>
+                            <input type="text" 
+                                   value="{{ profile.city }}" 
+                                   class="input input-bordered" 
+                                   data-field="city"
+                                   onblur="updateField(this)"
+                                   placeholder="Your city">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Country</span>
+                            </label>
+                            <input type="text" 
+                                   value="{{ profile.country }}" 
+                                   class="input input-bordered" 
+                                   data-field="country"
+                                   onblur="updateField(this)"
+                                   placeholder="Your country">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="space-y-4">
+                    <!-- Years Skating -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Years Skating</span>
+                        </label>
+                        <input type="number" 
+                               value="{{ profile.years_skating }}" 
+                               class="input input-bordered" 
+                               data-field="years_skating"
+                               onblur="updateField(this)"
+                               min="0" max="100"
+                               placeholder="How many years">
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">
+                                How long have you been skating?
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <!-- Primary Setup -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Primary Setup</span>
+                            <span class="label-text-alt">{{ profile.primary_setup|length|default:0 }}/300</span>
+                        </label>
+                        <textarea class="textarea textarea-bordered h-32" 
+                                  data-field="primary_setup"
+                                  onblur="updateField(this)"
+                                  maxlength="300"
+                                  placeholder="Describe your skateboard setup (deck, trucks, wheels, bearings...)">{{ profile.primary_setup }}</textarea>
+                        <label class="label">
+                            <span class="label-text-alt text-base-content/60">
+                                Tell others about your gear
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Social Links -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title text-info mb-6">
+                <i class="fas fa-share-alt mr-2"></i>
+                Social Links
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Instagram -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <i class="fab fa-instagram text-pink-500"></i>
+                            Instagram
+                        </span>
+                    </label>
+                    <input type="text" 
+                           value="{{ profile.instagram }}" 
+                           class="input input-bordered" 
+                           data-field="instagram"
+                           onblur="updateField(this)"
+                           placeholder="username (without @)">
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">
+                            Your Instagram handle
+                        </span>
+                    </label>
+                </div>
+                
+                <!-- YouTube -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <i class="fab fa-youtube text-red-500"></i>
+                            YouTube
+                        </span>
+                    </label>
+                    <input type="url" 
+                           value="{{ profile.youtube }}" 
+                           class="input input-bordered" 
+                           data-field="youtube"
+                           onblur="updateField(this)"
+                           placeholder="Your YouTube channel URL">
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">
+                            Link to your YouTube channel
+                        </span>
+                    </label>
+                </div>
+                
+                <!-- Website -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <i class="fas fa-globe text-blue-500"></i>
+                            Website
+                        </span>
+                    </label>
+                    <input type="url" 
+                           value="{{ profile.website }}" 
+                           class="input input-bordered" 
+                           data-field="website"
+                           onblur="updateField(this)"
+                           placeholder="Your personal website">
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">
+                            Your personal website or blog
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Account Actions -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title text-warning mb-6">
+                <i class="fas fa-cog mr-2"></i>
+                Account Actions
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Profile Completion -->
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-figure text-primary">
+                        <i class="fas fa-chart-pie text-2xl"></i>
+                    </div>
+                    <div class="stat-title">Profile Completion</div>
+                    <div class="stat-value text-primary">{{ completion_percentage }}%</div>
+                    <div class="stat-desc">
+                        {% if completion_percentage >= 80 %}
+                            Excellent! Your profile is almost complete.
+                        {% elif completion_percentage >= 50 %}
+                            Good progress! Keep filling out your profile.
+                        {% else %}
+                            Complete your profile to get more visibility.
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <progress class="progress progress-primary w-full" value="{{ completion_percentage }}" max="100"></progress>
+                    </div>
+                    
+                    {% if completion_suggestions %}
+                        <div class="mt-4 space-y-2">
+                            <h4 class="font-semibold text-sm">Quick wins:</h4>
+                            {% for suggestion in completion_suggestions|slice:":2" %}
+                                <div class="flex items-center gap-2 text-sm">
+                                    <i class="fas fa-arrow-right text-primary"></i>
+                                    {{ suggestion.message }}
+                                    <span class="badge badge-primary badge-xs">+{{ suggestion.weight }}%</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Account Security -->
+                <div class="space-y-4">
+                    <div class="card bg-base-200">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-sm">
+                                <i class="fas fa-shield-alt text-success mr-2"></i>
+                                Account Security
+                            </h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Email verified:</span>
+                                    <span class="badge badge-success badge-xs">Yes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Profile visibility:</span>
+                                    <span class="badge badge-info badge-xs">{{ profile.get_profile_visibility_display }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Member since:</span>
+                                    <span class="text-base-content/70">{{ profile.created_at|date:"M Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <button class="btn btn-sm btn-outline w-full" onclick="changePassword()">
+                            <i class="fas fa-key mr-2"></i>
+                            Change Password
+                        </button>
+                        
+                        <button class="btn btn-sm btn-outline w-full" onclick="exportData()">
+                            <i class="fas fa-download mr-2"></i>
+                            Export My Data
+                        </button>
+                        
+                        <button class="btn btn-sm btn-outline btn-error w-full" onclick="deleteAccount()">
+                            <i class="fas fa-trash mr-2"></i>
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Field update functions
+function updateField(element) {
+    const field = element.dataset.field;
+    const value = element.value;
+    
+    if (!field) return;
+    
+    // Show loading state
+    element.disabled = true;
+    element.classList.add('loading');
+    
+    fetch('{% url "profiles:update_profile_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            field: field,
+            value: value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success feedback
+            element.classList.add('input-success');
+            setTimeout(() => {
+                element.classList.remove('input-success');
+            }, 2000);
+        } else {
+            alert('Error: ' + data.error);
+            // Revert the value if it failed
+            if (data.original_value !== undefined) {
+                element.value = data.original_value;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while saving.');
+    })
+    .finally(() => {
+        element.disabled = false;
+        element.classList.remove('loading');
+    });
+}
+
+function updateToggle(element) {
+    const field = element.dataset.field;
+    const value = element.checked;
+    
+    fetch('{% url "profiles:update_profile_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            field: field,
+            value: value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            alert('Error: ' + data.error);
+            // Revert the toggle
+            element.checked = !value;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating.');
+        // Revert the toggle
+        element.checked = !value;
+    });
+}
+
+// Account actions
+function changePassword() {
+    window.location.href = '{% url "account_change_password" %}';
+}
+
+function exportData() {
+    if (confirm('This will generate a download of all your profile data. Continue?')) {
+        // Implementation for data export
+        alert('Data export feature coming soon!');
+    }
+}
+
+function deleteAccount() {
+    const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:');
+    if (confirmation === 'DELETE') {
+        if (confirm('Are you absolutely sure? This will permanently delete your account and all associated data.')) {
+            fetch('{% url "profiles:delete_profile" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Your account has been deleted.');
+                    window.location.href = '/';
+                } else {
+                    alert('An error occurred while deleting your account.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting your account.');
+            });
+        }
+    }
+}
+
+// Character counter for textareas
+document.addEventListener('DOMContentLoaded', function() {
+    const textareas = document.querySelectorAll('textarea[maxlength]');
+    textareas.forEach(textarea => {
+        const updateCounter = () => {
+            const maxLength = textarea.getAttribute('maxlength');
+            const currentLength = textarea.value.length;
+            const label = textarea.parentElement.querySelector('.label-text-alt');
+            if (label && label.textContent.includes('/')) {
+                label.textContent = `${currentLength}/${maxLength}`;
+            }
+        };
+        
+        textarea.addEventListener('input', updateCounter);
+        updateCounter(); // Initial update
+    });
+});
+
+// Auto-save functionality
+let saveTimeout;
+function autoSave(element) {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        updateField(element);
+    }, 1000); // Auto-save after 1 second of inactivity
+}
+
+// Add auto-save to input fields
+document.querySelectorAll('input[data-field], textarea[data-field]').forEach(element => {
+    element.addEventListener('input', () => autoSave(element));
+});
+</script>

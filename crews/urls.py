@@ -38,4 +38,14 @@ urlpatterns = [
     
     # Activity feed
     path('<slug:slug>/activity/', views.crew_activity, name='activity'),
+    
+    # Permission Management (Task 4)
+    path('<slug:slug>/permissions/', views.manage_permissions, name='manage_permissions'),
+    path('<slug:slug>/permissions/<int:user_id>/edit/', views.edit_member_permissions, name='edit_member_permissions'),
+    path('<slug:slug>/permissions/bulk/', views.bulk_permissions, name='bulk_permissions'),
+    path('<slug:slug>/permissions/ajax/toggle/', views.ajax_toggle_permission, name='ajax_toggle_permission'),
+    
+    # Enhanced Member Profiles (Phase 3)
+    path('<slug:slug>/member/<int:user_id>/profile/', views.member_profile_detail, name='member_profile_detail'),
+    path('<slug:slug>/member/<int:user_id>/permissions/', views.update_member_permissions, name='update_member_permissions'),
 ]

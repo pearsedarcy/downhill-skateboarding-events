@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{% if list_type == 'followers' %}
+    {{ profile.get_display_name }}'s Followers
+{% else %}
+    {{ profile.get_display_name }} is Following
+{% endif %}
+- Downhill Skateboarding Events{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center space-x-4">
+            <!-- Back to profile -->
+            <a href="{% url 'profiles:user_profile' profile.user.username %}" 
+               class="btn btn-ghost btn-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Profile
+            </a>
+            
+            <!-- Profile avatar and name -->
+            <div class="flex items-center space-x-3">
+                <div class="avatar">
+                    <div class="w-12 h-12 rounded-full">
+                        {% if profile.avatar %}
+                            <img src="{{ profile.avatar.url }}" alt="{{ profile.get_display_name }}" />
+                        {% else %}
+                            <div class="bg-gradient-to-br from-blue-500 to-purple-600 w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                                {{ profile.get_display_name|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">
+                        {% if list_type == 'followers' %}
+                            {{ profile.get_display_name }}'s Followers
+                        {% else %}
+                            {{ profile.get_display_name }} is Following
+                        {% endif %}
+                    </h1>
+                    <p class="text-base-content/70">
+                        {% if list_type == 'followers' %}
+                            {{ followers_count }} follower{{ followers_count|pluralize }}
+                        {% else %}
+                            {{ following_count }} following
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab switching -->
+        <div class="tabs tabs-boxed">
+            <a href="{% url 'profiles:followers_list' profile.user.id %}" 
+               class="tab {% if list_type == 'followers' %}tab-active{% endif %}">
+                Followers
+            </a>
+            <a href="{% url 'profiles:following_list' profile.user.id %}" 
+               class="tab {% if list_type == 'following' %}tab-active{% endif %}">
+                Following
+            </a>
+        </div>
+    </div>
+
+    <!-- Follow list -->
+    {% if page_obj %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for follow_obj in page_obj %}
+                {% if list_type == 'followers' %}
+                    {% with follow_obj.follower as user_obj %}
+                        {% with user_obj.profile as user_profile %}
+                            <div class="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center space-x-3">
+                                        <!-- Avatar -->
+                                        <div class="avatar">
+                                            <div class="w-12 h-12 rounded-full">
+                                                <a href="{% url 'profiles:user_profile' user_obj.username %}">
+                                                    {% if user_profile.avatar %}
+                                                        <img src="{{ user_profile.avatar.url }}" alt="{{ user_profile.get_display_name }}" />
+                                                    {% else %}
+                                                        <div class="bg-gradient-to-br from-green-500 to-blue-600 w-full h-full flex items-center justify-center text-white font-bold">
+                                                            {{ user_profile.get_display_name|first|upper }}
+                                                        </div>
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- User info -->
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">
+                                                <a href="{% url 'profiles:user_profile' user_obj.username %}" 
+                                                   class="hover:text-primary">
+                                                    {{ user_profile.get_display_name }}
+                                                </a>
+                                            </h3>
+                                            <p class="text-sm text-base-content/70">
+                                                @{{ user_obj.username }}
+                                            </p>
+                                            {% if user_profile.get_location_display %}
+                                                <p class="text-xs text-base-content/60">
+                                                    📍 {{ user_profile.get_location_display }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Follow button -->
+                                        {% if user != user_obj %}
+                                            <div class="flex-shrink-0">
+                                                {% include 'profiles/partials/follow_button.html' with profile=user_profile is_following=user_profile.is_following_current_user %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Bio excerpt -->
+                                    {% if user_profile.bio %}
+                                        <p class="text-sm text-base-content/80 mt-2 line-clamp-2">
+                                            {{ user_profile.bio|truncatewords:15 }}
+                                        </p>
+                                    {% endif %}
+                                    
+                                    <!-- Skating info -->
+                                    {% if user_profile.skating_style or user_profile.skill_level %}
+                                        <div class="flex flex-wrap gap-1 mt-2">
+                                            {% if user_profile.skating_style %}
+                                                <div class="badge badge-primary badge-sm">
+                                                    {{ user_profile.get_skating_style_display }}
+                                                </div>
+                                            {% endif %}
+                                            {% if user_profile.skill_level %}
+                                                <div class="badge badge-secondary badge-sm">
+                                                    Level {{ user_profile.skill_level }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Follow date -->
+                                    <p class="text-xs text-base-content/50 mt-2">
+                                        Followed {{ follow_obj.created_at|timesince }} ago
+                                    </p>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endwith %}
+                {% else %}
+                    {% with follow_obj.following as user_obj %}
+                        {% with user_obj.profile as user_profile %}
+                            <div class="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center space-x-3">
+                                        <!-- Avatar -->
+                                        <div class="avatar">
+                                            <div class="w-12 h-12 rounded-full">
+                                                <a href="{% url 'profiles:user_profile' user_obj.username %}">
+                                                    {% if user_profile.avatar %}
+                                                        <img src="{{ user_profile.avatar.url }}" alt="{{ user_profile.get_display_name }}" />
+                                                    {% else %}
+                                                        <div class="bg-gradient-to-br from-green-500 to-blue-600 w-full h-full flex items-center justify-center text-white font-bold">
+                                                            {{ user_profile.get_display_name|first|upper }}
+                                                        </div>
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- User info -->
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">
+                                                <a href="{% url 'profiles:user_profile' user_obj.username %}" 
+                                                   class="hover:text-primary">
+                                                    {{ user_profile.get_display_name }}
+                                                </a>
+                                            </h3>
+                                            <p class="text-sm text-base-content/70">
+                                                @{{ user_obj.username }}
+                                            </p>
+                                            {% if user_profile.get_location_display %}
+                                                <p class="text-xs text-base-content/60">
+                                                    📍 {{ user_profile.get_location_display }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Follow button -->
+                                        {% if user != user_obj and not is_own_profile %}
+                                            <div class="flex-shrink-0">
+                                                {% include 'profiles/partials/follow_button.html' with profile=user_profile is_following=user_profile.is_following_current_user %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Bio excerpt -->
+                                    {% if user_profile.bio %}
+                                        <p class="text-sm text-base-content/80 mt-2 line-clamp-2">
+                                            {{ user_profile.bio|truncatewords:15 }}
+                                        </p>
+                                    {% endif %}
+                                    
+                                    <!-- Skating info -->
+                                    {% if user_profile.skating_style or user_profile.skill_level %}
+                                        <div class="flex flex-wrap gap-1 mt-2">
+                                            {% if user_profile.skating_style %}
+                                                <div class="badge badge-primary badge-sm">
+                                                    {{ user_profile.get_skating_style_display }}
+                                                </div>
+                                            {% endif %}
+                                            {% if user_profile.skill_level %}
+                                                <div class="badge badge-secondary badge-sm">
+                                                    Level {{ user_profile.skill_level }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Follow date -->
+                                    <p class="text-xs text-base-content/50 mt-2">
+                                        Following since {{ follow_obj.created_at|timesince }} ago
+                                    </p>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endwith %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="flex justify-center mt-8">
+                <div class="join">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn">«</a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="join-item btn btn-active">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}" class="join-item btn">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="join-item btn">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12">
+            <div class="text-6xl mb-4">👥</div>
+            <h3 class="text-xl font-semibold mb-2">
+                {% if list_type == 'followers' %}
+                    No followers yet
+                {% else %}
+                    Not following anyone yet
+                {% endif %}
+            </h3>
+            <p class="text-base-content/70">
+                {% if list_type == 'followers' %}
+                    When people follow {{ profile.get_display_name }}, they'll appear here.
+                {% else %}
+                    When {{ profile.get_display_name }} follows people, they'll appear here.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+{% csrf_token %}
+{% endblock %}

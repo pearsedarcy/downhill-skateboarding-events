@@ -1,0 +1,226 @@
+<!-- Member Profile Content for Modal -->
+<div class="flex flex-col space-y-6">
+    <!-- Header -->
+    <div class="flex items-start space-x-4">
+        <div class="avatar">
+            <div class="w-16 h-16 rounded-xl">
+                {% if member.profile.avatar %}
+                    <img src="{{ member.profile.avatar.url }}" alt="{{ member.get_full_name|default:member.username }}">
+                {% else %}
+                    <div class="bg-primary/20 flex items-center justify-center h-full">
+                        <i class="fas fa-user text-2xl text-primary/60"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex-1">
+            <h3 class="text-xl font-bold">
+                {{ member.get_full_name|default:member.username }}
+                {% if member_membership.nickname %}
+                <span class="text-sm opacity-70">"{{ member_membership.nickname }}"</span>
+                {% endif %}
+            </h3>
+            <p class="text-sm opacity-70">@{{ member.username }}</p>
+            <div class="flex flex-wrap gap-2 mt-2">
+                {% if member_membership.role == 'OWNER' %}
+                <div class="badge badge-warning">{{ member_membership.get_role_display }}</div>
+                {% elif member_membership.role == 'ADMIN' %}
+                <div class="badge badge-info">{{ member_membership.get_role_display }}</div>
+                {% elif member_membership.role == 'EVENT_MANAGER' %}
+                <div class="badge badge-success">{{ member_membership.get_role_display }}</div>
+                {% else %}
+                <div class="badge badge-outline">{{ member_membership.get_role_display }}</div>
+                {% endif %}
+                
+                <div class="badge badge-outline">
+                    Joined {{ member_membership.joined_at|date:"M Y" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Bio in Crew -->
+    {% if member_membership.bio %}
+    <div>
+        <h4 class="font-semibold mb-2">Role in {{ crew.name }}</h4>
+        <p class="text-sm opacity-80">{{ member_membership.bio }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Permissions & Role Details -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card bg-base-200">
+            <div class="card-body p-4">
+                <h5 class="font-semibold mb-3">
+                    <i class="fas fa-shield-alt text-primary mr-2"></i>
+                    Permissions
+                </h5>
+                <div class="space-y-2">
+                    {% if permissions.role_based %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Full Access</span>
+                        <i class="fas fa-crown text-warning"></i>
+                    </div>
+                    {% else %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Create Events</span>
+                        {% if permissions.create %}
+                        <i class="fas fa-check text-success"></i>
+                        {% else %}
+                        <i class="fas fa-times text-error"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Edit Events</span>
+                        {% if permissions.edit %}
+                        <i class="fas fa-check text-success"></i>
+                        {% else %}
+                        <i class="fas fa-times text-error"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Publish Events</span>
+                        {% if permissions.publish %}
+                        <i class="fas fa-check text-success"></i>
+                        {% else %}
+                        <i class="fas fa-times text-error"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Delegate Permissions</span>
+                        {% if permissions.delegate %}
+                        <i class="fas fa-check text-success"></i>
+                        {% else %}
+                        <i class="fas fa-times text-error"></i>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if can_manage_member %}
+                <div class="divider my-2"></div>
+                <button class="btn btn-outline btn-sm w-full" id="manage-permissions-btn">
+                    <i class="fas fa-cog mr-2"></i>
+                    Manage Permissions
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card bg-base-200">
+            <div class="card-body p-4">
+                <h5 class="font-semibold mb-3">
+                    <i class="fas fa-chart-bar text-success mr-2"></i>
+                    Crew Statistics
+                </h5>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Events Organized</span>
+                        <span class="font-bold">{{ member_stats.events_organized }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Events Participated</span>
+                        <span class="font-bold">{{ member_stats.events_participated }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Member Since</span>
+                        <span class="text-sm">{{ member_stats.member_since|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">Time in Role</span>
+                        <span class="text-sm">{{ member_stats.role_duration.days }} days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    {% if recent_activity %}
+    <div>
+        <h4 class="font-semibold mb-3">
+            <i class="fas fa-history text-info mr-2"></i>
+            Recent Activity
+        </h4>
+        <div class="space-y-2">
+            {% for activity in recent_activity %}
+            <div class="flex items-center space-x-3 p-2 bg-base-200 rounded">
+                <div class="w-2 h-2 rounded-full bg-primary"></div>
+                <div class="flex-1">
+                    <p class="text-sm">{{ activity.description }}</p>
+                    <p class="text-xs opacity-60">{{ activity.created_at|timesince }} ago</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Member's Events with Crew -->
+    {% if member_events %}
+    <div>
+        <h4 class="font-semibold mb-3">
+            <i class="fas fa-calendar-alt text-warning mr-2"></i>
+            Recent Events Organized
+        </h4>
+        <div class="grid gap-2">
+            {% for event in member_events %}
+            <div class="flex items-center justify-between p-2 bg-base-200 rounded">
+                <div>
+                    <p class="font-medium text-sm">{{ event.name }}</p>
+                    <p class="text-xs opacity-60">{{ event.start_date|date:"M d, Y" }}</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    {% if event.is_published %}
+                    <div class="badge badge-success badge-xs">Published</div>
+                    {% else %}
+                    <div class="badge badge-warning badge-xs">Draft</div>
+                    {% endif %}
+                    <a href="{% url 'events:event_detail' event.slug %}" class="btn btn-ghost btn-xs">
+                        View
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not recent_activity and not member_events %}
+    <div class="text-center py-6">
+        <i class="fas fa-clock text-2xl text-base-content/20 mb-2"></i>
+        <p class="text-sm opacity-60">No recent activity to display</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Permission Manager (Hidden by default) -->
+{% if can_manage_member %}
+<div id="permission-manager" class="hidden mt-6 p-4 bg-base-200 rounded-lg">
+    <h4 class="font-semibold mb-4">Manage Permissions for {{ member.get_full_name|default:member.username }}</h4>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for perm_type, has_permission in permissions.items %}
+        {% if perm_type != 'role_based' %}
+        <div class="form-control">
+            <label class="cursor-pointer label">
+                <span class="label-text">{{ perm_type|title }} Events</span>
+                <input type="checkbox" 
+                       class="toggle toggle-primary permission-toggle" 
+                       data-permission="{{ perm_type }}"
+                       data-user-id="{{ member.id }}"
+                       {% if has_permission %}checked{% endif %}>
+            </label>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    
+    <div class="flex justify-end mt-4">
+        <button class="btn btn-outline btn-sm" onclick="togglePermissionManager()">
+            Cancel
+        </button>
+    </div>
+</div>
+
+{% endif %}

@@ -36,7 +36,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=['*'])
 # Application definition
 
 INSTALLED_APPS = [
-    "unfold",
+    # "unfold",  # Temporarily disabled
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -178,13 +178,21 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Allauth settings
+# Allauth settings
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
-
+ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
-
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGIN_ON_SIGNUP = True  # Automatically log in users after successful signup
 ACCOUNT_ADAPTER = 'profiles.adapters.CustomAccountAdapter'
-ACCOUNT_SIGNUP_REDIRECT_URL = "/profiles/edit/"
+ACCOUNT_SIGNUP_REDIRECT_URL = "/profiles/"
+ACCOUNT_LOGIN_REDIRECT_URL = "/profiles/"
+
+# Custom signup form
+ACCOUNT_FORMS = {
+    'signup': 'profiles.signup_forms.EnhancedSignupForm',
+}
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

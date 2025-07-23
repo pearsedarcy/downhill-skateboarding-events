@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Complete Your Profile - Downhill Skateboarding Events{% endblock %}
+
+{% block meta_description %}
+Complete your skateboarding profile to connect with the community and discover personalized events and riders.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .completion-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .completion-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "images/skateboard-pattern.svg" %}') repeat;
+        opacity: 0.1;
+        z-index: 1;
+    }
+    
+    .completion-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 10;
+    }
+    
+    .completion-progress {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        height: 8px;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    .form-section {
+        background: #f8fafc;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .form-section:hover {
+        border-color: hsl(var(--p) / 0.3);
+        background: hsl(var(--p) / 0.05);
+    }
+    
+    .form-section h3 {
+        color: hsl(var(--p));
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .skating-style-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0;
+    }
+    
+    .skating-style-option {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1rem 0.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .skating-style-option:hover {
+        border-color: hsl(var(--p));
+        background: hsl(var(--p) / 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .skating-style-option.selected {
+        border-color: hsl(var(--p));
+        background: hsl(var(--p));
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .skating-style-option i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .completion-stats {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .completion-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(
+            hsl(var(--p)) var(--completion-angle),
+            #e5e7eb var(--completion-angle)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+    
+    .completion-circle::before {
+        content: '';
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        position: absolute;
+    }
+    
+    .completion-circle .percentage {
+        position: relative;
+        z-index: 1;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: hsl(var(--p));
+    }
+    
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .benefit-item:hover {
+        border-color: hsl(var(--p));
+        transform: translateX(4px);
+    }
+    
+    .benefit-item i {
+        color: hsl(var(--p));
+        font-size: 1.25rem;
+        width: 24px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="completion-container flex items-center justify-center p-4">
+    <div class="completion-card rounded-2xl p-8 w-full max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                {% if is_new_user %}
+                    Welcome to the Community!
+                {% else %}
+                    Complete Your Profile
+                {% endif %}
+            </h1>
+            <p class="text-gray-600">
+                {% if is_new_user %}
+                    Let's set up your skateboarding profile to connect you with the right riders and events
+                {% else %}
+                    Add more details to your profile to get better recommendations and connect with the community
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Form -->
+            <div class="lg:col-span-2">
+                <form method="post" id="profile-completion-form">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-user"></i>
+                            Basic Information
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Display Name</span>
+                                    <span class="label-text-alt">Optional</span>
+                                </label>
+                                {{ form.display_name }}
+                                {% if form.display_name.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.display_name.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                                <label class="label">
+                                    <span class="label-text-alt">Leave blank to use your username</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-control md:col-span-2">
+                                <label class="label">
+                                    <span class="label-text font-medium">Bio</span>
+                                    <span class="label-text-alt">Optional</span>
+                                </label>
+                                {{ form.bio }}
+                                {% if form.bio.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.bio.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                                <label class="label">
+                                    <span class="label-text-alt">
+                                        <span id="bio-count">{{ form.bio.value|length|default:0 }}</span>/500 characters
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-map-marker-alt"></i>
+                            Location
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Country</span>
+                                </label>
+                                {{ form.country }}
+                                {% if form.country.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.country.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">City</span>
+                                </label>
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.city.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-control mt-4">
+                            <label class="cursor-pointer label justify-start gap-3">
+                                {{ form.show_location }}
+                                <span class="label-text">Show my location on my profile</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Skating Profile -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-skateboarding"></i>
+                            Skating Profile
+                        </h3>
+                        
+                        <!-- Skating Style -->
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text font-medium">Preferred Skating Style</span>
+                            </label>
+                            <div class="skating-style-grid">
+                                <div class="skating-style-option {% if form.skating_style.value == 'DOWNHILL' %}selected{% endif %}" data-value="DOWNHILL">
+                                    <i class="fas fa-mountain"></i>
+                                    <div class="font-medium text-sm">Downhill</div>
+                                </div>
+                                <div class="skating-style-option {% if form.skating_style.value == 'FREERIDE' %}selected{% endif %}" data-value="FREERIDE">
+                                    <i class="fas fa-road"></i>
+                                    <div class="font-medium text-sm">Freeride</div>
+                                </div>
+                                <div class="skating-style-option {% if form.skating_style.value == 'FREESTYLE' %}selected{% endif %}" data-value="FREESTYLE">
+                                    <i class="fas fa-star"></i>
+                                    <div class="font-medium text-sm">Freestyle</div>
+                                </div>
+                                <div class="skating-style-option {% if form.skating_style.value == 'CRUISING' %}selected{% endif %}" data-value="CRUISING">
+                                    <i class="fas fa-leaf"></i>
+                                    <div class="font-medium text-sm">Cruising</div>
+                                </div>
+                                <div class="skating-style-option {% if form.skating_style.value == 'DANCING' %}selected{% endif %}" data-value="DANCING">
+                                    <i class="fas fa-music"></i>
+                                    <div class="font-medium text-sm">Dancing</div>
+                                </div>
+                                <div class="skating-style-option {% if form.skating_style.value == 'OTHER' %}selected{% endif %}" data-value="OTHER">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                    <div class="font-medium text-sm">Other</div>
+                                </div>
+                            </div>
+                            {{ form.skating_style }}
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Skill Level</span>
+                                </label>
+                                {{ form.skill_level }}
+                                {% if form.skill_level.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.skill_level.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                                <label class="label">
+                                    <span class="label-text-alt">1 = Beginner, 10 = Professional</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Years Skating</span>
+                                </label>
+                                {{ form.years_skating }}
+                                {% if form.years_skating.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.years_skating.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Stance</span>
+                                </label>
+                                {{ form.stance }}
+                                {% if form.stance.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.stance.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-control mt-4">
+                            <label class="label">
+                                <span class="label-text font-medium">Primary Setup</span>
+                                <span class="label-text-alt">Optional</span>
+                            </label>
+                            {{ form.primary_setup }}
+                            {% if form.primary_setup.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.primary_setup.errors|join:", " }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Social & Privacy -->
+                    <div class="form-section">
+                        <h3>
+                            <i class="fas fa-share-alt"></i>
+                            Social & Privacy
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Instagram</span>
+                                    <span class="label-text-alt">Optional</span>
+                                </label>
+                                <div class="join">
+                                    <span class="join-item bg-base-200 border border-base-300 px-3 flex items-center">@</span>
+                                    {{ form.instagram }}
+                                </div>
+                                {% if form.instagram.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.instagram.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Profile Visibility</span>
+                                </label>
+                                {{ form.profile_visibility }}
+                                {% if form.profile_visibility.errors %}
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ form.profile_visibility.errors|join:", " }}</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit -->
+                    <div class="flex justify-between items-center mt-8">
+                        <a href="{% url 'profiles:my_profile' %}" class="btn btn-outline">
+                            Skip for Now
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Completion Progress -->
+                <div class="completion-stats">
+                    <h3 class="font-bold text-lg mb-4">Profile Completion</h3>
+                    <div class="completion-circle" style="--completion-angle: {{ completion_percentage|mul:3.6 }}deg;">
+                        <div class="percentage">{{ completion_percentage }}%</div>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        {% if completion_percentage < 30 %}
+                            Just getting started! Add some basic info to reach 50%.
+                        {% elif completion_percentage < 60 %}
+                            Good progress! A few more details will make your profile shine.
+                        {% elif completion_percentage < 80 %}
+                            Almost there! Your profile is looking great.
+                        {% else %}
+                            Awesome! Your profile is nearly complete.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <!-- Benefits -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="font-bold text-lg mb-4">Why Complete Your Profile?</h3>
+                    <div class="space-y-3">
+                        <div class="benefit-item">
+                            <i class="fas fa-users"></i>
+                            <div>
+                                <div class="font-medium">Connect with Riders</div>
+                                <div class="text-sm text-gray-600">Find skaters with similar interests</div>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <div class="font-medium">Personalized Events</div>
+                                <div class="text-sm text-gray-600">Get recommendations based on your level</div>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-trophy"></i>
+                            <div>
+                                <div class="font-medium">Track Progress</div>
+                                <div class="text-sm text-gray-600">Show off your skating achievements</div>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <div class="font-medium">Privacy Control</div>
+                                <div class="text-sm text-gray-600">You control who sees what</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Tips -->
+                {% if is_new_user %}
+                <div class="bg-gradient-to-r from-primary to-secondary text-white rounded-2xl p-6">
+                    <h3 class="font-bold text-lg mb-3">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        Pro Tips
+                    </h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>• Add your skating style to find events that match your interests</li>
+                        <li>• Set your skill level to get appropriate recommendations</li>
+                        <li>• Your bio helps other riders understand your skating journey</li>
+                        <li>• Privacy settings let you control your profile visibility</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bio character counter
+    const bioTextarea = document.querySelector('textarea[name="bio"]');
+    const bioCounter = document.getElementById('bio-count');
+    
+    if (bioTextarea && bioCounter) {
+        bioTextarea.addEventListener('input', function() {
+            bioCounter.textContent = this.value.length;
+        });
+    }
+    
+    // Skating style selection
+    const skatingStyleSelect = document.querySelector('select[name="skating_style"]');
+    document.querySelectorAll('.skating-style-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove previous selection
+            document.querySelectorAll('.skating-style-option').forEach(opt => 
+                opt.classList.remove('selected'));
+            
+            // Add selection to clicked option
+            this.classList.add('selected');
+            if (skatingStyleSelect) {
+                skatingStyleSelect.value = this.dataset.value;
+            }
+        });
+    });
+    
+    // Form submission enhancement
+    const form = document.getElementById('profile-completion-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<span class="loading loading-spinner"></span> Saving...';
+            submitBtn.disabled = true;
+        });
+    }
+    
+    // Instagram field enhancement
+    const instagramField = document.querySelector('input[name="instagram"]');
+    if (instagramField) {
+        instagramField.addEventListener('input', function() {
+            // Remove @ if user types it
+            if (this.value.startsWith('@')) {
+                this.value = this.value.substring(1);
+            }
+        });
+    }
+    
+    // Auto-focus first empty field
+    const firstEmptyField = form.querySelector('input:not([value]), textarea:empty, select[value=""]');
+    if (firstEmptyField) {
+        firstEmptyField.focus();
+    }
+});
+</script>
+{% endblock %}

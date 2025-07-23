@@ -98,7 +98,10 @@ class Event(SearchableModel):
     updated = models.DateTimeField(auto_now=True)
     published = models.BooleanField(default=False)
     attendees = models.ManyToManyField(
-        UserProfile, through="RSVP", related_name="attending_events"
+        UserProfile, 
+        through="RSVP", 
+        related_name="attending_events",
+        blank=True
     )
     cost = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True, default=0.00
@@ -151,20 +154,98 @@ class Event(SearchableModel):
         return self.results.filter(result_type='KNOCKOUT').first()
     
     def can_manage(self, user):
-        """Check if a user can manage this event."""
-        if not user.is_authenticated:
+        """
+        Check if a user can manage this event.
+        
+        Users can manage events if they are:
+        1. The original organizer
+        2. A superuser
+        3. A crew member with appropriate permissions (for crew events)
+        """
+        if not user or not user.is_authenticated:
             return False
         
         # Check if user is the original organizer
         if self.organizer and self.organizer.user == user:
             return True
             
+        # Superusers can always manage
+        if user.is_superuser:
+            return True
+            
         # If no crew is assigned, only organizer/admin can manage
         if not self.created_by_crew:
-            return user.is_superuser
+            return False
             
-        # Check crew permissions
-        return self.created_by_crew.can_create_events(user)
+        # Check crew permissions - user needs edit permission for existing events
+        return self.created_by_crew.can_edit_events(user)
+    
+    def can_publish(self, user):
+        """
+        Check if a user can publish/unpublish this event.
+        
+        Users can publish events if they are:
+        1. The original organizer
+        2. A superuser
+        3. A crew member with publish permissions (for crew events)
+        """
+        if not user or not user.is_authenticated:
+            return False
+        
+        # Check if user is the original organizer
+        if self.organizer and self.organizer.user == user:
+            return True
+            
+        # Superusers can always publish
+        if user.is_superuser:
+            return True
+            
+        # If no crew is assigned, only organizer/admin can publish
+        if not self.created_by_crew:
+            return False
+            
+        # Check crew permissions - user needs publish permission
+        return self.created_by_crew.can_publish_events(user)
+    
+    def get_user_rsvp(self, user):
+        """Get the RSVP status for a specific user."""
+        if not user.is_authenticated:
+            return None
+        try:
+            return self.rsvps.get(user=user.profile)
+        except RSVP.DoesNotExist:
+            return None
+    
+    def get_user_rsvp_status(self, user):
+        """Get the RSVP status string for a specific user."""
+        rsvp = self.get_user_rsvp(user)
+        return rsvp.status if rsvp else None
+    
+    def get_attendee_counts(self):
+        """Get counts for each RSVP status."""
+        from django.db.models import Count, Q
+        
+        counts = self.rsvps.aggregate(
+            going=Count('id', filter=Q(status='Going')),
+            interested=Count('id', filter=Q(status='Interested')),
+            not_interested=Count('id', filter=Q(status='Not interested')),
+            total=Count('id')
+        )
+        return counts
+    
+    def get_going_count(self):
+        """Get count of users marked as going."""
+        return self.rsvps.filter(status='Going').count()
+    
+    def get_interested_count(self):
+        """Get count of users marked as interested.""" 
+        return self.rsvps.filter(status='Interested').count()
+    
+    def is_full(self):
+        """Check if event has reached max attendees."""
+        if not self.max_attendees or self.max_attendees == 0:
+            return False
+        return self.get_going_count() >= self.max_attendees
 
 
 class Location(models.Model):
@@ -179,16 +260,60 @@ class Location(models.Model):
 
 
 class RSVP(models.Model):
+    """User RSVP for an event with proper constraints and validation."""
+    
+    STATUS_CHOICES = [
+        ('Going', 'Going'),
+        ('Interested', 'Interested'),
+        ('Not interested', 'Not interested'),
+    ]
+    
     user = models.ForeignKey(
-        UserProfile, on_delete=models.CASCADE, related_name="rsvps"
+        UserProfile, 
+        on_delete=models.CASCADE, 
+        related_name="rsvps"
     )
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="rsvps")
+    event = models.ForeignKey(
+        Event, 
+        on_delete=models.CASCADE, 
+        related_name="rsvps"
+    )
     status = models.CharField(
-        max_length=50, choices=[("Going", "Going"), ("Interested", "Interested")]
+        max_length=20,
+        choices=STATUS_CHOICES,
+        help_text="User's attendance intention"
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'RSVP'
+        verbose_name_plural = 'RSVPs'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'event'], 
+                name='unique_user_event_rsvp'
+            )
+        ]
 
     def __str__(self):
         return f"{self.user.user.username} - {self.event.title} - {self.status}"
+    
+    @property
+    def is_attending(self):
+        """Check if user is actually attending (Going status)."""
+        return self.status == 'Going'
+    
+    @property  
+    def is_interested(self):
+        """Check if user is interested but not committed."""
+        return self.status == 'Interested'
+    
+    @property
+    def is_not_interested(self):
+        """Check if user marked as not interested."""
+        return self.status == 'Not interested'
 
 
 class Review(models.Model):

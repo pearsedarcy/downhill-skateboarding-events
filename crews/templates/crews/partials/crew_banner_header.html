@@ -1,0 +1,116 @@
+<!-- Full Screen Banner -->
+{% if crew.banner %}
+<div class="relative h-64 md:h-80 lg:h-96 bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden">
+    <img src="{{ crew.banner.url }}" alt="{{ crew.name }} banner" 
+         class="w-full h-full object-cover">
+    <!-- Banner Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+    
+    <!-- Crew Info Overlay -->
+    <div class="absolute bottom-6 left-0 right-0 px-4">
+        <div class="container mx-auto">
+            <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+                <!-- Logo on Banner -->
+                <div class="avatar self-center sm:self-auto relative">
+                    <div class="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-xl bg-base-100/95 backdrop-blur-sm p-2 md:p-3">
+                        {% if crew.logo %}
+                            <img src="{{ crew.logo.url }}" alt="{{ crew.name }} logo" class="w-full h-full object-contain">
+                        {% else %}
+                            <div class="flex items-center justify-center h-full">
+                                <i class="fas fa-users text-xl md:text-2xl lg:text-3xl text-primary/60"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if crew.is_verified %}
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 md:w-8 md:h-8 bg-success rounded-full flex items-center justify-center border-2 border-white shadow-lg z-10">
+                        <i class="fas fa-check text-white text-xs md:text-sm font-bold"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Crew Title on Banner -->
+                <div class="flex-1 text-white text-center sm:text-left">
+                    <h1 class="text-2xl md:text-4xl lg:text-5xl font-bold drop-shadow-lg mb-2">{{ crew.name }}</h1>
+                    <div class="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
+                        <div class="badge badge-primary bg-primary/90 backdrop-blur-sm">{{ crew.get_crew_type_display }}</div>
+                        <div class="badge badge-outline border-white/50 text-white bg-white/10 backdrop-blur-sm">{{ crew.get_primary_discipline_display }}</div>
+                        {% if crew.city and crew.country %}
+                        <div class="badge badge-outline border-white/50 text-white bg-white/10 backdrop-blur-sm">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ crew.city }}, {{ crew.country.name }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center sm:justify-start items-center gap-4 text-sm text-white/90">
+                        <span class="flex items-center">
+                            <i class="fas fa-user mr-1"></i>
+                            {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                        </span>
+                        <span class="flex items-center">
+                            <i class="fas fa-calendar mr-1"></i>
+                            Created {{ crew.created_at|date:"M Y" }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons on Banner -->
+                {% include 'crews/partials/crew_action_buttons.html' with banner_mode=True %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- No Banner Version -->
+<div class="bg-gradient-to-br from-primary/20 to-secondary/20">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-8">
+            <div class="avatar mb-4 lg:mb-6 relative">
+                <div class="w-24 h-24 lg:w-32 lg:h-32 rounded-xl bg-base-200 mx-auto">
+                    {% if crew.logo %}
+                        <img src="{{ crew.logo.url }}" alt="{{ crew.name }} logo">
+                    {% else %}
+                        <div class="flex items-center justify-center h-full">
+                            <i class="fas fa-users text-4xl lg:text-5xl text-primary/40"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if crew.is_verified %}
+                <div class="absolute -bottom-1 -right-1 w-7 h-7 lg:w-9 lg:h-9 bg-success rounded-full flex items-center justify-center border-2 border-white shadow-lg z-10">
+                    <i class="fas fa-check text-white text-sm lg:text-base font-bold"></i>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <h1 class="text-3xl lg:text-5xl font-bold text-base-content">{{ crew.name }}</h1>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-2 mb-6">
+                <div class="badge badge-primary">{{ crew.get_crew_type_display }}</div>
+                <div class="badge badge-outline">{{ crew.get_primary_discipline_display }}</div>
+                {% if crew.city and crew.country %}
+                <div class="badge badge-outline">
+                    <i class="fas fa-map-marker-alt mr-1"></i>
+                    {{ crew.city }}, {{ crew.country.name }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex flex-wrap justify-center items-center gap-4 text-sm text-base-content/70 mb-8">
+                <span class="flex items-center">
+                    <i class="fas fa-user mr-1"></i>
+                    {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                </span>
+                <span class="flex items-center">
+                    <i class="fas fa-calendar mr-1"></i>
+                    Created {{ crew.created_at|date:"M Y" }}
+                </span>
+            </div>
+            
+            <!-- Action Buttons -->
+            {% include 'crews/partials/crew_action_buttons.html' with banner_mode=False %}
+        </div>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Bulk Permission Management - {{ crew.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Bulk Permission Management</h1>
+            <p class="text-base-content/70 mt-2">{{ crew.name }}</p>
+        </div>
+        <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left"></i>
+            Back to Permissions
+        </a>
+    </div>
+
+    <!-- Bulk Operations Form -->
+    <form method="post" id="bulk-form">
+        {% csrf_token %}
+
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-header px-6 py-4 border-b border-base-200">
+                <h3 class="text-lg font-semibold">Bulk Permission Management</h3>
+                <p class="text-sm text-base-content/70 mt-1">
+                    Select members, choose an action, and specify the permission type to modify
+                </p>
+            </div>
+            <div class="card-body">
+                <!-- Member Selection -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-3">Select Members</label>
+                    <div class="space-y-2 max-h-64 overflow-y-auto border border-base-200 rounded-box p-4">
+                        <div class="form-control">
+                            <label class="label cursor-pointer justify-start gap-3">
+                                <input type="checkbox" class="checkbox checkbox-primary" id="select-all-members">
+                                <span class="label-text font-medium">Select All Members</span>
+                            </label>
+                        </div>
+                        <div class="divider my-2"></div>
+                        {% for member in eligible_members %}
+                        <div class="form-control">
+                            <label class="label cursor-pointer justify-start gap-3">
+                                <input type="checkbox" name="members" value="{{ member.id }}" 
+                                       class="checkbox member-checkbox">
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-8 h-8">
+                                            {% if member.user.userprofile.profile_picture %}
+                                            <img src="{{ member.user.userprofile.profile_picture.url }}" alt="{{ member.user.username }}">
+                                            {% else %}
+                                            <div class="bg-primary text-primary-content flex items-center justify-center text-xs font-bold">
+                                                {{ member.user.username|first|upper }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="label-text">
+                                            {{ member.user.get_full_name|default:member.user.username }}
+                                        </span>
+                                        <span class="text-xs text-base-content/70 block">
+                                            @{{ member.user.username }} - {{ member.get_role_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        {% empty %}
+                        <p class="text-base-content/70 text-center py-4">No eligible members found</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Action and Permission Selection -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Action Selection -->
+                    <div>
+                        <label class="block text-sm font-medium mb-3">Action</label>
+                        <div class="space-y-2">
+                            {% for choice in form.action %}
+                            <div class="form-control">
+                                <label class="label cursor-pointer justify-start gap-3">
+                                    {{ choice.tag }}
+                                    <span class="label-text">{{ choice.choice_label }}</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Permission Type Selection -->
+                    <div>
+                        <label class="block text-sm font-medium mb-3">Permission Type</label>
+                        {{ form.permission_type }}
+                        <div class="mt-2 text-xs text-base-content/70">
+                            <p><strong>Create Events:</strong> Allow creating new events for this crew</p>
+                            <p><strong>Edit Events:</strong> Allow modifying existing crew events</p>
+                            <p><strong>Publish Events:</strong> Allow publishing/unpublishing events</p>
+                            <p><strong>Delegate Permissions:</strong> Allow granting/revoking permissions to other members</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Optional Reason -->
+                <div>
+                    <label class="block text-sm font-medium mb-3">{{ form.reason.label }}</label>
+                    {{ form.reason }}
+                    {% if form.reason.help_text %}
+                    <p class="text-xs text-base-content/70 mt-1">{{ form.reason.help_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3">
+            <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-ghost">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-check"></i>
+                Apply Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all functionality
+    document.getElementById('select-all-members').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.member-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+
+    // Form validation
+    document.getElementById('bulk-form').addEventListener('submit', function(e) {
+        const selectedMembers = document.querySelectorAll('input[name="members"]:checked');
+        const actionSelected = document.querySelector('input[name="action"]:checked');
+        const permissionSelected = document.querySelector('select[name="permission_type"]').value;
+
+        if (selectedMembers.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one member.');
+            return;
+        }
+
+        if (!actionSelected) {
+            e.preventDefault();
+            alert('Please select an action (Grant or Revoke).');
+            return;
+        }
+
+        if (!permissionSelected) {
+            e.preventDefault();
+            alert('Please select a permission type.');
+            return;
+        }
+
+        // Confirmation dialog
+        const action = actionSelected.value;
+        const permissionText = document.querySelector('select[name="permission_type"] option:checked').text;
+        const memberCount = selectedMembers.length;
+        
+        const confirmMessage = `Are you sure you want to ${action} "${permissionText}" permission for ${memberCount} member(s)?`;
+        
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

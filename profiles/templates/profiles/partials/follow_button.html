@@ -1,0 +1,194 @@
+{% load static %}
+
+<!-- Follow/Unfollow Button Component -->
+{% if user.is_authenticated and user != profile.user %}
+<div class="follow-button-container" data-user-id="{{ profile.user.id }}">
+    <!-- Check if current user is following this profile -->
+    {% if is_following %}
+        <button 
+            class="btn btn-outline btn-sm following-btn hover:btn-error" 
+            data-action="unfollow"
+            data-user-id="{{ profile.user.id }}"
+            onclick="toggleFollow(this)"
+        >
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="btn-text">Following</span>
+            <span class="btn-text-hover hidden">Unfollow</span>
+        </button>
+    {% else %}
+        <button 
+            class="btn btn-primary btn-sm follow-btn" 
+            data-action="follow"
+            data-user-id="{{ profile.user.id }}"
+            onclick="toggleFollow(this)"
+        >
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Follow
+        </button>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+function toggleFollow(button) {
+    const userId = button.dataset.userId;
+    const action = button.dataset.action;
+    const container = button.closest('.follow-button-container');
+    
+    // Disable button during request
+    button.disabled = true;
+    
+    const url = action === 'follow' 
+        ? `/profiles/api/follow/${userId}/`
+        : `/profiles/api/unfollow/${userId}/`;
+    
+    // Get CSRF token - try multiple methods
+    let csrfToken = null;
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+        csrfToken = csrfInput.value;
+    } else {
+        // Try getting from cookie
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        csrfToken = cookieValue;
+    }
+    
+    if (!csrfToken) {
+        ToastManager.error('Security token not found. Please refresh the page.');
+        button.disabled = false;
+        return;
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button state
+            if (data.action === 'followed') {
+                button.outerHTML = `
+                    <button 
+                        class="btn btn-outline btn-sm following-btn hover:btn-error" 
+                        data-action="unfollow"
+                        data-user-id="${userId}"
+                        onclick="toggleFollow(this)"
+                    >
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="btn-text">Following</span>
+                        <span class="btn-text-hover hidden">Unfollow</span>
+                    </button>
+                `;
+            } else {
+                button.outerHTML = `
+                    <button 
+                        class="btn btn-primary btn-sm follow-btn" 
+                        data-action="follow"
+                        data-user-id="${userId}"
+                        onclick="toggleFollow(this)"
+                    >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Follow
+                    </button>
+                `;
+            }
+            
+            // Update follower counts
+            updateFollowerCounts(data.follower_count, data.following_count);
+            
+            // Show success message
+            ToastManager.success(data.message);
+        } else {
+            ToastManager.error(data.error || 'Failed to update follow status');
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        ToastManager.error('Network error occurred');
+        button.disabled = false;
+    });
+}
+
+function updateFollowerCounts(followerCount, followingCount) {
+    // Update the profile owner's follower count (the person being followed/unfollowed)
+    const followerCountElement = document.querySelector('.follower-count');
+    if (followerCountElement) {
+        followerCountElement.textContent = followerCount;
+    }
+    
+    // Update any follower count displays with specific data attributes
+    const followerCountElements = document.querySelectorAll('[data-follower-count]');
+    followerCountElements.forEach(element => {
+        element.textContent = followerCount;
+    });
+    
+    // Note: We don't update the profile owner's following count (.following-count) 
+    // because that represents how many people THEY follow, not related to this follow action
+    
+    // If there's a user navigation area showing the current user's stats, update that
+    // This would be for updating the logged-in user's own following count in a sidebar/nav
+    const currentUserFollowingElement = document.querySelector('.current-user-following-count');
+    if (currentUserFollowingElement) {
+        currentUserFollowingElement.textContent = followingCount;
+    }
+}
+
+// Add hover effect for following button
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('mouseenter', function(e) {
+        const btn = e.target.classList && e.target.classList.contains('following-btn') 
+            ? e.target 
+            : e.target.closest && e.target.closest('.following-btn');
+            
+        if (btn) {
+            const textSpan = btn.querySelector('.btn-text');
+            const hoverSpan = btn.querySelector('.btn-text-hover');
+            if (textSpan && hoverSpan) {
+                textSpan.classList.add('hidden');
+                hoverSpan.classList.remove('hidden');
+            }
+        }
+    }, true);
+    
+    document.addEventListener('mouseleave', function(e) {
+        const btn = e.target.classList && e.target.classList.contains('following-btn')
+            ? e.target 
+            : e.target.closest && e.target.closest('.following-btn');
+            
+        if (btn) {
+            const textSpan = btn.querySelector('.btn-text');
+            const hoverSpan = btn.querySelector('.btn-text-hover');
+            if (textSpan && hoverSpan) {
+                textSpan.classList.remove('hidden');
+                hoverSpan.classList.add('hidden');
+            }
+        }
+    }, true);
+});
+</script>
+
+<style>
+.following-btn:hover .btn-text {
+    display: none;
+}
+.following-btn:hover .btn-text-hover {
+    display: inline;
+}
+</style>

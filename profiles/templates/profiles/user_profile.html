@@ -1,351 +1,762 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
-{% load custom_filters %}
 
-{% block extra_head %}
-<meta name="csrf-token" content="{{ csrf_token }}">  <!-- Change this line -->
+{% block title %}{{ profile.get_display_name }}'s Profile - Downhill Skateboarding Events{% endblock %}
+
+{% block meta_description %}
+View {{ profile.get_display_name }}'s skateboarding profile. 
+{% if profile.bio %}{{ profile.bio|truncatewords:20 }}{% endif %}
+{% if profile.get_location_display %} From {{ profile.get_location_display }}.{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "images/skateboard-pattern.svg" %}') repeat;
+        opacity: 0.1;
+        z-index: 1;
+    }
+    
+    .profile-avatar {
+        position: relative;
+        z-index: 10;
+        border: 4px solid white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    
+    .skating-style-badge {
+        background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .skating-style-badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+    }
+    
+    .achievement-item {
+        transition: all 0.3s ease;
+    }
+    
+    .achievement-item:hover {
+        transform: translateX(4px);
+    }
+    
+    .stat {
+        transition: all 0.3s ease;
+    }
+    
+    .stat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .verification-badge {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .profile-section {
+        transition: all 0.3s ease;
+    }
+    
+    .profile-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .social-link {
+        transition: transform 0.2s ease;
+    }
+    
+    .social-link:hover {
+        transform: scale(1.1);
+    }
+    
+    .event-card {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .event-card:hover {
+        border-color: hsl(var(--p));
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .completion-progress {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .tab-content {
+        min-height: 400px;
+    }
+    
+    .profile-edit-overlay {
+        backdrop-filter: blur(5px);
+        background: rgba(0, 0, 0, 0.5);
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-base-200 py-8">
-  <div class="max-w-[1200px] mx-auto px-4">
-    <!-- Profile Card Section -->
-    <div class="card bg-base-100 shadow-xl mb-8">
-      <div class="card-body">
-        <!-- Edit Mode Toggle -->
-        {% if request.user == profile.user %}
-        <div class="absolute bottom-4 right-4 flex gap-2 z-10">
-          <button onclick="toggleEditMode()" class="btn btn-circle" id="edit-toggle-btn">
-            <i class="fas fa-edit"></i>
-          </button>
-          <a href="{% url 'profiles:edit_profile' %}" class="btn btn-circle" title="Profile Settings">
-            <i class="fas fa-cog"></i>
-          </a>
+<div class="min-h-screen bg-base-100">
+    <!-- Profile Header Section -->
+    <section class="profile-banner relative h-80 sm:h-80 md:h-80 flex items-center pb-2 sm:pb-4 md:pb-8">
+        <div class="container mx-auto px-2 sm:px-4 relative z-10">
+            <div class="flex flex-col md:flex-row items-center md:items-end gap-2 sm:gap-4 md:gap-6">
+                <!-- Avatar -->
+                <div class="relative">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" 
+                             alt="{{ profile.get_display_name }}'s avatar" 
+                             class="profile-avatar w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 rounded-full object-cover">
+                    {% else %}
+                        <div class="profile-avatar w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                            <i class="fas fa-user text-xl sm:text-3xl md:text-5xl text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Verification Badge -->
+                    {% if profile.verification_status != 'UNVERIFIED' %}
+                        <div class="verification-badge absolute -top-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-success rounded-full flex items-center justify-center border-2 border-white">
+                            <i class="fas fa-check text-white text-xs sm:text-sm"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Edit Avatar Button (if owner) -->
+                    {% if can_edit %}
+                        <button class="absolute bottom-0 right-0 btn btn-xs sm:btn-sm btn-circle btn-primary border-2 border-white" 
+                                onclick="document.getElementById('avatar-modal').showModal()">
+                            <i class="fas fa-camera text-xs sm:text-sm"></i>
+                        </button>
+                    {% endif %}
+                </div>
+                
+                <!-- Profile Info -->
+                <div class="text-center md:text-left text-white flex-1">
+                    <h1 class="text-xl sm:text-2xl  font-bold mb-1 sm:mb-2">
+                        {{ profile.get_display_name }}
+                        {% if profile.skating_style %}
+                            <span class="text-sm sm:text-lg font-normal opacity-90">🛹</span>
+                        {% endif %}
+                    </h1>
+                    <h2 class="text-sm sm:text-lg font-normal opacity-90">
+                        {% if profile.show_real_name and profile.get_full_name != profile.get_display_name %}
+                            ({{ profile.get_full_name }})
+                        {% endif %}
+                    </h2>
+                    <!-- Location -->
+                    {% if profile.get_location_display %}
+                        <p class="text-sm sm:text-lg opacity-90 mb-1 sm:mb-2">
+                            <i class="fas fa-map-marker-alt mr-1 sm:mr-2"></i>
+                            {{ profile.get_location_display }}
+                        </p>
+                    {% endif %}
+                    
+                    <!-- Skateboarding Identity -->
+                    <div class="flex flex-wrap gap-1 sm:gap-2 justify-center md:justify-start mb-2 sm:mb-4">
+                        {% if profile.skating_style %}
+                            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm font-semibold">
+                                {{ profile.get_skating_style_display }} Skater
+                            </span>
+                        {% endif %}
+                        {% if profile.stance %}
+                            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
+                                {{ profile.get_stance_display }} Stance
+                            </span>
+                        {% endif %}
+                        {% if profile.years_skating %}
+                            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
+                                {{ profile.years_skating }}yr{{ profile.years_skating|pluralize }} exp
+                            </span>
+                        {% endif %}
+                        {% if profile.skill_level %}
+                            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
+                                Level {{ profile.skill_level }}/10
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Bio -->
+                    {% if profile.bio %}
+                        <p class="text-sm sm:text-base opacity-90 max-w-2xl leading-relaxed hidden sm:block">{{ profile.bio }}</p>
+                        <p class="text-xs opacity-90 leading-relaxed sm:hidden">{{ profile.bio|truncatewords:15 }}</p>
+                    {% else %}
+                        <p class="text-xs sm:text-base opacity-70 italic">
+                            {% if can_edit %}
+                                Add a bio 🎯
+                            {% else %}
+                                No bio yet
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-1 sm:gap-2">
+                    {% if can_edit %}
+                        <button class="btn btn-xs sm:btn-sm btn-primary" onclick="console.log('Edit button clicked'); const modal = document.getElementById('edit-modal'); console.log('Modal element:', modal); if(modal) modal.showModal(); else console.error('Edit modal not found');">
+                            <i class="fas fa-edit mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                            <span class="hidden sm:inline">Edit Profile</span>
+                            <span class="sm:hidden">Edit</span>
+                        </button>
+                    {% else %}
+                        <!-- Follow/Unfollow Button -->
+                        {% include 'profiles/partials/follow_button.html' %}
+                        
+                        <button class="btn btn-xs sm:btn-sm btn-outline btn-secondary">
+                            <i class="fas fa-envelope mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                            <span class="hidden sm:inline">Message</span>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        {% endif %}
-
-        <!-- Profile Header Layout -->
-        <div class="flex flex-col md:flex-row items-center gap-6">
-          <!-- Avatar -->
-          <div class="avatar relative">
-            <div class="w-32 h-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-              {% if profile.avatar %}
-                <img src="{{ profile.avatar.url }}" alt="{{ profile.user.username }}'s avatar" id="avatar-image" />
-              {% else %}
-                <img src="{% static 'images/default-profile.webp' %}" alt="Default avatar" id="avatar-image" />
-              {% endif %}
+    </section>
+    
+    <!-- Profile Stats -->
+    <section class="container mx-auto px-2 sm:px-4 -mt-4 relative z-20">
+        <!-- Profile Stats - Skateboard Focus -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8">
+            <!-- Social Stats -->
+            <div class="stat bg-base-200 rounded-lg p-2 sm:p-3 lg:p-4">
+                <div class="stat-figure text-secondary">
+                    <i class="fas fa-users text-sm sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="stat-title text-xs">Followers</div>
+                <div class="stat-value text-sm sm:text-lg lg:text-xl follower-count">{{ follower_count }}</div>
+                <div class="stat-desc text-xs">
+                    <a href="{% url 'profiles:followers_list' profile.user.id %}" class="link link-primary">View all</a>
+                </div>
             </div>
-            {% if request.user == profile.user %}
-            <label for="avatar-upload" class="btn btn-circle btn-sm absolute bottom-0 right-0 hidden edit-button">
-              <i class="fas fa-camera"></i>
-            </label>
-            <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="updateAvatar(this)">
-            {% endif %}
-          </div>
-          
-          <!-- Basic Info -->
-          <div class="flex-grow">
-            <div class="flex items-center gap-2">
-              <h1 class="text-3xl font-bold username-display">{{ profile.user.username }}</h1>
-              {% if request.user == profile.user %}
-              <button onclick="editField('username')" class="btn btn-ghost btn-xs hidden edit-button">
-                <i class="fas fa-edit"></i>
-              </button>
-              {% endif %}
+            
+            <div class="stat bg-base-200 rounded-lg p-2 sm:p-3 lg:p-4">
+                <div class="stat-figure text-accent">
+                    <i class="fas fa-user-friends text-sm sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="stat-title text-xs">Following</div>
+                <div class="stat-value text-sm sm:text-lg lg:text-xl following-count">{{ following_count }}</div>
+                <div class="stat-desc text-xs">
+                    <a href="{% url 'profiles:following_list' profile.user.id %}" class="link link-primary">View all</a>
+                </div>
             </div>
-            <p class="text-lg opacity-70">Member since {{ profile.created_at|date:"F Y" }}</p>
-            {% if profile.instagram %}
-            <div class="flex items-center gap-2">
-                <a href="https://instagram.com/{{ profile.instagram }}" class="btn btn-ghost btn-sm gap-2" target="_blank">
-                    <i class="fab fa-instagram text-l mt-0.5"></i>
-                    <span class="instagram-display">{{ profile.instagram }}</span>
-                </a>
-                {% if request.user == profile.user %}
-                <button onclick="editField('instagram')" class="btn btn-ghost btn-xs hidden edit-button">
-                    <i class="fas fa-edit"></i>
-                </button>
+            
+            <div class="stat bg-base-200 rounded-lg p-2 sm:p-3 lg:p-4">
+                <div class="stat-figure text-primary">
+                    <i class="fas fa-crown text-sm sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="stat-title text-xs">Events Organized</div>
+                <div class="stat-value text-sm sm:text-lg lg:text-xl">{{ skating_stats.events_organized }}</div>
+                {% if skating_stats.events_organized > 0 %}
+                <div class="stat-desc text-xs hidden sm:block">Building community</div>
                 {% endif %}
             </div>
-            {% endif %}
-          </div>
-          
-          <!-- Stats -->
-          <div class="stats stats-vertical lg:stats-horizontal shadow">
-            <div class="stat">
-              <div class="stat-title">Events</div>
-              <div class="stat-value">{{ profile.organized_events.count }}</div>
-              <div class="stat-desc">Organized</div>
+            <div class="stat bg-base-200 rounded-lg p-2 sm:p-3 lg:p-4">
+                <div class="stat-figure text-secondary">
+                    <i class="fas fa-skating text-sm sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="stat-title text-xs">Events Attended</div>
+                <div class="stat-value text-sm sm:text-lg lg:text-xl">{{ skating_stats.events_attended }}</div>
+                <div class="stat-desc text-xs hidden sm:block">Sessions completed</div>
             </div>
-            <div class="stat">
-              <div class="stat-title">Attending</div>
-              <div class="stat-value">{{ profile.attending_events.count }}</div>
-              <div class="stat-desc">Events</div>
+            <div class="stat bg-base-200 rounded-lg p-2 sm:p-3 lg:p-4">
+                <div class="stat-figure text-accent">
+                    <i class="fas fa-comment-dots text-sm sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="stat-title text-xs">Reviews Given</div>
+                <div class="stat-value text-sm sm:text-lg lg:text-xl">{{ skating_stats.reviews_given }}</div>
+                <div class="stat-desc text-xs hidden sm:block">Helping others</div>
             </div>
-          </div>
-        </div>
-        
-        <!-- Bio Section -->
-        {% if profile.bio %}
-        <div class="divider"></div>
-        <div class="prose max-w-none relative">
-            <div class="bio-display">{{ profile.bio|linebreaks }}</div>
-            {% if request.user == profile.user %}
-            <button onclick="editField('bio')" class="btn btn-ghost btn-xs absolute top-0 right-0 hidden edit-button">
-                <i class="fas fa-edit"></i>
-            </button>
-            {% endif %}
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- Tab Navigation -->
-     <h2>Events</h2>
-    <div class="tabs tabs-boxed mb-6" id="profile-tabs">
-
-      {% if organized_events %}
-      <a class="tab" data-tab="organized" data-content="organized-content">Your Events</a>
-      {% endif %}
-      <a class="tab" data-tab="attending" data-content="attending-content">Attending</a>
-      <a class="tab" data-tab="reviews" data-content="reviews-content">Reviews</a>
-      <a class="tab" data-tab="favorites" data-content="favorites-content">
-        <i class="fas fa-bookmark mr-2"></i>
-        Saved
-      </a>
-    </div>
-
-    <!-- Tab Content Sections -->
-    <div id="organized-content" class="tab-content grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for event in organized_events %}
-      <div class="card bg-base-100 shadow-xl">
-        <div class="relative">
-          <figure class="px-4 pt-4">
-            {% if event.cover_image %}
-            <img src="{{ event.cover_image.url }}" class="rounded-xl h-48 w-full object-cover" alt="{{ event.title }}" />
-            {% else %}
-            <img src="{% static 'images/default_cover_image.jpg' %}" class="rounded-xl h-48 w-full object-cover" alt="Default event image" />
-            {% endif %}
-          </figure>
-          {% if request.user == profile.user %}
-          <div class="absolute top-6 right-6 flex gap-2">
-            <a href="{% url 'events:edit_event' event.slug %}" class="btn btn-circle btn-sm">
-              <i class="fas fa-edit"></i>
-            </a>
-          </div>
-          {% endif %}
-        </div>
-        <div class="card-body">
-          <h2 class="card-title">{{ event.title }}</h2>
-          <p>{{ event.description|truncatewords:20 }}</p>
-          <div class="card-actions justify-end">
-            {% if event.slug %}
-            <a href="{% url 'events:event_details' event.slug %}" class="btn btn-primary btn-sm">View Event</a>
-            {% else %}
-            <button class="btn btn-disabled btn-sm">View Event</button>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="col-span-3 text-center py-8">
-        <div class="alert">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span>No events organized yet.</span>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Attending Events Tab -->
-    <div id="attending-content" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for event in attending_events %}
-      <div class="card bg-base-100 shadow-xl" data-event-id="{{ event.id }}">
-        <div class="relative">
-          <figure class="px-4 pt-4">
-            {% if event.cover_image %}
-            <img src="{{ event.cover_image.url }}" class="rounded-xl h-48 w-full object-cover" alt="{{ event.title }}" />
-            {% else %}
-            <img src="{% static 'images/default_cover_image.jpg' %}" class="rounded-xl h-48 w-full object-cover" alt="Default event image" />
-            {% endif %}
-          </figure>
-          {% with status=rsvp_statuses|get_item:event.id %}
-          <div class="absolute top-6 right-6">
-            {% if request.user == profile.user %}
-            <div class="dropdown dropdown-end">
-              <button class="badge badge-lg gap-2 
-                {% if status == 'Going' %}badge-primary
-                {% elif status == 'Not interested' %}badge-error
-                {% else %}badge-secondary{% endif %}" tabindex="0">
-                {% if status == 'Going' %}
-                <i class="fas fa-check-circle"></i>
-                {% elif status == 'Not interested' %}
-                <i class="fas fa-times-circle"></i>
-                {% else %}
-                <i class="fas fa-star"></i>
+            <div class="stat bg-base-200 rounded-lg p-2 sm:p-3 lg:p-4">
+                <div class="stat-figure text-warning">
+                    <i class="fas fa-star text-sm sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="stat-title text-xs">Avg Rating</div>
+                <div class="stat-value text-sm sm:text-lg lg:text-xl">
+                    {% if skating_stats.avg_rating %}
+                        {{ skating_stats.avg_rating|floatformat:1 }}★
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+                {% if skating_stats.avg_rating %}
+                <div class="stat-desc text-xs hidden sm:block">Community trust</div>
                 {% endif %}
-                {{ status }}
-              </button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Profile Content -->
+    <section class="container mx-auto px-2 sm:px-4 pb-4 sm:pb-8 lg:pb-12">
+        <div class="bg-base-100 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden">
+            <!-- Content -->
+            <div class="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 lg:space-y-8">
+                <!-- Overview Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <!-- Left Column - Profile Details -->
+                    <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+                        <!-- Skateboarding Setup -->
+                        {% if profile.primary_setup or profile.stance or profile.skill_level %}
+                            <div class="profile-section card bg-base-100 shadow-lg">
+                                <div class="card-body p-3 sm:p-4 lg:p-6">
+                                    <h2 class="card-title text-primary text-sm sm:text-base">
+                                        <i class="fas fa-skating mr-1 sm:mr-2"></i>
+                                        Skateboarding Profile
+                                    </h2>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-1 ">
+                                        {% if profile.stance %}
+                                            <div class="stat p-1 sm:p-1">
+                                                <div class="stat-title text-xs">Stance</div>
+                                                <div class="stat-value text-sm sm:text-lg">{{ profile.get_stance_display }}</div>
+                                            </div>
+                                        {% endif %}
+                                        {% if profile.skill_level %}
+                                            <div class="stat p-1 sm:p-1">
+                                                <div class="stat-title text-xs">Skill Level</div>
+                                                <div class="stat-value text-sm sm:text-lg">{{ profile.skill_level }}/10</div>
+                                            </div>
+                                        {% endif %}
+                                        {% if profile.years_skating %}
+                                            <div class="stat p-1 sm:p-1">
+                                                <div class="stat-title text-xs">Years Skating</div>
+                                                <div class="stat-value text-sm sm:text-lg">{{ profile.years_skating }}</div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    {% if profile.primary_setup %}
+                                        <div class="mt-2 sm:mt-4">
+                                            <h3 class="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Primary Setup</h3>
+                                            <p class="text-base-content/80 text-xs sm:text-sm">{{ profile.primary_setup }}</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Skateboarding Bio & Style -->
+                        {% if profile.bio or profile.skating_styles.all %}
+                            <div class="profile-section card bg-base-100 shadow-lg">
+                                <div class="card-body p-3 sm:p-4 lg:p-6">
+                                    <h2 class="card-title text-primary text-sm sm:text-base">
+                                        <i class="fas fa-user-circle mr-1 sm:mr-2"></i>
+                                        About {{ profile.user.first_name|default:profile.user.username }}
+                                    </h2>
+                                    
+                                    {% if profile.bio %}
+                                        <div class="mb-2 sm:mb-4">
+                                            <p class="text-base-content leading-relaxed text-xs sm:text-sm">{{ profile.bio }}</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if profile.skating_styles.all %}
+                                        <div class="mt-2 sm:mt-4">
+                                            <h3 class="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Skating Styles</h3>
+                                            <div class="flex flex-wrap gap-1 sm:gap-2">
+                                                {% for style in profile.skating_styles.all %}
+                                                    <span class="skating-style-badge badge badge-sm sm:badge-lg px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm">
+                                                        {{ style.name }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Current Achievements & Milestones -->
+                        {% if skating_stats.events_organized > 0 or skating_stats.events_attended > 5 or skating_stats.avg_rating >= 4.0 %}
+                            <div class="profile-section card bg-base-100 shadow-lg">
+                                <div class="card-body p-3 sm:p-4 lg:p-6">
+                                    <h2 class="card-title text-accent text-sm sm:text-base">
+                                        <i class="fas fa-trophy mr-1 sm:mr-2"></i>
+                                        Achievements
+                                        <span class="badge badge-accent badge-xs sm:badge-sm">
+                                            {% if skating_stats.events_organized > 0 %}1{% endif %}
+                                            {% if skating_stats.events_attended >= 5 %}{% if skating_stats.events_organized > 0 %}+{% endif %}1{% endif %}
+                                            {% if skating_stats.avg_rating >= 4.0 %}{% if skating_stats.events_organized > 0 or skating_stats.events_attended >= 5 %}+{% endif %}1{% endif %}
+                                        </span>
+                                    </h2>
+                                    <div class="space-y-2 sm:space-y-3">
+                                        {% if skating_stats.events_organized > 0 %}
+                                            <div class="achievement-item flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
+                                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-crown text-white text-xs sm:text-sm"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="font-semibold text-primary text-xs sm:text-sm">Community Organizer</h3>
+                                                    <p class="text-xs sm:text-sm text-base-content/70">Organized {{ skating_stats.events_organized }} event{{ skating_stats.events_organized|pluralize }}</p>
+                                                </div>
+                                                <div class="badge badge-primary badge-xs sm:badge-sm">🏆</div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if skating_stats.events_attended >= 5 %}
+                                            <div class="achievement-item flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+                                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-secondary rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-skating text-white text-xs sm:text-sm"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="font-semibold text-secondary text-xs sm:text-sm">Active Skater</h3>
+                                                    <p class="text-xs sm:text-sm text-base-content/70">Attended {{ skating_stats.events_attended }} sessions</p>
+                                                </div>
+                                                <div class="badge badge-secondary badge-xs sm:badge-sm">🛹</div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if skating_stats.avg_rating >= 4.0 %}
+                                            <div class="achievement-item flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-warning/10 border border-warning/20">
+                                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-warning rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-star text-white text-xs sm:text-sm"></i>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="font-semibold text-warning text-xs sm:text-sm">Trusted Member</h3>
+                                                    <p class="text-xs sm:text-sm text-base-content/70">{{ skating_stats.avg_rating|floatformat:1 }}★ average rating</p>
+                                                </div>
+                                                <div class="badge badge-warning badge-xs sm:badge-sm">⭐</div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Right Column - Sidebar -->
+                    <div class="space-y-4 sm:space-y-6">
+                        <!-- Recent Activity -->
+                        {% if recent_activities %}
+                            <div class="profile-section card bg-base-100 shadow-lg">
+                                <div class="card-body p-3 sm:p-4 lg:p-6">
+                                    <h2 class="card-title text-secondary text-sm sm:text-base">
+                                        <i class="fas fa-clock mr-1 sm:mr-2"></i>
+                                        Recent Activity
+                                    </h2>
+                                    <div class="space-y-2 sm:space-y-3">
+                                        {% for activity in recent_activities %}
+                                            <div class="flex items-start gap-2 sm:gap-3 p-2 rounded-lg bg-base-200/50">
+                                                <div class="flex-shrink-0 mt-1">
+                                                    {% if activity.activity_type == 'PROFILE_UPDATE' %}
+                                                        <i class="fas fa-user text-info text-xs"></i>
+                                                    {% elif activity.activity_type == 'EVENT_CREATED' %}
+                                                        <i class="fas fa-calendar-plus text-success text-xs"></i>
+                                                    {% elif activity.activity_type == 'EVENT_JOINED' %}
+                                                        <i class="fas fa-calendar-check text-warning text-xs"></i>
+                                                    {% elif activity.activity_type == 'CREW_JOINED' %}
+                                                        <i class="fas fa-users text-primary text-xs"></i>
+                                                    {% elif activity.activity_type == 'ACHIEVEMENT_EARNED' %}
+                                                        <i class="fas fa-trophy text-accent text-xs"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-bell text-base-content/50 text-xs"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-xs text-base-content/80 leading-relaxed">
+                                                        {{ activity.description|truncatewords:10 }}
+                                                    </p>
+                                                    <p class="text-xs text-base-content/50 mt-1">
+                                                        {{ activity.created_at|timesince }} ago
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                        {% if user.is_authenticated %}
+                                            <div class="text-center pt-2">
+                                                <a href="{% url 'profiles:activity_feed' %}" class="link link-primary text-xs">
+                                                    View full activity feed →
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Profile Completion -->
+                        {% if can_edit and completion_percentage < 100 %}
+                            <div class="profile-section card bg-base-100 shadow-lg">
+                                <div class="card-body">
+                                    <h2 class="card-title text-warning">
+                                        <i class="fas fa-chart-line mr-2"></i>
+                                        Profile Completion
+                                    </h2>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <span>{{ completion_percentage }}% Complete</span>
+                                            <span class="text-sm text-base-content/70">{{ remaining_percentage }}% to go</span>
+                                        </div>
+                                        <progress class="progress progress-primary w-full" value="{{ completion_percentage }}" max="100"></progress>
+                                        
+                                        {% if completion_suggestions %}
+                                            <div class="space-y-2">
+                                                <h3 class="font-semibold text-sm">Quick wins:</h3>
+                                                {% for suggestion in completion_suggestions|slice:":3" %}
+                                                    <div class="flex items-center gap-2 text-sm">
+                                                        <i class="fas fa-lightbulb text-warning"></i>
+                                                        {{ suggestion.message }}
+                                                        <span class="badge badge-warning badge-xs">+{{ suggestion.weight }}%</span>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Social Links -->
+                        {% if social_links %}
+                            <div class="profile-section card bg-base-100 shadow-lg">
+                                <div class="card-body">
+                                    <h2 class="card-title text-info">
+                                        <i class="fas fa-share-alt mr-2"></i>
+                                        Social Links
+                                    </h2>
+                                    <div class="space-y-3">
+                                        {% for platform, link in social_links.items %}
+                                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" 
+                                               class="social-link flex items-center gap-3 p-3 rounded-lg bg-base-200 hover:bg-base-300 transition-colors">
+                                                <i class="{{ link.icon }} text-lg"></i>
+                                                <span>{{ link.display }}</span>
+                                                <i class="fas fa-external-link-alt ml-auto text-xs opacity-50"></i>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Skater Info -->
+                        <div class="profile-section card bg-base-100 shadow-lg">
+                            <div class="card-body p-3 sm:p-4 lg:p-6">
+                                <h2 class="card-title text-accent text-sm sm:text-base">
+                                    <i class="fas fa-info-circle mr-1 sm:mr-2"></i>
+                                    Skater Info
+                                </h2>
+                                <div class="stats stats-vertical">
+                                    <div class="stat p-2 sm:p-3">
+                                        <div class="stat-title text-xs">Member Since</div>
+                                        <div class="stat-value text-sm sm:text-base">{{ profile.created_at|date:"M Y" }}</div>
+                                        <div class="stat-desc text-xs hidden sm:block">{{ profile.created_at|timesince }} ago</div>
+                                    </div>
+                                    
+                                    {% if profile.years_skating %}
+                                        <div class="stat p-2 sm:p-3">
+                                            <div class="stat-title text-xs">Skating Experience</div>
+                                            <div class="stat-value text-sm sm:text-base">{{ profile.years_skating }} year{{ profile.years_skating|pluralize }}</div>
+                                            <div class="stat-desc text-xs hidden sm:block">On wheels</div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if profile.verification_status != 'UNVERIFIED' %}
+                                        <div class="stat p-2 sm:p-3">
+                                            <div class="stat-title text-xs">Status</div>
+                                            <div class="stat-value text-xs sm:text-base flex items-center gap-1 sm:gap-2">
+                                                <i class="fas fa-check-circle text-success text-xs sm:text-sm"></i>
+                                                <span class="text-xs sm:text-sm">{{ profile.get_verification_status_display }}</span>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="stat p-2 sm:p-3">
+                                        <div class="stat-title text-xs">Last Active</div>
+                                        <div class="stat-value text-sm sm:text-base">{{ profile.updated_at|timesince }} ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Events Section -->
+                <div class="divider my-6 sm:my-8 lg:my-12">
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary flex items-center gap-2 sm:gap-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calendar text-white text-sm sm:text-base"></i>
+                        </div>
+                        All Events
+                        <span class="text-xs sm:text-sm font-normal text-base-content/60 hidden sm:inline">
+                            🛹 Sessions & Competitions
+                        </span>
+                    </h2>
+                </div>
+                {% include 'profiles/partials/events_tab.html' %}
+                
+                <!-- Activity Section -->
+                <div class="divider my-6 sm:my-8 lg:my-12">
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary flex items-center gap-2 sm:gap-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-secondary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chart-line text-white text-sm sm:text-base"></i>
+                        </div>
+                        Activity Timeline
+                    </h2>
+                    <span class="text-xs sm:text-sm font-normal text-base-content/60 hidden sm:inline">
+                        📈 Your Skateboarding Journey
+                    </span>
+                </div>
+                {% include 'profiles/partials/activity_tab.html' %}
+                
+                <!-- Social Section -->
+                {% if profile.get_social_links %}
+                    <div class="divider my-6 sm:my-8 lg:my-12">
+                        <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary flex items-center gap-2 sm:gap-3">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-info rounded-lg flex items-center justify-center">
+                                <i class="fas fa-share-alt text-white text-sm sm:text-base"></i>
+                            </div>
+                            Social Media
+                            <span class="text-xs sm:text-sm font-normal text-base-content/60 hidden sm:inline">
+                                🌐 Connect & Follow
+                            </span>
+                        </h2>
+                    </div>
+                    {% include 'profiles/partials/social_tab.html' %}
+                {% endif %}
+                
+                <!-- Settings Section -->
+                {% if can_edit %}
+                    <div class="divider my-6 sm:my-8 lg:my-12">
+                        <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary flex items-center gap-2 sm:gap-3">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-accent rounded-lg flex items-center justify-center">
+                                <i class="fas fa-cog text-white text-sm sm:text-base"></i>
+                            </div>
+                            Profile Settings
+                            <span class="text-xs sm:text-sm font-normal text-base-content/60 hidden sm:inline">
+                                ⚙️ Privacy & Preferences
+                            </span>
+                        </h2>
+                    </div>
+                    {% include 'profiles/partials/settings_tab.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
 
-              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                <li><a onclick="updateRSVP({{ event.id }}, 'Going')" {% if status == 'Going' %}class="active"{% endif %}>
-                      <i class="fas fa-check-circle"></i> Going
-                    </a>
-                </li>
-                <li>
-                  <a onclick="updateRSVP({{ event.id }}, 'Interested')" {% if status == 'Interested' %}class="active"{% endif %}>
-                    <i class="fas fa-star"></i> Interested
-                  </a>
-                </li>
-                <li class="border-t border-base-200 mt-2 pt-2">
-                  <a onclick="updateRSVP({{ event.id }}, 'Not interested')" {% if status == 'Not interested' %}class="active"{% endif %} class="text-error">
-                  <i class="fas fa-times-circle"></i> Not interested
-                  </a>
-                </li>
-              </ul>
-
-            </div>
-            {% else %}
-            <div class="badge {% if status == 'Going' %}badge-primary{% else %}badge-secondary{% endif %} badge-lg gap-2">
-              {% if status == 'Going' %}
-              <i class="fas fa-check-circle"></i>
-              {% else %}
-              <i class="fas fa-star"></i>
-              {% endif %}
-              {{ status }}
-            </div>
-            {% endif %}
-          </div>
-          {% endwith %}
-        </div>
-        <div class="card-body">
-          <h2 class="card-title">{{ event.title }}</h2>
-          <p>{{ event.description|truncatewords:20 }}</p>
-          <div class="flex justify-between items-center mt-2">
-            <div class="text-sm opacity-70">
-              <i class="fas fa-calendar-alt mr-1"></i>
-              {{ event.start_date|date:"M j, Y" }}
-            </div>
-            {% if event.slug %}
-            <a href="{% url 'events:event_details' event.slug %}" class="btn btn-primary btn-sm">View Event</a>
-            {% else %}
-            <button class="btn btn-disabled btn-sm">View Event</button>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="col-span-3 text-center py-8">
-        <div class="alert">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span>Not attending any events yet.</span>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Reviews Tab -->
-    <div id="reviews-content" class="tab-content hidden">
-      {% for review in reviews %}
-      <div class="card bg-base-100 shadow-xl mb-4">
-        <div class="card-body">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-bold">{{ review.event.title }}</h3>
-            <div class="rating">
-              {% for i in "12345" %}
-              <input type="radio" class="mask mask-star-2" {% if forloop.counter <= review.rating %}checked{% endif %} disabled />
-              {% endfor %}
-            </div>
-          </div>
-          <p class="mt-2">{{ review.comment }}</p>
-          <div class="text-sm opacity-70">{{ review.review_date|date:"F j, Y" }}</div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="text-center py-8">
-        <div class="alert">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span>No reviews written yet.</span>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Saved Tab -->
-    <div id="favorites-content" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for favorite in favorites %}
-      <div class="card bg-base-100 shadow-xl" data-favorite-id="{{ favorite.id }}">
-        <div class="relative">
-          <figure class="px-4 pt-4">
-            {% if favorite.event.cover_image %}
-            <img src="{{ favorite.event.cover_image.url }}" class="rounded-xl h-48 w-full object-cover" alt="{{ favorite.event.title }}" />
-            {% else %}
-            <img src="{% static 'images/default_cover_image.jpg' %}" class="rounded-xl h-48 w-full object-cover" alt="Default event image" />
-            {% endif %}
-          </figure>
-          <div class="absolute top-6 right-6 flex gap-2">
-            {% if request.user == profile.user %}
-                            <button data-favorite-id="{{ favorite.id }}" onclick="removeFavorite(this)" class="btn btn-circle btn-sm btn-error">
-                                <i class="fas fa-trash"></i>
-                            </button>
-            {% endif %}
-            <div class="btn btn-circle btn-sm btn-primary hover:none">
-              <i class="fas fa-bookmark"></i>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <h2 class="card-title">{{ favorite.event.title }}</h2>
-          <p>{{ favorite.event.description|truncatewords:20 }}</p>
-          <div class="card-actions justify-end">
-            {% if favorite.event.slug %}
-            <a href="{% url 'events:event_details' favorite.event.slug %}" class="btn btn-primary btn-sm">View Event</a>
-            {% else %}
-            <button class="btn btn-disabled btn-sm">View Event</button>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="col-span-3 text-center py-8">
-        <div class="alert">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span>No saved events yet.</span>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  <!-- Add this modal markup right before the closing </div> of the main container -->
-  <dialog id="confirm_modal" class="modal">
-    <div class="modal-box">
-      <h3 class="font-bold text-lg">Remove from Favorites</h3>
-      <p class="py-4">Are you sure you want to remove this event from your saved
-      events?</p>
-      <div class="modal-action">
-        <button class="btn" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-error" onclick="confirmRemoveFavorite()">Remove</button>
-      </div>
-    </div>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+<!-- Modals -->
+{% if can_edit %}
+    {% include 'profiles/partials/avatar_modal.html' %}
+    {% include 'profiles/partials/edit_modal.html' %}
+{% endif %}
+{% endblock %}
 
 {% block extra_js %}
 <script>
-  const profileConfig = {
-    urls: {
-      updateProfile: "{% url 'profiles:update_profile' %}",
-      rsvpUpdate: "{% url 'profiles:update_rsvp' %}",
-    },
-    csrfToken: "{{ csrf_token }}"
-  };
+// Edit mode functionality
+let editMode = false;
+
+function toggleEditMode() {
+    editMode = !editMode;
+    const editableElements = document.querySelectorAll('[data-editable]');
+    
+    editableElements.forEach(element => {
+        if (editMode) {
+            element.classList.add('profile-editable');
+            element.title = 'Click to edit';
+        } else {
+            element.classList.remove('profile-editable');
+            element.title = '';
+        }
+    });
+    
+    // Show/hide edit overlays
+    const editOverlays = document.querySelectorAll('.profile-edit-overlay');
+    editOverlays.forEach(overlay => {
+        overlay.style.display = editMode ? 'flex' : 'none';
+    });
+}
+
+// Profile field editing
+function editField(fieldName, currentValue) {
+    const modal = document.createElement('div');
+    modal.className = 'modal modal-open';
+    modal.innerHTML = `
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Edit ${fieldName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</h3>
+            <div class="py-4">
+                <label class="label">
+                    <span class="label-text">New value:</span>
+                </label>
+                <input type="text" id="edit-field-input" class="input input-bordered w-full" value="${currentValue}">
+            </div>
+            <div class="modal-action">
+                <button class="btn" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveField('${fieldName}')">Save</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.getElementById('edit-field-input').focus();
+}
+
+function saveField(fieldName) {
+    const input = document.getElementById('edit-field-input');
+    const value = input.value;
+    
+    fetch('{% url "profiles:update_profile_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            field: fieldName,
+            value: value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while saving.');
+    });
+    
+    closeEditModal();
+}
+
+function closeEditModal() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (modal.classList.contains('modal-open')) {
+            modal.remove();
+        }
+    });
+}
+
+// Add smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
 </script>
-<script src="{% static 'js/profile/CSRFManager.js' %}"></script>
-<script src="{% static 'js/profile/TabManager.js' %}"></script>
-<script src="{% static 'js/profile/ProfileEditor.js' %}"></script>
-<script src="{% static 'js/profile/RSVPManager.js' %}"></script>
-<script src="{% static 'js/profile/FavoriteManager.js' %}"></script>
-<script src="{% static 'js/profile/profile-init.js' %}"></script>
-{% endblock %}
 {% endblock %}

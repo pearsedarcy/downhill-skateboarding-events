@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Platform Tour - Downhill Skateboarding Events{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tour-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .tour-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "images/skateboard-pattern.svg" %}') repeat;
+        opacity: 0.1;
+        z-index: 1;
+    }
+    
+    .tour-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 10;
+    }
+    
+    .feature-card {
+        background: white;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card:hover {
+        border-color: hsl(var(--p));
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, hsl(var(--p)) 0%, hsl(var(--s)) 100%);
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-dots {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 2rem 0;
+    }
+    
+    .progress-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .progress-dot.active {
+        background: hsl(var(--p));
+        transform: scale(1.2);
+    }
+    
+    .tour-slide {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+        display: none;
+    }
+    
+    .tour-slide.active {
+        opacity: 1;
+        transform: translateX(0);
+        display: block;
+    }
+    
+    .action-preview {
+        background: #f8fafc;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 4px solid hsl(var(--p));
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tour-container flex items-center justify-center p-4">
+    <div class="tour-card rounded-2xl p-8 w-full max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome to Your New Community! 🛹</h1>
+            <p class="text-gray-600">Let's take a quick tour to show you around</p>
+            <div class="progress-dots">
+                <div class="progress-dot active" data-slide="0"></div>
+                <div class="progress-dot" data-slide="1"></div>
+                <div class="progress-dot" data-slide="2"></div>
+                <div class="progress-dot" data-slide="3"></div>
+            </div>
+        </div>
+        
+        <!-- Tour Slides -->
+        <div class="tour-slides">
+            <!-- Slide 1: Profile -->
+            <div class="tour-slide active" data-slide="0">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <div class="feature-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-4">Your Skateboarding Profile</h2>
+                        <p class="text-gray-600 mb-6">
+                            Your profile is your identity in the community. It helps other riders understand 
+                            your skating style, experience level, and interests.
+                        </p>
+                        <div class="action-preview">
+                            <strong>What you can do:</strong>
+                            <ul class="mt-2 space-y-1 text-sm">
+                                <li>• Showcase your skating style and skill level</li>
+                                <li>• Share your skateboard setup and preferences</li>
+                                <li>• Connect social media accounts</li>
+                                <li>• Control your privacy settings</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="bg-gray-100 rounded-xl p-6 text-center">
+                        <div class="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <i class="fas fa-user text-2xl text-white"></i>
+                        </div>
+                        <div class="font-bold text-lg">{{ profile.get_display_name }}</div>
+                        <div class="text-gray-600 text-sm mb-3">{{ profile.get_location_display|default:"Set your location" }}</div>
+                        <div class="flex justify-center gap-2 mb-3">
+                            {% if profile.skating_style %}
+                                <span class="badge badge-primary">{{ profile.get_skating_style_display }}</span>
+                            {% endif %}
+                            {% if profile.skill_level %}
+                                <span class="badge badge-secondary">Level {{ profile.skill_level }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-xs text-gray-500">{{ completion_percentage }}% Complete</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Slide 2: Events -->
+            <div class="tour-slide" data-slide="1">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <div class="feature-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-4">Discover Events</h2>
+                        <p class="text-gray-600 mb-6">
+                            Find skateboarding events near you or around the world. From downhill races 
+                            to casual meetups, there's something for every rider.
+                        </p>
+                        <div class="action-preview">
+                            <strong>Event features:</strong>
+                            <ul class="mt-2 space-y-1 text-sm">
+                                <li>• Browse events by location and date</li>
+                                <li>• RSVP and track your attendance</li>
+                                <li>• Get recommendations based on your profile</li>
+                                <li>• Organize your own events</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-lg p-4 shadow-md border-l-4 border-primary">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-mountain text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-sm">SF Downhill Challenge</div>
+                                    <div class="text-xs text-gray-600">San Francisco, CA</div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">March 15, 2024 • 25 attendees</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-md border-l-4 border-secondary">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-sm">Weekend Freeride Session</div>
+                                    <div class="text-xs text-gray-600">Local hills</div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">March 20, 2024 • 12 attendees</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-md border-l-4 border-accent">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-star text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-sm">Longboard Dancing Workshop</div>
+                                    <div class="text-xs text-gray-600">Community Center</div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">March 25, 2024 • 8 attendees</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Slide 3: Community -->
+            <div class="tour-slide" data-slide="2">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-4">Connect with Riders</h2>
+                        <p class="text-gray-600 mb-6">
+                            Meet fellow skateboarders from around the world. Find riding partners, 
+                            learn from experienced riders, and share your passion.
+                        </p>
+                        <div class="action-preview">
+                            <strong>Community features:</strong>
+                            <ul class="mt-2 space-y-1 text-sm">
+                                <li>• Browse rider profiles by style and location</li>
+                                <li>• Follow riders and see their activity</li>
+                                <li>• Message other community members</li>
+                                <li>• Share photos and experiences</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white rounded-lg p-3 shadow-md text-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div class="font-semibold text-sm">Alex Chen</div>
+                            <div class="text-xs text-gray-600">Downhill Pro</div>
+                            <div class="badge badge-xs badge-primary mt-1">Level 9</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 shadow-md text-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div class="font-semibold text-sm">Maria Santos</div>
+                            <div class="text-xs text-gray-600">Freeride Enthusiast</div>
+                            <div class="badge badge-xs badge-secondary mt-1">Level 6</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 shadow-md text-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div class="font-semibold text-sm">Jake Wilson</div>
+                            <div class="text-xs text-gray-600">Dancing Style</div>
+                            <div class="badge badge-xs badge-accent mt-1">Level 4</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 shadow-md text-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div class="font-semibold text-sm">Emma Taylor</div>
+                            <div class="text-xs text-gray-600">Beginner</div>
+                            <div class="badge badge-xs badge-neutral mt-1">Level 2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Slide 4: Get Started -->
+            <div class="tour-slide" data-slide="3">
+                <div class="text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-4">Ready to Get Started?</h2>
+                    <p class="text-gray-600 mb-8">
+                        You now know the basics! The best way to learn is by exploring. 
+                        Start by completing your profile, then dive into the community.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {% for action in suggested_actions %}
+                        <div class="feature-card rounded-xl p-6">
+                            <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-3">
+                                <i class="{{ action.icon }} text-white"></i>
+                            </div>
+                            <h3 class="font-semibold mb-2">{{ action.title }}</h3>
+                            <p class="text-sm text-gray-600 mb-4">{{ action.description }}</p>
+                            <a href="{{ action.url }}" class="btn btn-sm btn-outline">{{ action.action_text }}</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="font-semibold mb-3">Need Help?</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            If you have questions or need assistance, our community is here to help!
+                        </p>
+                        <div class="flex justify-center gap-3">
+                            <a href="#" class="btn btn-sm btn-outline">
+                                <i class="fas fa-question-circle mr-2"></i>
+                                Help Center
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline">
+                                <i class="fas fa-comments mr-2"></i>
+                                Community Chat
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="flex justify-between items-center mt-8">
+            <button id="prev-btn" class="btn btn-outline" onclick="prevSlide()" disabled>
+                <i class="fas fa-arrow-left mr-2"></i>
+                Previous
+            </button>
+            
+            <form method="post" class="hidden" id="complete-tour-form">
+                {% csrf_token %}
+            </form>
+            
+            <button id="next-btn" class="btn btn-primary" onclick="nextSlide()">
+                Next
+                <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+            
+            <button id="complete-btn" class="btn btn-primary hidden" onclick="completeTour()">
+                <i class="fas fa-check mr-2"></i>
+                Let's Go!
+            </button>
+        </div>
+        
+        <!-- Skip Option -->
+        <div class="text-center mt-4">
+            <button class="link link-hover text-sm text-gray-500" onclick="completeTour()">
+                Skip tour and continue
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentSlide = 0;
+const totalSlides = 4;
+
+function updateSlide() {
+    // Hide all slides
+    document.querySelectorAll('.tour-slide').forEach(slide => {
+        slide.classList.remove('active');
+    });
+    
+    // Show current slide
+    document.querySelector(`.tour-slide[data-slide="${currentSlide}"]`).classList.add('active');
+    
+    // Update progress dots
+    document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+    });
+    
+    // Update navigation buttons
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const completeBtn = document.getElementById('complete-btn');
+    
+    prevBtn.disabled = currentSlide === 0;
+    
+    if (currentSlide === totalSlides - 1) {
+        nextBtn.classList.add('hidden');
+        completeBtn.classList.remove('hidden');
+    } else {
+        nextBtn.classList.remove('hidden');
+        completeBtn.classList.add('hidden');
+        nextBtn.innerHTML = currentSlide === totalSlides - 2 ? 
+            'Finish Tour <i class="fas fa-arrow-right ml-2"></i>' : 
+            'Next <i class="fas fa-arrow-right ml-2"></i>';
+    }
+}
+
+function nextSlide() {
+    if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+    }
+}
+
+function prevSlide() {
+    if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+    }
+}
+
+function completeTour() {
+    // Submit the form to mark tour as completed
+    document.getElementById('complete-tour-form').submit();
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateSlide();
+    
+    // Add keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') prevSlide();
+        if (e.key === 'ArrowRight') nextSlide();
+        if (e.key === 'Enter' && currentSlide === totalSlides - 1) completeTour();
+    });
+    
+    // Auto-advance slides (optional)
+    // setInterval(() => {
+    //     if (currentSlide < totalSlides - 1) nextSlide();
+    // }, 10000);
+});
+</script>
+{% endblock %}

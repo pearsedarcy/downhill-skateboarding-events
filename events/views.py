@@ -114,22 +114,57 @@ def toggle_favorite(request, slug):
 
 @login_required
 def toggle_rsvp(request, slug):
+    """Handle RSVP status changes with proper validation."""
     event = get_object_or_404(Event, slug=slug)
-    status = request.POST.get("status", "Going")
-
-    rsvp, created = RSVP.objects.get_or_create(
-        user=request.user.profile, event=event, defaults={"status": status}
-    )
-
-    if not created:
-        if rsvp.status != status:
-            rsvp.status = status
-            rsvp.save()
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    status = request.POST.get("status")
+    if not status or status not in ['Going', 'Interested', 'Not interested']:
+        return JsonResponse({'error': 'Invalid status'}, status=400)
+    
+    # Check if event is full (only for 'Going' status)
+    if status == 'Going' and event.is_full():
+        current_rsvp = event.get_user_rsvp(request.user)
+        # Allow if user is already going (updating existing RSVP)
+        if not current_rsvp or current_rsvp.status != 'Going':
+            return JsonResponse({
+                'error': 'Event is full',
+                'is_full': True
+            }, status=400)
+    
+    try:
+        rsvp, created = RSVP.objects.get_or_create(
+            user=request.user.profile, 
+            event=event,
+            defaults={'status': status}
+        )
+        
+        if not created:
+            if rsvp.status == status:
+                # Same status clicked - remove RSVP
+                rsvp.delete()
+                current_status = None
+            else:
+                # Different status - update RSVP
+                rsvp.status = status
+                rsvp.save()
+                current_status = status
         else:
-            rsvp.delete()
-            status = None
-
-    return JsonResponse({"status": status, "count": event.rsvps.count()})
+            current_status = status
+        
+        # Get updated counts
+        counts = event.get_attendee_counts()
+        
+        return JsonResponse({
+            'status': current_status,
+            'counts': counts,
+            'is_full': event.is_full()
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def event_details(request, slug):
@@ -152,16 +187,14 @@ def event_details(request, slug):
             user=request.user.profile, 
             event=event
         ).exists()
-        rsvp = RSVP.objects.filter(
-            user=request.user.profile, 
-            event=event
-        ).first()
-        if rsvp:
-            rsvp_status = rsvp.status
+        rsvp_status = event.get_user_rsvp_status(request.user)
 
     maps_api_key = settings.GOOGLE_MAPS_API_KEY
     if not maps_api_key:
         logger.error("Google Maps API key is not configured")
+
+    # Get RSVP counts
+    rsvp_counts = event.get_attendee_counts()
 
     return render(
         request,
@@ -170,20 +203,27 @@ def event_details(request, slug):
             "event": event,
             "is_favorited": is_favorited,
             "rsvp_status": rsvp_status,
-            "rsvp_count": event.rsvps.count(),
+            "rsvp_counts": rsvp_counts,
+            "is_full": event.is_full(),
             "maps_api_key": maps_api_key,
         },
     )
 
 
 @login_required
+@login_required
 def event_submission(request, slug=None):
     event = None
     location = None
     if (slug):
         event = get_object_or_404(Event, slug=slug)
-        if event.organizer != request.user.profile:
-            return redirect('events:event_list')
+        
+        # Check if user can edit this event
+        if not event.can_manage(request.user):
+            from django.contrib import messages
+            messages.error(request, "You don't have permission to edit this event.")
+            return redirect('events:event_details', slug=event.slug)
+            
         location = event.location
 
     if request.method == 'POST':
@@ -197,12 +237,32 @@ def event_submission(request, slug=None):
                 
                 # Save event without committing to set organizer and location
                 event = form.save(commit=False)
-                event.organizer = request.user.profile
+                
+                # For new events, set organizer
+                if not event.pk:
+                    event.organizer = request.user.profile
+                    
                 event.location = location
+                
+                # Validate crew permission for new events or crew changes
+                if event.created_by_crew:
+                    if not event.created_by_crew.can_create_events(request.user):
+                        from django.contrib import messages
+                        messages.error(request, f"You don't have permission to create events for {event.created_by_crew.name}.")
+                        return render(request, 'events/event_submission.html', {
+                            'form': form,
+                            'location_form': location_form,
+                            'edit_mode': bool(slug),
+                            'event': event
+                        })
                 
                 # Save event to generate slug
                 event.save()
                 form.save_m2m()  # Save many-to-many relationships if any
+                
+                from django.contrib import messages
+                action = "updated" if slug else "created"
+                messages.success(request, f"Event {action} successfully!")
                 
                 return redirect('events:event_details', slug=event.slug)
             except Exception as e:
@@ -218,7 +278,7 @@ def event_submission(request, slug=None):
             from crews.models import Crew
             try:
                 crew = Crew.objects.get(slug=crew_slug, is_active=True)
-                # Check if user can create events for this crew
+                # Check if user can create events for this crew using new permission system
                 if crew.can_create_events(request.user):
                     initial_data['created_by_crew'] = crew
             except Crew.DoesNotExist:
@@ -230,15 +290,20 @@ def event_submission(request, slug=None):
     return render(request, 'events/event_submission.html', {
         'form': form,
         'location_form': location_form,
-        'edit_mode': bool(event),
+        'edit_mode': bool(slug),
         'event': event
     })
 
 @login_required
+@login_required
 def edit_event(request, slug):
     event = get_object_or_404(Event, slug=slug)
-    if event.organizer.user != request.user:
-        raise Http404("You don't have permission to edit this event")
+    
+    # Check if user can edit this event (using new permission system)
+    if not event.can_manage(request.user):
+        from django.contrib import messages
+        messages.error(request, "You don't have permission to edit this event.")
+        return redirect('events:event_details', slug=event.slug)
     
     if request.method == "POST":
         form = EventForm(request.POST, request.FILES, instance=event, user=request.user)
@@ -249,6 +314,18 @@ def edit_event(request, slug):
                 location = location_form.save()
                 event = form.save(commit=False)
                 
+                # Check crew edit permission if crew is being changed
+                if event.created_by_crew:
+                    if not event.created_by_crew.can_edit_events(request.user):
+                        from django.contrib import messages
+                        messages.error(request, f"You don't have permission to edit events for {event.created_by_crew.name}.")
+                        return render(request, 'events/event_submission.html', {
+                            'form': form,
+                            'location_form': location_form,
+                            'edit_mode': True,
+                            'event': event
+                        })
+                
                 # Handle cover image and filename
                 if 'cover_image' in request.FILES:
                     event._cover_image_changed = True
@@ -258,6 +335,9 @@ def edit_event(request, slug):
                 event.location = location
                 event.save()
                 form.save_m2m()
+                
+                from django.contrib import messages
+                messages.success(request, "Event updated successfully!")
                 
                 return redirect('events:event_details', slug=event.slug)
             except Exception as e:
@@ -278,13 +358,16 @@ def edit_event(request, slug):
 def event_delete(request, slug):
     event = get_object_or_404(Event, slug=slug)
     
-    # Check if user is the organizer
-    if event.organizer != request.user.profile:
-        raise Http404("You don't have permission to delete this event")
+    # Check if user can manage (and therefore delete) this event
+    if not event.can_manage(request.user):
+        from django.contrib import messages
+        messages.error(request, "You don't have permission to delete this event.")
+        return redirect('events:event_details', slug=event.slug)
     
     if request.method == "POST":
         # Store the location to delete after the event
         location = event.location
+        event_title = event.title
         
         # Delete the event
         event.delete()
@@ -293,7 +376,34 @@ def event_delete(request, slug):
         if location and not Event.objects.filter(location=location).exists():
             location.delete()
         
+        from django.contrib import messages
+        messages.success(request, f"Event '{event_title}' deleted successfully.")
+        
         return redirect('events:event_list')
+    
+    raise Http404("Invalid request method")
+
+@login_required
+def toggle_publish(request, slug):
+    """Toggle the published status of an event."""
+    event = get_object_or_404(Event, slug=slug)
+    
+    # Check if user can publish this event
+    if not event.can_publish(request.user):
+        from django.contrib import messages
+        messages.error(request, "You don't have permission to publish/unpublish this event.")
+        return redirect('events:event_details', slug=event.slug)
+    
+    if request.method == "POST":
+        # Toggle published status
+        event.published = not event.published
+        event.save()
+        
+        from django.contrib import messages
+        status = "published" if event.published else "unpublished"
+        messages.success(request, f"Event '{event.title}' has been {status}.")
+        
+        return redirect('events:event_details', slug=event.slug)
     
     raise Http404("Invalid request method")
 

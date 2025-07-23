@@ -1,0 +1,403 @@
+<!-- Events Tab Content -->
+<div class="space-y-6">
+    <!-- Events Navigation -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        <button class="btn btn-sm btn-primary events-filter-btn active" data-filter="all">
+            <i class="fas fa-calendar mr-1"></i>
+            All Events ({{ user_organized_events|length|add:user_attending_events|length }})
+        </button>
+        <button class="btn btn-sm btn-outline events-filter-btn" data-filter="organized">
+            <i class="fas fa-crown mr-1"></i>
+            Organized ({{ user_organized_events|length }})
+        </button>
+        <button class="btn btn-sm btn-outline events-filter-btn" data-filter="attending">
+            <i class="fas fa-skating mr-1"></i>
+            Attending ({{ user_attending_events|length }})
+        </button>
+        {% if user_favorites %}
+            <button class="btn btn-sm btn-outline events-filter-btn" data-filter="favorites">
+                <i class="fas fa-heart mr-1"></i>
+                Favorites ({{ user_favorites|length }})
+            </button>
+        {% endif %}
+    </div>
+    
+    <!-- Organized Events -->
+    <div id="organized-events" class="events-section">
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+            <i class="fas fa-crown text-primary"></i>
+            Organized Events
+            {% if user_organized_events|length > 6 %}
+                <span class="badge badge-primary">{{ user_organized_events|length }}</span>
+            {% endif %}
+        </h3>
+        
+        {% if user_organized_events %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for event in user_organized_events %}
+                    <div class="event-card card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-primary">
+                        <div class="card-body p-4">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="card-title text-base">{{ event.name }}</h4>
+                                <div class="badge badge-primary badge-sm">Organizer</div>
+                            </div>
+                            
+                            <div class="space-y-2 text-sm text-base-content/70">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar-alt w-4"></i>
+                                    <span>{{ event.date|date:"M d, Y" }}</span>
+                                </div>
+                                
+                                {% if event.location %}
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-map-marker-alt w-4"></i>
+                                        <span>{{ event.location|truncatechars:30 }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if event.participants_count %}
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-users w-4"></i>
+                                        <span>{{ event.participants_count }} participants</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if event.description %}
+                                <p class="text-sm mt-2 text-base-content/80">
+                                    {{ event.description|truncatechars:100 }}
+                                </p>
+                            {% endif %}
+                            
+                            <div class="card-actions justify-between items-center mt-4">
+                                <div class="flex gap-1">
+                                    {% if event.status == 'upcoming' %}
+                                        <div class="badge badge-success badge-xs">Upcoming</div>
+                                    {% elif event.status == 'ongoing' %}
+                                        <div class="badge badge-warning badge-xs">Ongoing</div>
+                                    {% elif event.status == 'completed' %}
+                                        <div class="badge badge-neutral badge-xs">Completed</div>
+                                    {% endif %}
+                                    
+                                    {% if event.is_featured %}
+                                        <div class="badge badge-accent badge-xs">Featured</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <a href="{% url 'events:event_details' event.slug %}" class="btn btn-sm btn-primary">
+                                    View Event
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-calendar-plus text-4xl text-base-content/30 mb-4"></i>
+                <p class="text-base-content/60">
+                    {% if can_edit %}
+                        You haven't organized any events yet.
+                    {% else %}
+                        {{ profile.get_display_name }} hasn't organized any events yet.
+                    {% endif %}
+                </p>
+                {% if can_edit %}
+                    <a href="{% url 'events:submit' %}" class="btn btn-primary mt-4">
+                        <i class="fas fa-plus mr-2"></i>
+                        Create Your First Event
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Attending Events -->
+    <div id="attending-events" class="events-section">
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+            <i class="fas fa-user-check text-secondary"></i>
+            Attending Events
+            {% if user_attending_events|length > 6 %}
+                <span class="badge badge-secondary">{{ user_attending_events|length }}</span>
+            {% endif %}
+        </h3>
+        
+        {% if user_attending_events %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for event in user_attending_events %}
+                    <div class="event-card card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-secondary">
+                        <div class="card-body p-4">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="card-title text-base">{{ event.name }}</h4>
+                                <div class="badge badge-secondary badge-sm">
+                                    {% if event.id in rsvp_statuses %}
+                                        {{ rsvp_statuses.event.id|capfirst }}
+                                    {% else %}
+                                        Attending
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2 text-sm text-base-content/70">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar-alt w-4"></i>
+                                    <span>{{ event.date|date:"M d, Y" }}</span>
+                                </div>
+                                
+                                {% if event.location %}
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-map-marker-alt w-4"></i>
+                                        <span>{{ event.location|truncatechars:30 }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user w-4"></i>
+                                    <span>by {{ event.organizer.get_display_name }}</span>
+                                </div>
+                            </div>
+                            
+                            {% if event.description %}
+                                <p class="text-sm mt-2 text-base-content/80">
+                                    {{ event.description|truncatechars:100 }}
+                                </p>
+                            {% endif %}
+                            
+                            <div class="card-actions justify-between items-center mt-4">
+                                <div class="flex gap-1">
+                                    {% if event.status == 'upcoming' %}
+                                        <div class="badge badge-success badge-xs">Upcoming</div>
+                                    {% elif event.status == 'ongoing' %}
+                                        <div class="badge badge-warning badge-xs">Ongoing</div>
+                                    {% elif event.status == 'completed' %}
+                                        <div class="badge badge-neutral badge-xs">Completed</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                    {% if can_edit %}
+                                        <button class="btn btn-xs btn-outline" onclick="updateRSVP({{ event.id }})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    {% endif %}
+                                    <a href="{% url 'events:event_details' event.slug %}" class="btn btn-sm btn-secondary">
+                                        View Event
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-calendar-check text-4xl text-base-content/30 mb-4"></i>
+                <p class="text-base-content/60">
+                    {% if can_edit %}
+                        You're not attending any events yet.
+                    {% else %}
+                        {{ profile.get_display_name }} isn't attending any events yet.
+                    {% endif %}
+                </p>
+                {% if can_edit %}
+                    <a href="{% url 'events:event_list' %}" class="btn btn-secondary mt-4">
+                        <i class="fas fa-search mr-2"></i>
+                        Browse Events
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Favorite Events -->
+    {% if user_favorites %}
+        <div id="favorite-events" class="events-section">
+            <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                <i class="fas fa-heart text-accent"></i>
+                Favorite Events
+                <span class="badge badge-accent">{{ user_favorites|length }}</span>
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for favorite in user_favorites %}
+                    <div class="event-card card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-accent">
+                        <div class="card-body p-4">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="card-title text-base">{{ favorite.event.name }}</h4>
+                                <div class="badge badge-accent badge-sm">Favorite</div>
+                            </div>
+                            
+                            <div class="space-y-2 text-sm text-base-content/70">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-calendar-alt w-4"></i>
+                                    <span>{{ favorite.event.date|date:"M d, Y" }}</span>
+                                </div>
+                                
+                                {% if favorite.event.location %}
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-map-marker-alt w-4"></i>
+                                        <span>{{ favorite.event.location|truncatechars:30 }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-heart w-4"></i>
+                                    <span>Added {{ favorite.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-actions justify-between items-center mt-4">
+                                <div class="text-xs text-base-content/50">
+                                    Favorited {{ favorite.created_at|date:"M d" }}
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                    {% if can_edit %}
+                                        <button class="btn btn-xs btn-outline text-error" 
+                                                onclick="removeFavorite({{ favorite.id }})">
+                                            <i class="fas fa-heart-broken"></i>
+                                        </button>
+                                    {% endif %}
+                                    <a href="{% url 'events:event_details' favorite.event.slug %}" class="btn btn-sm btn-accent">
+                                        View Event
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Events tab filtering
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('.events-filter-btn');
+    const eventsSections = document.querySelectorAll('.events-section');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update button states
+            filterButtons.forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline');
+            });
+            this.classList.add('btn-primary');
+            this.classList.remove('btn-outline');
+            
+            // Show/hide sections based on filter
+            eventsSections.forEach(section => {
+                if (filter === 'all') {
+                    section.style.display = 'block';
+                } else {
+                    const sectionId = section.id;
+                    if (sectionId.includes(filter)) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+});
+
+// RSVP management
+function updateRSVP(eventId) {
+    const statuses = ['going', 'maybe', 'not_going'];
+    const modal = document.createElement('div');
+    modal.className = 'modal modal-open';
+    modal.innerHTML = `
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Update RSVP Status</h3>
+            <div class="py-4 space-y-2">
+                ${statuses.map(status => `
+                    <label class="cursor-pointer label justify-start">
+                        <input type="radio" name="rsvp-status" value="${status}" class="radio radio-primary mr-3">
+                        <span class="label-text capitalize">${status.replace('_', ' ')}</span>
+                    </label>
+                `).join('')}
+            </div>
+            <div class="modal-action">
+                <button class="btn" onclick="closeRSVPModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRSVP(${eventId})">Update</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function saveRSVP(eventId) {
+    const selectedStatus = document.querySelector('input[name="rsvp-status"]:checked');
+    if (!selectedStatus) {
+        alert('Please select an RSVP status');
+        return;
+    }
+    
+    fetch('{% url "profiles:update_rsvp" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            event_id: eventId,
+            status: selectedStatus.value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating RSVP: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating RSVP.');
+    });
+    
+    closeRSVPModal();
+}
+
+function closeRSVPModal() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (modal.classList.contains('modal-open')) {
+            modal.remove();
+        }
+    });
+}
+
+// Favorite management
+function removeFavorite(favoriteId) {
+    if (!confirm('Are you sure you want to remove this event from your favorites?')) {
+        return;
+    }
+    
+    fetch(`{% url "profiles:remove_favorite" 0 %}`.replace('0', favoriteId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        } else {
+            alert('Error removing favorite');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while removing favorite.');
+    });
+}
+</script>

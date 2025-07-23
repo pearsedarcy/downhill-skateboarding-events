@@ -1,0 +1,775 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Join the Community - Downhill Skateboarding Events{% endblock %}
+
+{% block meta_description %}
+Join our passionate community of downhill skateboarding enthusiasts. Create your profile, connect with riders, and discover amazing events worldwide.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .signup-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .signup-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "images/skateboard-pattern.svg" %}') repeat;
+        opacity: 0.1;
+        z-index: 1;
+    }
+    
+    .signup-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 10;
+    }
+    
+    .step-indicator {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e5e7eb;
+        z-index: 1;
+    }
+    
+    .step-indicator .step {
+        width: 40px;
+        height: 40px;
+        background: #e5e7eb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #6b7280;
+        position: relative;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+    
+    .step-indicator .step.active {
+        background: hsl(var(--p));
+        color: white;
+    }
+    
+    .step-indicator .step.completed {
+        background: hsl(var(--su));
+        color: white;
+    }
+    
+    .step-content {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+        display: block; /* Always keep in DOM */
+        position: absolute;
+        width: 100%;
+        visibility: hidden;
+    }
+    
+    .step-content.active {
+        opacity: 1;
+        transform: translateX(0);
+        position: relative;
+        visibility: visible;
+    }
+    
+    .skating-style-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .skating-style-option {
+        background: #f3f4f6;
+        border: 2px solid transparent;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .skating-style-option:hover {
+        border-color: hsl(var(--p));
+        background: hsl(var(--p) / 0.1);
+    }
+    
+    .skating-style-option.selected {
+        border-color: hsl(var(--p));
+        background: hsl(var(--p));
+        color: white;
+    }
+    
+    .skating-style-option i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-transition {
+        transition: all 0.3s ease;
+    }
+    
+    .error-message {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #dc2626;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .success-message {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #16a34a;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .profile-preview {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .profile-preview .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, hsl(var(--p)) 0%, hsl(var(--s)) 100%);
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signup-container flex items-center justify-center p-4">
+    <div class="signup-card rounded-2xl p-8 w-full max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Join Our Community</h1>
+            <p class="text-gray-600">Connect with passionate downhill skateboarding enthusiasts worldwide</p>
+        </div>
+        
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" data-step="1">1</div>
+            <div class="flex-1"></div>
+            <div class="step" data-step="2">2</div>
+            <div class="flex-1"></div>
+            <div class="step" data-step="3">3</div>
+        </div>
+        
+        <!-- Error/Success Messages -->
+        <div id="message-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if form.errors %}
+                <div class="error-message mb-4">
+                    <strong>Please correct the following errors:</strong>
+                    <ul class="mt-2">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field|title }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Multi-step Form -->
+        <form id="enhanced-signup-form" method="post" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+            
+            <!-- Step 1: Account Basics -->
+            <div class="step-content active" data-step="1">
+                <h2 class="text-xl font-semibold mb-4">Account Information</h2>
+                
+                <div class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Username</span>
+                            <span class="label-text-alt text-error">*</span>
+                        </label>
+                        <input type="text" name="username" id="id_username" 
+                               class="input input-bordered w-full" 
+                               placeholder="Choose a unique username"
+                               required>
+                        <label class="label">
+                            <span class="label-text-alt">This will be your public identifier</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Email Address</span>
+                            <span class="label-text-alt text-error">*</span>
+                        </label>
+                        <input type="email" name="email" id="id_email" 
+                               class="input input-bordered w-full" 
+                               placeholder="your.email@example.com"
+                               required>
+                        <label class="label">
+                            <span class="label-text-alt">We'll send you event updates and community news</span>
+                        </label>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Password</span>
+                                <span class="label-text-alt text-error">*</span>
+                            </label>
+                            <input type="password" name="password1" id="id_password1" 
+                                   class="input input-bordered w-full" 
+                                   placeholder="Create a strong password"
+                                   required>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Confirm Password</span>
+                                <span class="label-text-alt text-error">*</span>
+                            </label>
+                            <input type="password" name="password2" id="id_password2" 
+                                   class="input input-bordered w-full" 
+                                   placeholder="Confirm your password"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-6">
+                    <button type="button" class="btn btn-primary" onclick="nextStep(1)">
+                        Continue
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Skating Profile -->
+            <div class="step-content" data-step="2">
+                <h2 class="text-xl font-semibold mb-4">Tell Us About Your Skating</h2>
+                
+                <div class="space-y-6">
+                    <!-- Display Name -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Display Name</span>
+                            <span class="label-text-alt">Optional</span>
+                        </label>
+                        <input type="text" name="display_name" id="id_display_name" 
+                               class="input input-bordered w-full" 
+                               placeholder="How should we display your name?">
+                        <label class="label">
+                            <span class="label-text-alt">Leave blank to use your username</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Country</span>
+                            </label>
+                            <input type="text" name="country" id="id_country" 
+                                   class="input input-bordered w-full" 
+                                   placeholder="e.g., United States">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">City</span>
+                            </label>
+                            <input type="text" name="city" id="id_city" 
+                                   class="input input-bordered w-full" 
+                                   placeholder="e.g., San Francisco">
+                        </div>
+                    </div>
+                    
+                    <!-- Skating Style -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">What's your preferred skating style?</span>
+                        </label>
+                        <div class="skating-style-grid">
+                            <div class="skating-style-option" data-value="DOWNHILL">
+                                <i class="fas fa-mountain"></i>
+                                <div class="font-medium">Downhill</div>
+                                <div class="text-sm opacity-70">Speed & adrenaline</div>
+                            </div>
+                            <div class="skating-style-option" data-value="FREERIDE">
+                                <i class="fas fa-road"></i>
+                                <div class="font-medium">Freeride</div>
+                                <div class="text-sm opacity-70">Slides & tricks</div>
+                            </div>
+                            <div class="skating-style-option" data-value="FREESTYLE">
+                                <i class="fas fa-star"></i>
+                                <div class="font-medium">Freestyle</div>
+                                <div class="text-sm opacity-70">Creative expression</div>
+                            </div>
+                            <div class="skating-style-option" data-value="CRUISING">
+                                <i class="fas fa-leaf"></i>
+                                <div class="font-medium">Cruising</div>
+                                <div class="text-sm opacity-70">Relaxed riding</div>
+                            </div>
+                            <div class="skating-style-option" data-value="DANCING">
+                                <i class="fas fa-music"></i>
+                                <div class="font-medium">Dancing</div>
+                                <div class="text-sm opacity-70">Flow & style</div>
+                            </div>
+                            <div class="skating-style-option" data-value="OTHER">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <div class="font-medium">Other</div>
+                                <div class="text-sm opacity-70">Something unique</div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="skating_style" id="id_skating_style">
+                    </div>
+                    
+                    <!-- Experience Level -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Skill Level (1-10)</span>
+                            </label>
+                            <input type="range" name="skill_level" id="id_skill_level" 
+                                   min="1" max="10" value="5" 
+                                   class="range range-primary">
+                            <div class="flex justify-between text-xs px-2 mt-1">
+                                <span>Beginner</span>
+                                <span>Intermediate</span>
+                                <span>Expert</span>
+                            </div>
+                            <div class="text-center mt-2">
+                                <span class="badge badge-primary" id="skill-level-display">Level 5</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Years Skating</span>
+                            </label>
+                            <input type="number" name="years_skating" id="id_years_skating" 
+                                   class="input input-bordered w-full" 
+                                   placeholder="How many years?" min="0" max="50">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button type="button" class="btn btn-outline" onclick="prevStep(2)">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+                        Continue
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Final Details & Review -->
+            <div class="step-content" data-step="3">
+                <h2 class="text-xl font-semibold mb-4">Almost Done!</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Additional Info -->
+                    <div class="space-y-4">
+                        <!-- Bio -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Bio</span>
+                                <span class="label-text-alt">Optional</span>
+                            </label>
+                            <textarea name="bio" id="id_bio" 
+                                      class="textarea textarea-bordered h-24" 
+                                      placeholder="Tell the community about yourself..."
+                                      maxlength="500"></textarea>
+                            <label class="label">
+                                <span class="label-text-alt">
+                                    <span id="bio-count">0</span>/500 characters
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <!-- Social -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Instagram</span>
+                                <span class="label-text-alt">Optional</span>
+                            </label>
+                            <div class="join">
+                                <span class="join-item bg-base-200 border border-base-300 px-4 flex items-center">@</span>
+                                <input type="text" name="instagram" id="id_instagram" 
+                                       class="input input-bordered join-item flex-1" 
+                                       placeholder="username">
+                            </div>
+                        </div>
+                        
+                        <!-- Privacy Settings -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Profile Visibility</span>
+                            </label>
+                            <select name="profile_visibility" id="id_profile_visibility" 
+                                    class="select select-bordered w-full">
+                                <option value="PUBLIC">Public - Anyone can see my profile</option>
+                                <option value="COMMUNITY">Community Only - Only registered members</option>
+                                <option value="PRIVATE">Private - Only people I approve</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Preferences -->
+                        <div class="space-y-2">
+                            <div class="form-control">
+                                <label class="cursor-pointer label justify-start gap-3">
+                                    <input type="checkbox" name="show_location" 
+                                           class="checkbox checkbox-primary" checked>
+                                    <span class="label-text">Show my location on profile</span>
+                                </label>
+                            </div>
+                            <div class="form-control">
+                                <label class="cursor-pointer label justify-start gap-3">
+                                    <input type="checkbox" name="email_notifications" 
+                                           class="checkbox checkbox-primary" checked>
+                                    <span class="label-text">Receive event notifications</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Preview -->
+                    <div class="profile-preview">
+                        <h3 class="font-semibold mb-4">Profile Preview</h3>
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="font-bold text-lg" id="preview-name">Your Name</div>
+                        <div class="text-gray-600 mb-2" id="preview-location">Location</div>
+                        <div class="flex justify-center gap-2 mb-3">
+                            <span class="badge badge-primary" id="preview-style">Style</span>
+                            <span class="badge badge-secondary" id="preview-level">Level</span>
+                        </div>
+                        <div class="text-sm text-gray-600" id="preview-bio">Bio will appear here...</div>
+                        
+                        <div class="mt-4 p-3 bg-white rounded-lg">
+                            <div class="text-xs text-gray-500 mb-2">Quick Stats</div>
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div>
+                                    <div class="font-bold">0</div>
+                                    <div class="text-xs">Events</div>
+                                </div>
+                                <div>
+                                    <div class="font-bold">New</div>
+                                    <div class="text-xs">Member</div>
+                                </div>
+                                <div>
+                                    <div class="font-bold" id="preview-years">? yrs</div>
+                                    <div class="text-xs">Experience</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button type="button" class="btn btn-outline" onclick="prevStep(3)">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket mr-2"></i>
+                        Create My Account
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Already have account -->
+        <div class="text-center mt-8 pt-6 border-t border-gray-200">
+            <p class="text-gray-600">
+                Already have an account? 
+                <a href="{% url 'account_login' %}" class="link link-primary font-medium">Sign in here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+const formData = new FormData();
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateStepIndicator();
+    setupFormListeners();
+    updateProfilePreview();
+});
+
+function setupFormListeners() {
+    // Skill level slider
+    const skillSlider = document.getElementById('id_skill_level');
+    const skillDisplay = document.getElementById('skill-level-display');
+    
+    skillSlider.addEventListener('input', function() {
+        skillDisplay.textContent = `Level ${this.value}`;
+        updateProfilePreview();
+    });
+    
+    // Bio character counter
+    const bioTextarea = document.getElementById('id_bio');
+    const bioCounter = document.getElementById('bio-count');
+    
+    bioTextarea.addEventListener('input', function() {
+        bioCounter.textContent = this.value.length;
+        updateProfilePreview();
+    });
+    
+    // Skating style selection
+    document.querySelectorAll('.skating-style-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove previous selection
+            document.querySelectorAll('.skating-style-option').forEach(opt => 
+                opt.classList.remove('selected'));
+            
+            // Add selection to clicked option
+            this.classList.add('selected');
+            document.getElementById('id_skating_style').value = this.dataset.value;
+            updateProfilePreview();
+        });
+    });
+    
+    // Real-time form validation and preview updates
+    ['username', 'display_name', 'country', 'city', 'years_skating', 'instagram'].forEach(fieldId => {
+        const field = document.getElementById(`id_${fieldId}`);
+        if (field) {
+            field.addEventListener('input', updateProfilePreview);
+        }
+    });
+}
+
+function nextStep(step) {
+    if (validateStep(step)) {
+        if (step < 3) {
+            currentStep++;
+            showStep(currentStep);
+            updateStepIndicator();
+        }
+    }
+}
+
+function prevStep(step) {
+    if (step > 1) {
+        currentStep--;
+        showStep(currentStep);
+        updateStepIndicator();
+    }
+}
+
+function showStep(step) {
+    // Hide all steps
+    document.querySelectorAll('.step-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Show current step
+    document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
+}
+
+function updateStepIndicator() {
+    document.querySelectorAll('.step').forEach((step, index) => {
+        const stepNumber = index + 1;
+        step.classList.remove('active', 'completed');
+        
+        if (stepNumber < currentStep) {
+            step.classList.add('completed');
+            step.innerHTML = '<i class="fas fa-check"></i>';
+        } else if (stepNumber === currentStep) {
+            step.classList.add('active');
+            step.textContent = stepNumber;
+        } else {
+            step.textContent = stepNumber;
+        }
+    });
+}
+
+function validateStep(step) {
+    const errors = [];
+    
+    if (step === 1) {
+        // Validate required fields
+        const username = document.getElementById('id_username').value.trim();
+        const email = document.getElementById('id_email').value.trim();
+        const password1 = document.getElementById('id_password1').value;
+        const password2 = document.getElementById('id_password2').value;
+        
+        if (!username) errors.push('Username is required');
+        if (!email) errors.push('Email is required');
+        if (!password1) errors.push('Password is required');
+        if (password1 !== password2) errors.push('Passwords do not match');
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email && !emailRegex.test(email)) {
+            errors.push('Please enter a valid email address');
+        }
+        
+        // Password strength check
+        if (password1 && password1.length < 8) {
+            errors.push('Password must be at least 8 characters long');
+        }
+    }
+    
+    // Steps 2 and 3 don't have required validations since most fields are optional
+    // The server-side validation will handle any remaining validation
+    
+    if (errors.length > 0) {
+        showMessage('error', errors.join('<br>'));
+        return false;
+    }
+    
+    clearMessages();
+    return true;
+}
+
+function updateProfilePreview() {
+    const username = document.getElementById('id_username').value || 'Your Username';
+    const displayName = document.getElementById('id_display_name').value;
+    const country = document.getElementById('id_country').value;
+    const city = document.getElementById('id_city').value;
+    const bio = document.getElementById('id_bio').value;
+    const skillLevel = document.getElementById('id_skill_level').value;
+    const yearsSkating = document.getElementById('id_years_skating').value;
+    const selectedStyle = document.querySelector('.skating-style-option.selected');
+    
+    // Update preview elements
+    document.getElementById('preview-name').textContent = displayName || username;
+    
+    let location = '';
+    if (city && country) location = `${city}, ${country}`;
+    else if (city) location = city;
+    else if (country) location = country;
+    document.getElementById('preview-location').textContent = location || 'Location not set';
+    
+    document.getElementById('preview-style').textContent = 
+        selectedStyle ? selectedStyle.querySelector('.font-medium').textContent : 'Style';
+    
+    document.getElementById('preview-level').textContent = `Level ${skillLevel}`;
+    
+    document.getElementById('preview-bio').textContent = 
+        bio || 'Bio will appear here...';
+    
+    document.getElementById('preview-years').textContent = 
+        yearsSkating ? `${yearsSkating} yrs` : '? yrs';
+}
+
+function showMessage(type, message) {
+    const container = document.getElementById('message-container');
+    const className = type === 'error' ? 'error-message' : 'success-message';
+    container.innerHTML = `<div class="${className}">${message}</div>`;
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function clearMessages() {
+    document.getElementById('message-container').innerHTML = '';
+}
+
+// Form submission handling
+document.getElementById('enhanced-signup-form').addEventListener('submit', function(e) {
+    console.log('Form submission triggered, current step:', currentStep);
+    
+    // Only validate step 1 (required fields), let server handle the rest
+    if (!validateStep(1)) {
+        console.log('Basic validation failed');
+        e.preventDefault();
+        return;
+    }
+    
+    console.log('Validation passed, submitting form...');
+    
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="loading loading-spinner"></span> Creating Account...';
+        submitBtn.disabled = true;
+    }
+    
+    // Let the form submit normally
+});
+
+// Add specific click handler for the submit button to debug
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                console.log('Submit button clicked!');
+            });
+        }
+    }, 1000);
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    // Prevent Enter key from submitting form unless it's Ctrl+Enter
+    if (e.key === 'Enter' && !e.ctrlKey) {
+        // Only allow Enter on the final step when submitting
+        if (currentStep < 3) {
+            e.preventDefault();
+            nextStep(currentStep);
+        }
+    } else if (e.key === 'Enter' && e.ctrlKey) {
+        e.preventDefault();
+        if (currentStep < 3) {
+            nextStep(currentStep);
+        } else {
+            document.getElementById('enhanced-signup-form').dispatchEvent(new Event('submit'));
+        }
+    }
+});
+</script>
+{% endblock %}

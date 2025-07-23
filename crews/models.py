@@ -458,10 +458,13 @@ class CrewActivity(models.Model):
         ('EVENT_CREATED', 'Event Created'),
         ('LEAGUE_CREATED', 'League Created'),
         ('CREW_UPDATED', 'Crew Updated'),
+        ('PERMISSIONS_UPDATED', 'Permissions Updated'),
+        ('BULK_PERMISSIONS_UPDATED', 'Bulk Permissions Updated'),
+        ('PERMISSION_TOGGLED', 'Permission Toggled'),
     ]
     
     crew = models.ForeignKey(Crew, on_delete=models.CASCADE, related_name='activities')
-    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    activity_type = models.CharField(max_length=30, choices=ACTIVITY_TYPES)
     user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="User who performed the action")
     target_user = models.ForeignKey(
         User, 

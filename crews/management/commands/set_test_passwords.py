@@ -20,8 +20,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         password = options['password']
         
-        # Get all test users (IDs 100-107)
-        test_users = User.objects.filter(pk__in=range(100, 108))
+        # Get all test users (IDs 100-113)
+        test_users = User.objects.filter(pk__in=range(100, 114))
         
         if not test_users.exists():
             self.stdout.write(

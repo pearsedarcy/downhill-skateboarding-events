@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ crew.name }} - Activity{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4 mb-4">
+            <a href="{% url 'crews:detail' crew.slug %}" class="btn btn-ghost btn-sm">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to {{ crew.name }}
+            </a>
+        </div>
+        
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-base-content mb-2">
+                    <i class="fas fa-chart-line text-primary mr-3"></i>
+                    {{ crew.name }} Activity
+                </h1>
+                <p class="text-base-content/70">Track crew activity and member actions</p>
+            </div>
+            
+            <!-- Activity Stats Cards -->
+            <div class="flex gap-4">
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-figure text-primary">
+                            <i class="fas fa-chart-bar text-2xl"></i>
+                        </div>
+                        <div class="stat-title">Total Activities</div>
+                        <div class="stat-value text-primary">{{ activity_stats.total_activities }}</div>
+                    </div>
+                </div>
+                
+                <div class="stats shadow">
+                    <div class="stat">
+                        <div class="stat-figure text-success">
+                            <i class="fas fa-clock text-2xl"></i>
+                        </div>
+                        <div class="stat-title">This Week</div>
+                        <div class="stat-value text-success">{{ activity_stats.recent_activities }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card bg-base-100 shadow-lg mb-6">
+        <div class="card-body p-4">
+            <form method="GET" class="flex flex-wrap gap-4 items-end">
+                <!-- Activity Type Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Activity Type</span>
+                    </label>
+                    <select name="type" class="select select-bordered w-full max-w-xs">
+                        <option value="">All Activities</option>
+                        {% for type_value, type_display in activity_types %}
+                        <option value="{{ type_value }}" {% if selected_type == type_value %}selected{% endif %}>
+                            {{ type_display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Date Range Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Time Range</span>
+                    </label>
+                    <select name="range" class="select select-bordered w-full max-w-xs">
+                        <option value="7" {% if selected_range == "7" %}selected{% endif %}>Last 7 days</option>
+                        <option value="30" {% if selected_range == "30" %}selected{% endif %}>Last 30 days</option>
+                        <option value="90" {% if selected_range == "90" %}selected{% endif %}>Last 90 days</option>
+                        <option value="all" {% if selected_range == "all" %}selected{% endif %}>All time</option>
+                    </select>
+                </div>
+                
+                <!-- Filter Button -->
+                <div class="form-control">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter mr-2"></i>
+                        Apply Filters
+                    </button>
+                </div>
+                
+                <!-- Clear Filters -->
+                {% if selected_type or selected_range != "30" %}
+                <div class="form-control">
+                    <a href="{% url 'crews:activity' crew.slug %}" class="btn btn-ghost">
+                        <i class="fas fa-times mr-2"></i>
+                        Clear
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <!-- Activity Feed -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title mb-6">
+                <i class="fas fa-history text-primary mr-2"></i>
+                Activity Feed
+                {% if activities.paginator.count %}
+                <span class="badge badge-primary">{{ activities.paginator.count }} activit{{ activities.paginator.count|pluralize:"y,ies" }}</span>
+                {% endif %}
+            </h2>
+            
+            {% if activities %}
+            <div class="space-y-4">
+                {% for activity in activities %}
+                <div class="flex items-start gap-4 p-4 rounded-lg border border-base-300 hover:bg-base-200/50 transition-colors">
+                    <!-- Activity Icon -->
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-12 h-12">
+                            {% if activity.activity_type == 'MEMBER_JOINED' %}
+                                <i class="fas fa-user-plus"></i>
+                            {% elif activity.activity_type == 'MEMBER_LEFT' %}
+                                <i class="fas fa-user-minus"></i>
+                            {% elif activity.activity_type == 'MEMBER_PROMOTED' %}
+                                <i class="fas fa-arrow-up"></i>
+                            {% elif activity.activity_type == 'EVENT_CREATED' %}
+                                <i class="fas fa-calendar-plus"></i>
+                            {% elif activity.activity_type == 'PERMISSIONS_UPDATED' %}
+                                <i class="fas fa-user-shield"></i>
+                            {% elif activity.activity_type == 'BULK_PERMISSIONS_UPDATED' %}
+                                <i class="fas fa-users-cog"></i>
+                            {% elif activity.activity_type == 'PERMISSION_TOGGLED' %}
+                                <i class="fas fa-toggle-on"></i>
+                            {% elif activity.activity_type == 'CREW_UPDATED' %}
+                                <i class="fas fa-edit"></i>
+                            {% else %}
+                                <i class="fas fa-info"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Activity Content -->
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-semibold">{{ activity.user.username }}</span>
+                            <span class="badge badge-ghost badge-sm">{{ activity.get_activity_type_display }}</span>
+                        </div>
+                        
+                        <p class="text-base-content/80 mb-2">{{ activity.description }}</p>
+                        
+                        <div class="flex items-center gap-4 text-sm text-base-content/60">
+                            <span>
+                                <i class="fas fa-clock mr-1"></i>
+                                {{ activity.created_at|timesince }} ago
+                            </span>
+                            <span>
+                                <i class="fas fa-calendar mr-1"></i>
+                                {{ activity.created_at|date:"M d, Y H:i" }}
+                            </span>
+                            {% if activity.target_user %}
+                            <span>
+                                <i class="fas fa-user mr-1"></i>
+                                Affected: {{ activity.target_user.username }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Metadata Display -->
+                        {% if activity.metadata %}
+                        <div class="mt-2">
+                            <details class="collapse collapse-arrow border border-base-300 bg-base-200">
+                                <summary class="collapse-title text-sm font-medium">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Additional Details
+                                </summary>
+                                <div class="collapse-content">
+                                    <pre class="text-xs bg-base-300 p-2 rounded mt-2 overflow-x-auto">{{ activity.metadata|pprint }}</pre>
+                                </div>
+                            </details>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if activities.has_other_pages %}
+            <div class="flex justify-center mt-8">
+                <div class="join">
+                    {% if activities.has_previous %}
+                        <a href="?page={{ activities.previous_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_range %}&range={{ selected_range }}{% endif %}" 
+                           class="join-item btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% endif %}
+                    
+                    <button class="join-item btn btn-active">
+                        Page {{ activities.number }} of {{ activities.paginator.num_pages }}
+                    </button>
+                    
+                    {% if activities.has_next %}
+                        <a href="?page={{ activities.next_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if selected_range %}&range={{ selected_range }}{% endif %}" 
+                           class="join-item btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <i class="fas fa-history text-6xl text-base-content/20 mb-4"></i>
+                <h3 class="text-xl font-semibold text-base-content/60 mb-2">No Activity Yet</h3>
+                {% if selected_type or selected_range != "30" %}
+                <p class="text-base-content/50 mb-4">No activities found for the selected filters.</p>
+                <a href="{% url 'crews:activity' crew.slug %}" class="btn btn-outline">
+                    <i class="fas fa-times mr-2"></i>
+                    Clear Filters
+                </a>
+                {% else %}
+                <p class="text-base-content/50 mb-4">Crew activity will appear here as members take actions.</p>
+                <a href="{% url 'crews:detail' crew.slug %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to Crew
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Activity Type Legend -->
+    {% if activity_stats.activity_types %}
+    <div class="card bg-base-100 shadow-lg mt-6">
+        <div class="card-body">
+            <h3 class="card-title mb-4">
+                <i class="fas fa-chart-pie text-primary mr-2"></i>
+                Most Common Activities
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for activity_type in activity_stats.activity_types %}
+                <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                    <span class="font-medium">
+                        {% if activity_type.activity_type == 'MEMBER_JOINED' %}
+                            Member Joined
+                        {% elif activity_type.activity_type == 'MEMBER_LEFT' %}
+                            Member Left
+                        {% elif activity_type.activity_type == 'MEMBER_PROMOTED' %}
+                            Member Promoted
+                        {% elif activity_type.activity_type == 'EVENT_CREATED' %}
+                            Event Created
+                        {% elif activity_type.activity_type == 'PERMISSIONS_UPDATED' %}
+                            Permissions Updated
+                        {% elif activity_type.activity_type == 'BULK_PERMISSIONS_UPDATED' %}
+                            Bulk Permissions Updated
+                        {% elif activity_type.activity_type == 'PERMISSION_TOGGLED' %}
+                            Permission Toggled
+                        {% elif activity_type.activity_type == 'CREW_UPDATED' %}
+                            Crew Updated
+                        {% else %}
+                            {{ activity_type.activity_type }}
+                        {% endif %}
+                    </span>
+                    <span class="badge badge-primary">{{ activity_type.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -19,10 +19,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from .account_urls import account_urlpatterns
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("allauth.urls")),
+    path("accounts/", include(account_urlpatterns)),  # Use our custom account URLs
     path("__reload__/", include("django_browser_reload.urls")),
     path("profiles/", include("profiles.urls", namespace="profiles")),  # Changed from profile/ to profiles/
     path("", include("events.urls", namespace="events")),

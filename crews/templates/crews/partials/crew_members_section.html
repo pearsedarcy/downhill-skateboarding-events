@@ -1,0 +1,357 @@
+<!-- Members Section -->
+<div class="card bg-base-100 shadow-lg" id="members-tab">
+    <div class="card-body p-4 lg:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 lg:mb-6">
+            <h2 class="card-title text-lg lg:text-xl">
+                <i class="fas fa-users text-primary mr-2"></i>
+                Crew Members ({{ crew.member_count }})
+            </h2>
+            
+            {% if can_manage %}
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-2 w-full sm:w-auto">
+                <a href="{% url 'crews:manage_permissions' crew.slug %}" class="btn btn-outline btn-sm flex-1 sm:flex-none">
+                    <i class="fas fa-user-shield mr-2"></i>
+                    <span class="hidden sm:inline">Permissions</span>
+                    <span class="sm:hidden">Permissions</span>
+                </a>
+                <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-secondary btn-sm flex-1 sm:flex-none">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    <span class="hidden sm:inline">Invite Members</span>
+                    <span class="sm:hidden">Invite</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Members List -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+            {% for membership in active_memberships %}
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-base-300 hover:bg-base-200 transition-colors cursor-pointer member-card" 
+                 data-user-id="{{ membership.user.id }}"
+                 onclick="openMemberProfile({{ membership.user.id }})">
+                <div class="avatar">
+                    <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-full bg-primary/20">
+                        {% if membership.user.profile.avatar %}
+                            <img src="{{ membership.user.profile.avatar.url }}" alt="{{ membership.user.get_full_name|default:membership.user.username }}">
+                        {% else %}
+                            <div class="flex items-center justify-center h-full">
+                                <i class="fas fa-user text-lg text-primary/60"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex-1">
+                    <div class="font-medium text-sm lg:text-base">
+                        {{ membership.user.get_full_name|default:membership.user.username }}
+                        {% if membership.nickname %}
+                        <span class="text-xs opacity-60">({{ membership.nickname }})</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-xs lg:text-sm text-base-content/60">{{ membership.get_role_display }}</div>
+                    {% if membership.bio %}
+                    <div class="text-xs opacity-60 truncate mt-1">{{ membership.bio|truncatechars:40 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="flex flex-col items-end gap-1">
+                    {% if membership.role == 'OWNER' %}
+                    <div class="badge badge-warning text-xs">Owner</div>
+                    {% elif membership.role == 'ADMIN' %}
+                    <div class="badge badge-info text-xs">Admin</div>
+                    {% elif membership.role == 'EVENT_MANAGER' %}
+                    <div class="badge badge-success text-xs">Event Manager</div>
+                    {% endif %}
+                    
+                    <!-- Permission indicators -->
+                    <div class="flex gap-1">
+                        {% if membership.can_create_events %}
+                        <div class="w-2 h-2 rounded-full bg-success" title="Can create events"></div>
+                        {% endif %}
+                        {% if membership.can_publish_events %}
+                        <div class="w-2 h-2 rounded-full bg-warning" title="Can publish events"></div>
+                        {% endif %}
+                        {% if membership.can_delegate_permissions %}
+                        <div class="w-2 h-2 rounded-full bg-primary" title="Can delegate permissions"></div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-xs opacity-60">
+                        Click for details
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Empty State -->
+        {% if not active_memberships %}
+        <div class="text-center py-8">
+            <i class="fas fa-users text-4xl text-base-content/20 mb-4"></i>
+            <h3 class="text-lg font-semibold mb-2">No Members Yet</h3>
+            <p class="text-base-content/60 mb-4">This crew doesn't have any members yet.</p>
+            {% if can_manage %}
+            <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-primary">
+                <i class="fas fa-user-plus mr-2"></i>
+                Invite First Member
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Include Member Profile Modal -->
+{% include 'crews/partials/member_profile_modal.html' %}
+
+<script>
+function openMemberProfile(userId) {
+    const modal = document.getElementById('member-profile-modal');
+    const content = document.getElementById('member-profile-content');
+    
+    // Show loading state
+    content.innerHTML = `
+        <div class="flex items-center justify-center py-12">
+            <span class="loading loading-spinner loading-lg"></span>
+        </div>
+    `;
+    
+    // Open modal
+    modal.showModal();
+    
+    // Fetch member profile data
+    fetch(`/crews/{{ crew.slug }}/member/${userId}/profile/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                content.innerHTML = data.profile_html;
+                // Initialize permission toggles and manager after content loads
+                setTimeout(() => {
+                    initializeModalFunctions();
+                }, 100);
+            } else {
+                content.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Failed to load member profile: ${data.error}</span>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            content.innerHTML = `
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Error loading profile. Please try again.</span>
+                </div>
+            `;
+        });
+}
+
+// Initialize modal functions after content loads
+function initializeModalFunctions() {
+    // Setup permission manager toggle
+    const manageBtn = document.getElementById('manage-permissions-btn');
+    if (manageBtn) {
+        manageBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            togglePermissionManager();
+        });
+    }
+    
+    // Initialize permission toggles
+    initializePermissionToggles();
+}
+
+function togglePermissionManager() {
+    const manager = document.getElementById('permission-manager');
+    if (manager) {
+        manager.classList.toggle('hidden');
+        console.log('Permission manager toggled:', !manager.classList.contains('hidden'));
+    } else {
+        console.log('Permission manager element not found');
+    }
+}
+
+// Initialize permission toggles - called when modal content loads
+function initializePermissionToggles() {
+    document.querySelectorAll('.permission-toggle').forEach(toggle => {
+        // Remove existing listeners to prevent duplicates
+        toggle.removeEventListener('change', handlePermissionToggle);
+        toggle.addEventListener('change', handlePermissionToggle);
+    });
+}
+
+function handlePermissionToggle(event) {
+    const toggle = event.target;
+    const permission = toggle.dataset.permission;
+    const userId = toggle.dataset.userId;
+    const action = toggle.checked ? 'grant' : 'revoke';
+    
+    // Get CSRF token from the main page
+    let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfToken) {
+        // Try to get from cookies as fallback
+        csrfToken = getCookie('csrftoken');
+    } else {
+        csrfToken = csrfToken.value;
+    }
+    
+    fetch(`/crews/{{ crew.slug }}/member/${userId}/permissions/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+        },
+        body: `permission_type=${permission}&action=${action}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showToast(data.message, 'success');
+            
+            // Update the member card's permission indicators
+            updateMemberCardPermissions(userId, data.new_permissions);
+            
+            // Update the modal permission display
+            updateModalPermissions(data.new_permissions);
+        } else {
+            // Revert toggle and show error
+            toggle.checked = !toggle.checked;
+            showToast('Error: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        // Revert toggle and show error
+        toggle.checked = !toggle.checked;
+        showToast('Error updating permission. Please try again.', 'error');
+    });
+}
+
+function showToast(message, type = 'success') {
+    // Remove any existing toasts first
+    const existingToasts = document.querySelectorAll('.custom-toast');
+    existingToasts.forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+    
+    // Use inline styles with !important and very high z-index
+    toast.style.cssText = `
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+        z-index: 2147483647 !important;
+        pointer-events: auto !important;
+        width: auto !important;
+        min-width: 300px !important;
+        max-width: 500px !important;
+    `;
+    
+    toast.innerHTML = `
+        <div class="alert ${alertClass} shadow-lg">
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Append directly to document.body, not inside any containers
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (toast && toast.parentNode) {
+            toast.remove();
+        }
+    }, 3000);
+}
+
+function updateMemberCardPermissions(userId, permissions) {
+    // Find the member card for this user
+    const memberCard = document.querySelector(`[data-user-id="${userId}"]`);
+    if (!memberCard) return;
+    
+    // Find the permission indicators container
+    const permissionIndicators = memberCard.querySelector('.flex.gap-1');
+    if (!permissionIndicators) return;
+    
+    // Clear existing indicators
+    permissionIndicators.innerHTML = '';
+    
+    // Add indicators based on current permissions
+    if (permissions.can_create_events) {
+        const indicator = document.createElement('div');
+        indicator.className = 'w-2 h-2 rounded-full bg-success';
+        indicator.title = 'Can create events';
+        permissionIndicators.appendChild(indicator);
+    }
+    
+    if (permissions.can_publish_events) {
+        const indicator = document.createElement('div');
+        indicator.className = 'w-2 h-2 rounded-full bg-warning';
+        indicator.title = 'Can publish events';
+        permissionIndicators.appendChild(indicator);
+    }
+    
+    if (permissions.can_delegate_permissions) {
+        const indicator = document.createElement('div');
+        indicator.className = 'w-2 h-2 rounded-full bg-primary';
+        indicator.title = 'Can delegate permissions';
+        permissionIndicators.appendChild(indicator);
+    }
+}
+
+function updateModalPermissions(permissions) {
+    // Update the permission display section in the modal
+    const permissionSection = document.querySelector('#member-profile-content .space-y-2');
+    if (!permissionSection) return;
+    
+    // Clear existing permission display
+    permissionSection.innerHTML = '';
+    
+    if (permissions.role_based) {
+        permissionSection.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="text-sm">Full Access</span>
+                <i class="fas fa-crown text-warning"></i>
+            </div>
+        `;
+    } else {
+        const permissionItems = [
+            { key: 'create', label: 'Create Events' },
+            { key: 'edit', label: 'Edit Events' },
+            { key: 'publish', label: 'Publish Events' },
+            { key: 'delegate', label: 'Delegate Permissions' }
+        ];
+        
+        permissionItems.forEach(item => {
+            const hasPermission = permissions[item.key];
+            const iconClass = hasPermission ? 'fas fa-check text-success' : 'fas fa-times text-error';
+            
+            const permissionDiv = document.createElement('div');
+            permissionDiv.className = 'flex items-center justify-between';
+            permissionDiv.innerHTML = `
+                <span class="text-sm">${item.label}</span>
+                <i class="${iconClass}"></i>
+            `;
+            permissionSection.appendChild(permissionDiv);
+        });
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Activity Feed - Downhill Skateboarding Events{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">Activity Feed</h1>
+            <p class="text-base-content/70 mt-1">
+                Stay updated with activities from people you follow
+                {% if following_count > 0 %}
+                    ({{ following_count }} following)
+                {% endif %}
+            </p>
+        </div>
+        
+        <!-- Quick actions -->
+        <div class="flex space-x-2">
+            <a href="{% url 'profiles:users_list' %}" class="btn btn-outline btn-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-2.239"></path>
+                </svg>
+                Find People
+            </a>
+            <a href="{% url 'profiles:my_profile' %}" class="btn btn-ghost btn-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                My Profile
+            </a>
+        </div>
+    </div>
+
+    {% if page_obj %}
+        <!-- Activity timeline -->
+        <div class="max-w-2xl mx-auto">
+            {% for activity in page_obj %}
+                <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow mb-4">
+                    <div class="card-body p-4">
+                        <div class="flex items-start space-x-3">
+                            <!-- User avatar -->
+                            <div class="avatar">
+                                <div class="w-10 h-10 rounded-full">
+                                    <a href="{% url 'profiles:user_profile' activity.user.username %}">
+                                        {% if activity.user.profile.avatar %}
+                                            <img src="{{ activity.user.profile.avatar.url }}" alt="{{ activity.user.profile.get_display_name }}" />
+                                        {% else %}
+                                            <div class="bg-gradient-to-br from-blue-500 to-purple-600 w-full h-full flex items-center justify-center text-white font-bold text-sm">
+                                                {{ activity.user.profile.get_display_name|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Activity content -->
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <a href="{% url 'profiles:user_profile' activity.user.username %}" 
+                                       class="font-semibold hover:text-primary">
+                                        {{ activity.user.profile.get_display_name }}
+                                    </a>
+                                    <span class="text-base-content/60 text-sm">
+                                        @{{ activity.user.username }}
+                                    </span>
+                                    <span class="text-base-content/50 text-sm">•</span>
+                                    <span class="text-base-content/50 text-sm">
+                                        {{ activity.created_at|timesince }} ago
+                                    </span>
+                                </div>
+                                
+                                <p class="text-base-content/80">
+                                    {{ activity.description }}
+                                </p>
+                                
+                                <!-- Activity type badge -->
+                                <div class="mt-2">
+                                    {% if activity.activity_type == 'PROFILE_UPDATE' %}
+                                        <div class="badge badge-info badge-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Profile
+                                        </div>
+                                    {% elif activity.activity_type == 'EVENT_CREATED' %}
+                                        <div class="badge badge-success badge-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Event
+                                        </div>
+                                    {% elif activity.activity_type == 'EVENT_JOINED' %}
+                                        <div class="badge badge-warning badge-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Joined
+                                        </div>
+                                    {% elif activity.activity_type == 'CREW_JOINED' %}
+                                        <div class="badge badge-primary badge-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Crew
+                                        </div>
+                                    {% elif activity.activity_type == 'ACHIEVEMENT_EARNED' %}
+                                        <div class="badge badge-accent badge-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Achievement
+                                        </div>
+                                    {% elif activity.activity_type == 'REVIEW_LEFT' %}
+                                        <div class="badge badge-secondary badge-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Review
+                                        </div>
+                                    {% elif activity.activity_type == 'PHOTO_UPLOADED' %}
+                                        <div class="badge badge-neutral badge-sm">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            Photo
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="flex justify-center mt-8">
+                <div class="join">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn">«</a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="join-item btn btn-active">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}" class="join-item btn">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="join-item btn">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- Empty state -->
+        <div class="text-center py-12">
+            <div class="text-6xl mb-4">📱</div>
+            <h3 class="text-xl font-semibold mb-2">Your activity feed is empty</h3>
+            <p class="text-base-content/70 mb-6">
+                Follow other skaters to see their activities and stay connected with the community!
+            </p>
+            <a href="{% url 'profiles:users_list' %}" class="btn btn-primary">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-2.239"></path>
+                </svg>
+                Discover People to Follow
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

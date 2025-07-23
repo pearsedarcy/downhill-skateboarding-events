@@ -92,7 +92,7 @@
               results"><i class="fas fa-trophy"></i>Results</a></li> -->
               <li><a href="{% url 'results:league_list' %}" aria-label="View Leagues"><i class="fas fa-ranking-star"></i>Leagues</a></li>
               <li><a href="{% url 'crews:list' %}" aria-label="View Crews"><i class="fas fa-users"></i>Crews</a></li>
-              <!-- <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li> -->
+              <li class="-ml-1"><a href="{% url 'profiles:users_list' %}" aria-label="View users"><i class="fas fa-users"></i> Users</a></li>
               <li><a href="{% url 'events:about' %}" aria-label="About us"><i class="fas fa-info-circle"></i> About</a></li>
             </ul>
           </div>
@@ -282,8 +282,12 @@
           <a href="{% url 'results:league_list' %}" class="menu-item btn-ghost
           p-2 hover:bg-base-200 rounded-lg" aria-label="View Leagues"><i
           class="fas fa-ranking-star mr-3"></i> Leagues</a>
-            <a href="{% url 'crews:list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-4"></i> Crews</a>
-          <!-- <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-3"></i> Users</a> -->
+            <a href="{% url 'crews:list' %}" class="menu-item btn-ghost p-2
+            hover:bg-base-200 rounded-lg"><i class="fas fa-users mr-4"></i>
+            Crews</a>
+            <a href="{% url 'profiles:users_list' %}" class="menu-item btn-ghost
+          p-2 hover:bg-base-200 rounded-lg" aria-label="View users"><i
+            class="fas fa-users mr-4"></i> Users</a>
           <a href="{% url 'events:about' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-info-circle mr-4"></i> About</a>
         </div>
       </aside>
@@ -388,6 +392,10 @@
       <!-- DaisyUI Dropdown JavaScript -->
       <script src="{% static 'js/dropdown.js' %}"></script>
     </div>
+    
+    <!-- Toast Notification System -->
+    {% include 'profiles/partials/toast_notifications.html' %}
+    
     {% block extra_js %}{% endblock %}
   </body>
 </html>
