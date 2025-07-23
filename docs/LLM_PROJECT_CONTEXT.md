@@ -6,7 +6,7 @@
 **Project Name**: Downhill Skateboarding Events Platform  
 **Purpose**: Community platform for downhill skateboarding enthusiasts to organize events, form crews, track results, and connect  
 **Tech Stack**: Django 4.2+ | PostgreSQL | TailwindCSS | DaisyUI | Cloudinary | Allauth  
-**Current Status**: Profile system with social features **COMPLETE** (~85%), crew permission system enhanced, ready for events system development
+**Current Status**: Profile system with social features **COMPLETE** (~85%), crew permission system enhanced, **NEXT**: Crews-Profiles Integration phase
 
 ## 📁 **Project Structure & App Architecture**
 
@@ -309,33 +309,50 @@ def get_profile_stats(profile_id):
     return stats_data
 ```
 
-## 🔮 **Next Development Phase: Social Features**
+## 🔮 **Next Development Phase: Crews-Profiles Integration**
 
 ### **Immediate Priorities**
-1. **Profile Following System** - Users can follow each other
-2. **Activity Feed** - Track and display user activities  
-3. **Recommendations** - AI-powered profile suggestions
-4. **Verification System** - Badge system for verified users
+1. **Profile-Linked Crew Members** - Clickable profile links in crew member lists with preview functionality
+2. **Working Invitation System** - Complete UI/UX for crew invitations with user search and notifications  
+3. **Crew-Aware Profile Discovery** - Find crew mates to follow and crew context in user lists
+4. **Enhanced Privacy Integration** - CREWS visibility level implementation across both apps
 
-### **Technical Approach for Social Features**
+### **Technical Approach for Integration**
 ```python
-# Follow system model structure
-class ProfileFollow(models.Model):
-    follower = ForeignKey(User, related_name='following')
-    following = ForeignKey(User, related_name='followers')
-    created_at = DateTimeField(auto_now_add=True)
+# Enhanced CrewMembership with profile integration
+class CrewMembership(models.Model):
+    # ... existing fields ...
     
-    class Meta:
-        unique_together = ('follower', 'following')
+    profile_visibility = models.CharField(max_length=20, choices=[
+        ('PUBLIC', 'Show publicly in crew'),
+        ('CREW_ONLY', 'Show only to crew members'),
+        ('HIDDEN', 'Don\'t show in crew lists')
+    ], default='PUBLIC')
+    
+    def get_profile_link(self):
+        return reverse('profiles:user_profile', args=[self.user.userprofile.slug])
+    
+    def get_profile_preview_data(self):
+        """Get data for profile preview modal/card"""
+        return {
+            'display_name': self.user.userprofile.display_name,
+            'skating_style': self.user.userprofile.get_skating_style_display(),
+            'skill_level': self.user.userprofile.skill_level,
+            'can_follow': True,  # Based on privacy settings
+        }
 
-# Activity tracking
-class ProfileActivity(models.Model):
-    profile = ForeignKey(UserProfile, related_name='activities')
-    activity_type = CharField(max_length=30)
-    description = TextField()
-    related_object_id = PositiveIntegerField(null=True)
-    is_public = BooleanField(default=True)
-    created_at = DateTimeField(auto_now_add=True)
+# Enhanced UserProfile for crew integration
+class UserProfile(SearchableModel):
+    # ... existing fields ...
+    
+    def get_crew_mates(self):
+        """Get users who are in the same crews"""
+        user_crews = self.user.crew_memberships.values_list('crew', flat=True)
+        crew_mate_ids = CrewMembership.objects.filter(
+            crew__in=user_crews
+        ).exclude(user=self.user).values_list('user', flat=True).distinct()
+        
+        return UserProfile.objects.filter(user__in=crew_mate_ids)
 ```
 
 ## 🎯 **Key Success Metrics**
