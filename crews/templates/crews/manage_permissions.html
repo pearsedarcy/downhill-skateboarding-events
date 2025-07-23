@@ -242,9 +242,7 @@
     </div>
 </div>
 
-<!-- Toast notifications -->
-<div id="toast-container" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-auto max-w-md">
-</div>
+<!-- Remove local toast container since we're using the global one -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -271,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    ToastManager.success(data.message);
                     // Update the toggle to reflect the actual state
                     this.checked = data.new_value;
                     
@@ -280,14 +278,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         updatePermissionStats(data.permission_stats);
                     }
                 } else {
-                    showToast(data.error || 'An error occurred', 'error');
+                    ToastManager.error(data.error || 'An error occurred');
                     // Revert the toggle
                     this.checked = !newValue;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Network error occurred', 'error');
+                ToastManager.error('Network error occurred');
                 // Revert the toggle
                 this.checked = !newValue;
             })
@@ -321,27 +319,6 @@ function updatePermissionStats(stats) {
             desc.textContent = `of ${stats.total_members} members`;
         }
     });
-}
-
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type} mb-2 shadow-lg max-w-sm w-full animate-pulse`;
-    toast.style.animation = 'slideInFromTop 0.3s ease-out';
-    toast.innerHTML = `
-        <div>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.getElementById('toast-container').appendChild(toast);
-    
-    // Auto remove after 5 seconds with fade out
-    setTimeout(() => {
-        toast.style.animation = 'slideOutToTop 0.3s ease-in';
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
-    }, 5000);
 }
 
 function getCookie(name) {
