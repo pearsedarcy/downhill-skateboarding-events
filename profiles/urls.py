@@ -21,6 +21,13 @@ urlpatterns = [
     path("signup-success/", signup_views.signup_success, name="signup_success"),
     path("api/signup-validation/", signup_views.signup_step_validation, name="signup_validation"),
     
+    # Social features - Following system
+    path("api/follow/<int:user_id>/", views.follow_user, name="follow_user"),
+    path("api/unfollow/<int:user_id>/", views.unfollow_user, name="unfollow_user"),
+    path("followers/<int:user_id>/", views.followers_list, name="followers_list"),
+    path("following/<int:user_id>/", views.following_list, name="following_list"),
+    path("activity-feed/", views.activity_feed, name="activity_feed"),
+    
     # Enhanced API endpoints
     path("api/update/", views.update_profile_api, name="update_profile_api"),
     path("api/avatar/", views.upload_avatar_api, name="upload_avatar_api"),

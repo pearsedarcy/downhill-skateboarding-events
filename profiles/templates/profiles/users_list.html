@@ -285,11 +285,9 @@ Discover and connect with skateboarding enthusiasts in our community. Find rider
                                     View Profile
                                 </a>
                                 
+                                <!-- Follow Button Component -->
                                 {% if user.is_authenticated and user != profile.user %}
-                                    <button class="btn btn-outline btn-sm" onclick="followUser('{{ profile.user.username }}')">
-                                        <i class="fas fa-user-plus mr-1"></i>
-                                        Follow
-                                    </button>
+                                    {% include 'profiles/partials/follow_button.html' with profile=profile is_following=profile.is_followed_by_user %}
                                 {% endif %}
                             </div>
                         </div>
@@ -406,18 +404,6 @@ function searchFilter(term) {
     const searchInput = document.querySelector('input[name="q"]');
     searchInput.value = term;
     searchInput.form.submit();
-}
-
-// Follow user functionality (placeholder)
-function followUser(username) {
-    if (!{{ user.is_authenticated|yesno:"true,false" }}) {
-        alert('Please sign in to follow users');
-        window.location.href = '{% url "account_login" %}';
-        return;
-    }
-    
-    // Placeholder for follow functionality
-    alert(`Follow functionality coming soon! You wanted to follow ${username}`);
 }
 
 // Search suggestions and autocomplete

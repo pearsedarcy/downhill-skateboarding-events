@@ -8,6 +8,8 @@ with additional skateboarding-specific information.
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 from cloudinary.models import CloudinaryField
 from search.models import SearchableModel
 
@@ -346,8 +348,141 @@ class UserProfile(SearchableModel):
         # This would require a Review model relationship
         # For now, return None - can be implemented later
         return None
+    
+    def get_follower_count(self):
+        """Get the number of users following this profile"""
+        return self.user.followers.count()
+    
+    def get_following_count(self):
+        """Get the number of users this profile is following"""
+        return self.user.following.count()
+    
+    def is_followed_by(self, user):
+        """Check if this profile is followed by the given user"""
+        if not user.is_authenticated:
+            return False
+        return self.user.followers.filter(follower=user).exists()
+    
+    def get_mutual_followers(self, other_user):
+        """Get users who follow both this profile and another user"""
+        if not other_user.is_authenticated:
+            return User.objects.none()
+        
+        # Get followers of both users
+        my_followers = self.user.followers.values_list('follower', flat=True)
+        their_followers = other_user.followers.values_list('follower', flat=True)
+        
+        # Find intersection
+        mutual_follower_ids = set(my_followers) & set(their_followers)
+        return User.objects.filter(id__in=mutual_follower_ids)
+    
+    def get_recent_activities(self, limit=10):
+        """Get recent public activities for this profile"""
+        return self.user.activities.filter(is_public=True)[:limit]
+    
+    def get_activity_feed(self, limit=20):
+        """Get activity feed including followed users' activities"""
+        # Get IDs of users this profile follows
+        following_ids = self.user.following.values_list('following', flat=True)
+        
+        # Include own activities and activities from followed users
+        user_ids = list(following_ids) + [self.user.id]
+        
+        return ProfileActivity.objects.filter(
+            user_id__in=user_ids,
+            is_public=True
+        )[:limit]
 
     class Meta:
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
         ordering = ['-created_at']
+
+
+class ProfileFollow(models.Model):
+    """
+    Model to handle user following relationships.
+    
+    Allows users to follow other users to see their activity and stay connected.
+    """
+    follower = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        help_text="The user who is following"
+    )
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='followers',
+        help_text="The user being followed"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('follower', 'following')
+        ordering = ['-created_at']
+        verbose_name = "Profile Follow"
+        verbose_name_plural = "Profile Follows"
+    
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"
+    
+    def save(self, *args, **kwargs):
+        """Prevent users from following themselves"""
+        if self.follower == self.following:
+            raise ValidationError("Users cannot follow themselves")
+        super().save(*args, **kwargs)
+
+
+class ProfileActivity(models.Model):
+    """
+    Track user activities for activity feeds and engagement metrics.
+    """
+    
+    ACTIVITY_TYPES = [
+        ('PROFILE_UPDATE', 'Updated profile'),
+        ('EVENT_CREATED', 'Created an event'),
+        ('EVENT_JOINED', 'Joined an event'),
+        ('CREW_JOINED', 'Joined a crew'),
+        ('ACHIEVEMENT_EARNED', 'Earned an achievement'),
+        ('REVIEW_LEFT', 'Left a review'),
+        ('PHOTO_UPLOADED', 'Uploaded a photo'),
+    ]
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='activities'
+    )
+    activity_type = models.CharField(
+        max_length=20,
+        choices=ACTIVITY_TYPES
+    )
+    description = models.TextField(
+        max_length=500,
+        help_text="Description of the activity"
+    )
+    related_object_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="ID of related object (event, crew, etc.)"
+    )
+    related_object_type = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Type of related object"
+    )
+    is_public = models.BooleanField(
+        default=True,
+        help_text="Whether this activity should be visible to followers"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Profile Activity"
+        verbose_name_plural = "Profile Activities"
+    
+    def __str__(self):
+        return f"{self.user.username}: {self.description}"

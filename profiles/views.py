@@ -15,7 +15,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.contrib import messages
 from events.models import RSVP, Favorite
-from profiles.models import UserProfile
+from profiles.models import UserProfile, ProfileFollow, ProfileActivity
 from .forms import UserProfileForm, AvatarUploadForm
 from typing import Optional
 import json
@@ -137,6 +137,11 @@ def user_profile(request, username: Optional[str] = None):
         "is_verified": getattr(profile, 'is_verified', False),
         "verification_badge_type": getattr(profile, 'verification_badge_type', None),
         "social_links": getattr(profile, 'get_social_links', lambda: {})(),
+        # Social features
+        "follower_count": profile.get_follower_count(),
+        "following_count": profile.get_following_count(),
+        "is_following": profile.is_followed_by(request.user),
+        "recent_activities": profile.get_recent_activities(limit=5),
         "skating_stats": {
             'events_organized': len(organized_events) if organized_events else 0,
             'events_attended': len(attending_events) if attending_events else 0,
@@ -183,6 +188,11 @@ def users_list(request):
     # Apply search if query provided
     if query:
         users = users.search(query)
+    
+    # Add follow status for authenticated users
+    if request.user.is_authenticated:
+        for profile in users:
+            profile.is_followed_by_user = profile.is_followed_by(request.user)
     
     # Paginate results
     paginator = Paginator(users, 12)  # Show 12 users per page
@@ -506,5 +516,211 @@ def profile_completion_suggestions(request):
         'suggestions': suggestions,
         'total_possible_points': sum(s['points'] for s in suggestions)
     })
+
+
+# Social Features: Following System
+
+@require_POST
+@login_required
+def follow_user(request, user_id):
+    """Follow a user"""
+    try:
+        target_user = get_object_or_404(User, id=user_id)
+        
+        # Check if user is trying to follow themselves
+        if target_user == request.user:
+            return JsonResponse({
+                'success': False, 
+                'error': 'You cannot follow yourself'
+            }, status=400)
+        
+        # Check if already following
+        if ProfileFollow.objects.filter(follower=request.user, following=target_user).exists():
+            return JsonResponse({
+                'success': False, 
+                'error': 'You are already following this user'
+            }, status=400)
+        
+        # Create follow relationship
+        follow = ProfileFollow.objects.create(
+            follower=request.user,
+            following=target_user
+        )
+        
+        # Create activity for the follow action
+        ProfileActivity.objects.create(
+            user=request.user,
+            activity_type='PROFILE_UPDATE',
+            description=f'Started following {target_user.profile.get_display_name()}',
+            related_object_id=target_user.id,
+            related_object_type='user',
+            is_public=True
+        )
+        
+        # Get updated counts
+        follower_count = target_user.followers.count()
+        following_count = request.user.following.count()
+        
+        return JsonResponse({
+            'success': True,
+            'action': 'followed',
+            'follower_count': follower_count,
+            'following_count': following_count,
+            'message': f'You are now following {target_user.profile.get_display_name()}'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_POST
+@login_required
+def unfollow_user(request, user_id):
+    """Unfollow a user"""
+    try:
+        target_user = get_object_or_404(User, id=user_id)
+        
+        # Find and delete the follow relationship
+        follow = ProfileFollow.objects.filter(
+            follower=request.user,
+            following=target_user
+        ).first()
+        
+        if not follow:
+            return JsonResponse({
+                'success': False,
+                'error': 'You are not following this user'
+            }, status=400)
+        
+        follow.delete()
+        
+        # Create activity for the unfollow action
+        ProfileActivity.objects.create(
+            user=request.user,
+            activity_type='PROFILE_UPDATE',
+            description=f'Stopped following {target_user.profile.get_display_name()}',
+            related_object_id=target_user.id,
+            related_object_type='user',
+            is_public=False  # Don't make unfollows public
+        )
+        
+        # Get updated counts
+        follower_count = target_user.followers.count()
+        following_count = request.user.following.count()
+        
+        return JsonResponse({
+            'success': True,
+            'action': 'unfollowed',
+            'follower_count': follower_count,
+            'following_count': following_count,
+            'message': f'You unfollowed {target_user.profile.get_display_name()}'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+def followers_list(request, user_id):
+    """Display list of followers for a user"""
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+    
+    # Check privacy permissions
+    privacy_manager = ProfilePrivacyManager(profile, request.user)
+    if not privacy_manager.can_view_profile():
+        return HttpResponseForbidden("You don't have permission to view this profile.")
+    
+    # Get followers
+    followers = ProfileFollow.objects.filter(following=user).select_related(
+        'follower__profile'
+    ).order_by('-created_at')
+    
+    # Paginate
+    paginator = Paginator(followers, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Add is_following status for each follower
+    for follow_obj in page_obj:
+        follow_obj.follower.profile.is_following_current_user = ProfileFollow.objects.filter(
+            follower=request.user, following=follow_obj.follower
+        ).exists()
+    
+    context = {
+        'profile': profile,
+        'page_obj': page_obj,
+        'followers_count': followers.count(),
+        'list_type': 'followers',
+        'is_own_profile': request.user == user,
+    }
+    
+    return render(request, 'profiles/follow_list.html', context)
+
+
+@login_required
+def following_list(request, user_id):
+    """Display list of users being followed by a user"""
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+    
+    # Check privacy permissions
+    privacy_manager = ProfilePrivacyManager(profile, request.user)
+    if not privacy_manager.can_view_profile():
+        return HttpResponseForbidden("You don't have permission to view this profile.")
+    
+    # Get following
+    following = ProfileFollow.objects.filter(follower=user).select_related(
+        'following__profile'
+    ).order_by('-created_at')
+    
+    # Paginate
+    paginator = Paginator(following, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Add is_following status for each user being followed
+    for follow_obj in page_obj:
+        follow_obj.following.profile.is_following_current_user = ProfileFollow.objects.filter(
+            follower=request.user, following=follow_obj.following
+        ).exists()
+    
+    context = {
+        'profile': profile,
+        'page_obj': page_obj,
+        'following_count': following.count(),
+        'list_type': 'following',
+        'is_own_profile': request.user == user,
+    }
+    
+    return render(request, 'profiles/follow_list.html', context)
+
+
+@login_required
+def activity_feed(request):
+    """Display activity feed from followed users"""
+    profile = request.user.profile
+    
+    # Get activity feed
+    activities = profile.get_activity_feed(limit=50)
+    
+    # Paginate
+    paginator = Paginator(activities, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'profile': profile,
+        'following_count': request.user.following.count(),
+    }
+    
+    return render(request, 'profiles/activity_feed.html', context)
 
 

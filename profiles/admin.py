@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from unfold.admin import ModelAdmin
-from .models import UserProfile
+from .models import UserProfile, ProfileFollow, ProfileActivity
 
 
 @admin.register(UserProfile)
@@ -162,3 +162,42 @@ class UserProfileAdmin(ModelAdmin):
             f'Successfully recalculated completion for {updated} profiles.'
         )
     recalculate_completion.short_description = "Recalculate completion percentages"
+
+
+@admin.register(ProfileFollow)
+class ProfileFollowAdmin(ModelAdmin):
+    """Admin interface for ProfileFollow model"""
+    
+    list_display = ['follower', 'following', 'created_at']
+    list_filter = ['created_at']
+    search_fields = [
+        'follower__username', 'follower__email',
+        'following__username', 'following__email'
+    ]
+    raw_id_fields = ['follower', 'following']
+    date_hierarchy = 'created_at'
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('follower', 'following')
+
+
+@admin.register(ProfileActivity)
+class ProfileActivityAdmin(ModelAdmin):
+    """Admin interface for ProfileActivity model"""
+    
+    list_display = [
+        'user', 'activity_type', 'get_description_preview', 
+        'is_public', 'created_at'
+    ]
+    list_filter = ['activity_type', 'is_public', 'created_at']
+    search_fields = ['user__username', 'description', 'related_object_type']
+    raw_id_fields = ['user']
+    date_hierarchy = 'created_at'
+    
+    def get_description_preview(self, obj):
+        """Show truncated description"""
+        return obj.description[:50] + "..." if len(obj.description) > 50 else obj.description
+    get_description_preview.short_description = "Description"
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
