@@ -1,63 +1,119 @@
 {% comment %}
 Action buttons for crew detail page
 banner_mode: Boolean to determine styling (white buttons on banner vs normal buttons)
+user_membership: User's membership in this crew (if any)
+can_manage: Boolean if user can manage crew
+user_permissions: Dict of user's permissions in this crew
 {% endcomment %}
 
 <div class="flex flex-row gap-2 {% if banner_mode %}justify-center sm:justify-end w-full sm:w-auto{% else %}justify-center{% endif %}">
     {% if user.is_authenticated %}
-        {% if can_manage %}
-            <div class="dropdown dropdown-end">
-                <div tabindex="0" role="button" class="btn btn-primary btn-sm {% if banner_mode %}backdrop-blur-sm{% endif %}">
-                    <i class="fas fa-cog mr-1"></i>
-                    <span class="hidden sm:inline">Manage</span>
-                    <i class="fas fa-chevron-down ml-1"></i>
+        {% if user_membership %}
+            <!-- User is a member of this crew -->
+            
+            {% if user_permissions.manage_crew %}
+                <!-- Management Dropdown for Owners/Admins -->
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-primary btn-sm {% if banner_mode %}backdrop-blur-sm{% endif %}">
+                        <i class="fas fa-cog mr-1"></i>
+                        <span class="hidden sm:inline">Manage</span>
+                        <i class="fas fa-chevron-down ml-1"></i>
+                    </div>
+                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                        <li>
+                            <a href="{% url 'crews:edit' crew.slug %}">
+                                <i class="fas fa-edit mr-2"></i>
+                                Edit Crew Details
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'crews:manage_permissions' crew.slug %}">
+                                <i class="fas fa-user-shield mr-2"></i>
+                                Manage Permissions
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'crews:invite' crew.slug %}">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Invite Members
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'crews:activity' crew.slug %}">
+                                <i class="fas fa-chart-line mr-2"></i>
+                                Activity Dashboard
+                            </a>
+                        </li>
+                        <div class="divider my-1"></div>
+                        <li>
+                            <button onclick="leave_crew_modal.showModal()" 
+                                    class="text-error w-full text-left">
+                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                Leave Crew
+                            </button>
+                        </li>
+                    </ul>
                 </div>
-                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                    <li>
-                        <a href="{% url 'crews:edit' crew.slug %}">
-                            <i class="fas fa-edit mr-2"></i>
-                            Edit Crew Details
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'crews:manage_permissions' crew.slug %}">
-                            <i class="fas fa-user-shield mr-2"></i>
-                            Manage Permissions
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'crews:invite' crew.slug %}">
-                            <i class="fas fa-user-plus mr-2"></i>
-                            Invite Members
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'crews:activity' crew.slug %}">
-                            <i class="fas fa-chart-line mr-2"></i>
-                            Activity Dashboard
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            {% else %}
+                <!-- Regular member actions -->
+                {% if user_membership.can_invite_members %}
+                    <a href="{% url 'crews:invite' crew.slug %}" class="btn btn-primary btn-sm {% if banner_mode %}backdrop-blur-sm{% endif %}">
+                        <i class="fas fa-user-plus mr-1"></i>
+                        <span class="hidden sm:inline">Invite Members</span>
+                        <span class="sm:hidden">Invite</span>
+                    </a>
+                {% endif %}
+                
+                <!-- Leave crew button for regular members -->
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-outline btn-sm {% if banner_mode %}text-white border-white/50 hover:bg-white/20 backdrop-blur-sm{% endif %}">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-48">
+                        <li>
+                            <button onclick="leave_crew_modal.showModal()" 
+                                    class="text-error w-full text-left">
+                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                Leave Crew
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            {% endif %}
+            
+            <!-- Members button (always visible to crew members) -->
             <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm {% if banner_mode %}text-white border-white/50 hover:bg-white/20 backdrop-blur-sm{% endif %}">
                 <i class="fas fa-users mr-1"></i>
                 <span class="hidden sm:inline">Members</span>
-                <span class="sm:hidden">({{ crew.memberships.count }})</span>
-                <span class="hidden sm:inline">({{ crew.memberships.count }})</span>
+                <span class="sm:hidden">({{ crew.member_count }})</span>
+                <span class="hidden sm:inline">({{ crew.member_count }})</span>
             </a>
+            
         {% else %}
+            <!-- User is NOT a member of this crew -->
             <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm {% if banner_mode %}text-white border-white/50 hover:bg-white/20 backdrop-blur-sm{% endif %}">
                 <i class="fas fa-users mr-1"></i>
                 <span class="hidden sm:inline">View Members</span>
                 <span class="sm:hidden">Members</span>
             </a>
-            <a href="{% url 'crews:join' crew.slug %}" class="btn btn-primary btn-sm {% if banner_mode %}backdrop-blur-sm{% endif %}">
+            <a href="{% url 'crews:join' crew.slug %}" 
+               class="btn btn-primary btn-sm {% if banner_mode %}backdrop-blur-sm{% endif %}">
                 <i class="fas fa-user-plus mr-1"></i>
                 <span class="hidden sm:inline">Join Crew</span>
                 <span class="sm:hidden">Join</span>
             </a>
         {% endif %}
+        
+        <!-- My Invitations link (always visible to authenticated users) -->
+        <a href="{% url 'crews:my_invitations' %}" 
+           class="btn btn-ghost btn-sm {% if banner_mode %}text-white hover:bg-white/20 backdrop-blur-sm{% endif %}"
+           title="View my pending crew invitations">
+            <i class="fas fa-envelope mr-1"></i>
+            <span class="hidden lg:inline">Invitations</span>
+        </a>
+        
     {% else %}
+        <!-- User is NOT authenticated -->
         <a href="{% url 'crews:members' crew.slug %}" class="btn btn-outline btn-sm {% if banner_mode %}text-white border-white/50 hover:bg-white/20 backdrop-blur-sm{% endif %}">
             <i class="fas fa-users mr-1"></i>
             <span class="hidden sm:inline">View Members</span>

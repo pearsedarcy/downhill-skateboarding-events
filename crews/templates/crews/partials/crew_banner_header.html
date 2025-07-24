@@ -6,6 +6,9 @@
     <!-- Banner Overlay -->
     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
     
+    <!-- Membership Status Badge -->
+    {% include 'crews/partials/crew_membership_badge.html' %}
+    
     <!-- Crew Info Overlay -->
     <div class="absolute bottom-6 left-0 right-0 px-4">
         <div class="container mx-auto">
@@ -45,7 +48,7 @@
                     <div class="flex flex-wrap justify-center sm:justify-start items-center gap-4 text-sm text-white/90">
                         <span class="flex items-center">
                             <i class="fas fa-user mr-1"></i>
-                            {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                            <span data-member-count>{{ crew.member_count }}</span> member{{ crew.member_count|pluralize }}
                         </span>
                         <span class="flex items-center">
                             <i class="fas fa-calendar mr-1"></i>
@@ -62,7 +65,10 @@
 </div>
 {% else %}
 <!-- No Banner Version -->
-<div class="bg-gradient-to-br from-primary/20 to-secondary/20">
+<div class="bg-gradient-to-br from-primary/20 to-secondary/20 relative">
+    <!-- Membership Status Badge -->
+    {% include 'crews/partials/crew_membership_badge.html' %}
+    
     <div class="container mx-auto px-4 py-12">
         <div class="text-center mb-8">
             <div class="avatar mb-4 lg:mb-6 relative">
@@ -100,7 +106,7 @@
             <div class="flex flex-wrap justify-center items-center gap-4 text-sm text-base-content/70 mb-8">
                 <span class="flex items-center">
                     <i class="fas fa-user mr-1"></i>
-                    {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                    <span data-member-count>{{ crew.member_count }}</span> member{{ crew.member_count|pluralize }}
                 </span>
                 <span class="flex items-center">
                     <i class="fas fa-calendar mr-1"></i>

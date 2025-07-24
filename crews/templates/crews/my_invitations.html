@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Crew Invitations{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/crews.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold">My Invitations</h1>
+            <p class="text-base-content/70 mt-1">Pending crew invitations waiting for your response</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a href="{% url 'crews:list' %}" class="btn btn-outline btn-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Browse Crews
+            </a>
+        </div>
+    </div>
+
+    {% if invitations %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {% for invitation in invitations %}
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body p-4 sm:p-6">
+                        <!-- Crew Header -->
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="avatar">
+                                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                    {% if invitation.crew.logo %}
+                                        <img src="{{ invitation.crew.logo.url }}" alt="{{ invitation.crew.name }}" class="w-12 h-12 rounded-full object-cover">
+                                    {% else %}
+                                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-lg truncate">{{ invitation.crew.name }}</h3>
+                                <p class="text-sm text-base-content/70">
+                                    Invited by {{ invitation.inviter.username }}
+                                </p>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    <div class="badge badge-outline badge-sm">
+                                        {{ invitation.crew.get_crew_type_display }}
+                                    </div>
+                                    <div class="badge badge-primary badge-sm">
+                                        {{ invitation.get_proposed_role_display }}
+                                    </div>
+                                    {% if invitation.crew.city %}
+                                        <div class="badge badge-ghost badge-sm">
+                                            📍 {{ invitation.crew.city }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Invitation Details -->
+                        {% if invitation.message %}
+                            <div class="bg-base-200 rounded-lg p-3 mb-4">
+                                <p class="text-sm font-medium mb-1">Personal Message:</p>
+                                <p class="text-sm text-base-content/80 italic">"{{ invitation.message }}"</p>
+                            </div>
+                        {% endif %}
+
+                        <!-- Crew Stats -->
+                        <div class="stats stats-horizontal bg-base-200 mb-4">
+                            <div class="stat py-2 px-3">
+                                <div class="stat-title text-xs">Members</div>
+                                <div class="stat-value text-sm">{{ invitation.crew.member_count }}</div>
+                            </div>
+                            <div class="stat py-2 px-3">
+                                <div class="stat-title text-xs">Discipline</div>
+                                <div class="stat-value text-xs">{{ invitation.crew.get_primary_discipline_display }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Invitation Metadata -->
+                        <div class="flex justify-between items-center text-xs text-base-content/60 mb-4">
+                            <span>Invited {{ invitation.created_at|timesince }} ago</span>
+                            <span>Expires {{ invitation.expires_at|timeuntil }}</span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <a href="{% url 'crews:accept_invitation' invitation.id %}" 
+                               class="btn btn-primary btn-sm flex-1"
+                               onclick="return confirm('Are you sure you want to join {{ invitation.crew.name }}?')">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Accept Invitation
+                            </a>
+                            <a href="{% url 'crews:decline_invitation' invitation.id %}" 
+                               class="btn btn-ghost btn-sm flex-1"
+                               onclick="return confirm('Are you sure you want to decline this invitation?')">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                Decline
+                            </a>
+                            <a href="{% url 'crews:detail' invitation.crew.slug %}" 
+                               class="btn btn-outline btn-sm">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                View Crew
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination if needed -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-base-content/60">
+                Showing {{ invitations|length }} pending invitation{{ invitations|length|pluralize }}
+            </p>
+        </div>
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-12">
+            <div class="max-w-md mx-auto">
+                <div class="w-24 h-24 mx-auto mb-6 bg-base-200 rounded-full flex items-center justify-center">
+                    <svg class="w-12 h-12 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-2">No Pending Invitations</h3>
+                <p class="text-base-content/70 mb-6">
+                    You don't have any crew invitations waiting for your response right now.
+                </p>
+                <div class="space-y-3">
+                    <a href="{% url 'crews:list' %}" class="btn btn-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        Browse Crews
+                    </a>
+                    <p class="text-sm text-base-content/60">
+                        Explore skateboarding crews in your area and join the community!
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

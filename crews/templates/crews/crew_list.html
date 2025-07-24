@@ -52,6 +52,16 @@
                     </div>
                 </div>
                 {% endif %}
+                
+                <!-- Member badge -->
+                {% if crew.user_is_member %}
+                <div class="absolute top-2 {% if crew.is_verified %}left-2{% else %}right-2{% endif %}">
+                    <div class="badge badge-primary gap-1">
+                        <i class="fas fa-user text-xs"></i>
+                        Member
+                    </div>
+                </div>
+                {% endif %}
             </figure>
             
             <div class="card-body p-4">
@@ -90,7 +100,7 @@
                     </div>
                     <div class="flex items-center">
                         <i class="fas fa-user mr-1"></i>
-                        {{ crew.member_count }} member{{ crew.member_count|pluralize }}
+                        <span data-member-count>{{ crew.member_count }}</span> member{{ crew.member_count|pluralize }}
                     </div>
                 </div>
                 

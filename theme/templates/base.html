@@ -258,6 +258,9 @@
                 <a href="{% url 'profiles:user_profile' username=user.username %}"><i class="fas fa-user"></i> My Profile</a>
               </li>
               <li>
+                <a href="{% url 'crews:my_invitations' %}"><i class="fas fa-envelope"></i>Invitations</a>
+              </li>
+              <li>
                 <a href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Log Out</a>
               </li>
               {% else %}     
@@ -302,6 +305,7 @@
               fa-user-shield mr-3"></i>Admin</a>
             {% endif %}
             <a href="{% url 'profiles:user_profile' username=user.username %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-user mr-4"></i>My Profile</a>
+            <a href="{% url 'crews:my_invitations' %}" class="menu-item btn-ghost p-2 hover:bg-base-200 rounded-lg"><i class="fas fa-envelope mr-4"></i>Invitations</a>
             <a href="{% url 'account_logout' %}" class="menu-item btn-ghost p-2
             hover:bg-base-200 rounded-lg"><i class="fas fa-sign-out-alt
             mr-4"></i>Log Out</a>

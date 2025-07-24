@@ -7,7 +7,7 @@ Provides views for creating, managing, and interacting with skateboarding crews.
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.utils import timezone
 from django.db import models
 from datetime import timedelta
@@ -27,6 +27,21 @@ from .views_member_profiles import member_profile_detail, update_member_permissi
 def crew_list(request):
     """Display list of all crews."""
     crews = Crew.objects.filter(is_active=True).order_by('name')
+    
+    # Add membership info for authenticated users
+    if request.user.is_authenticated:
+        user_crew_ids = set(
+            CrewMembership.objects.filter(
+                user=request.user, 
+                is_active=True
+            ).values_list('crew_id', flat=True)
+        )
+        for crew in crews:
+            crew.user_is_member = crew.id in user_crew_ids
+    else:
+        for crew in crews:
+            crew.user_is_member = False
+    
     return render(request, 'crews/crew_list.html', {
         'crews': crews
     })
@@ -303,14 +318,104 @@ def delete_crew(request, slug):
 @login_required
 def join_crew(request, slug):
     """Join a crew."""
-    # TODO: Implement crew joining
+    crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    
+    # Check if user is already an active member
+    existing_active_membership = crew.memberships.filter(user=request.user, is_active=True).first()
+    if existing_active_membership:
+        messages.info(request, f"You are already a member of {crew.name}.")
+        return redirect('crews:detail', slug=slug)
+    
+    # Check if user has an inactive membership (previously left)
+    existing_inactive_membership = crew.memberships.filter(user=request.user, is_active=False).first()
+    
+    if existing_inactive_membership:
+        # Reactivate the existing membership
+        existing_inactive_membership.is_active = True
+        existing_inactive_membership.joined_at = timezone.now()  # Update join date
+        existing_inactive_membership.save()
+        
+        membership = existing_inactive_membership
+        join_method = 'rejoin'
+        welcome_message = f"Welcome back to {crew.name}! You have rejoined the crew."
+    else:
+        # Create new membership for first-time joiner
+        membership = CrewMembership.objects.create(
+            crew=crew,
+            user=request.user,
+            role='MEMBER',
+            is_active=True
+        )
+        join_method = 'direct'
+        welcome_message = f"Welcome to {crew.name}! You are now a member of this crew."
+    
+    # Create activity log
+    CrewActivity.objects.create(
+        crew=crew,
+        activity_type='MEMBER_JOINED',
+        user=request.user,
+        description=f"{request.user.username} {'rejoined' if join_method == 'rejoin' else 'joined'} {crew.name}",
+        metadata={'join_method': join_method}
+    )
+    
+    messages.success(request, welcome_message)
     return redirect('crews:detail', slug=slug)
 
 
 @login_required
 def leave_crew(request, slug):
     """Leave a crew."""
-    # TODO: Implement leaving crew
+    crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    
+    # Check if user is a member
+    membership = crew.memberships.filter(user=request.user, is_active=True).first()
+    if not membership:
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({
+                'success': False,
+                'message': f"You are not a member of {crew.name}."
+            })
+        messages.error(request, f"You are not a member of {crew.name}.")
+        return redirect('crews:detail', slug=slug)
+    
+    # Check if user is the only owner
+    if membership.role == 'OWNER':
+        other_owners = crew.memberships.filter(role='OWNER', is_active=True).exclude(user=request.user)
+        if not other_owners.exists():
+            error_msg = "You cannot leave the crew as you are the only owner. Please transfer ownership first or delete the crew."
+            if request.headers.get('Content-Type') == 'application/json':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_msg
+                })
+            messages.error(request, error_msg)
+            return redirect('crews:detail', slug=slug)
+    
+    # Deactivate membership instead of deleting for historical records
+    membership.is_active = False
+    membership.save()
+    
+    # Create activity log
+    CrewActivity.objects.create(
+        crew=crew,
+        activity_type='MEMBER_LEFT',
+        user=request.user,
+        description=f"{request.user.username} left {crew.name}",
+        metadata={'leave_method': 'voluntary'}
+    )
+    
+    success_msg = f"You have left {crew.name}."
+    
+    # Handle AJAX requests
+    if request.headers.get('Content-Type') == 'application/json':
+        return JsonResponse({
+            'success': True,
+            'message': success_msg,
+            'is_member': False,
+            'member_count': crew.memberships.filter(is_active=True).count()
+        })
+    
+    messages.success(request, success_msg)
     return redirect('crews:detail', slug=slug)
 
 
@@ -450,28 +555,235 @@ def remove_member(request, slug, user_id):
 @login_required
 def invite_member(request, slug):
     """Invite someone to join the crew."""
-    # TODO: Implement invitation system
-    return render(request, 'crews/invite_member.html')
+    crew = get_object_or_404(Crew, slug=slug, is_active=True)
+    
+    # Check if user can invite members
+    user_membership = crew.get_user_membership(request.user)
+    if not user_membership or not user_membership.can_invite_members:
+        messages.error(request, "You don't have permission to invite members to this crew.")
+        return redirect('crews:detail', slug=slug)
+    
+    if request.method == 'POST':
+        form = CrewInvitationForm(request.POST)
+        if form.is_valid():
+            invitation = form.save(commit=False)
+            invitation.crew = crew
+            invitation.inviter = request.user
+            
+            # Set expiration date (30 days from now)
+            from datetime import timedelta
+            invitation.expires_at = timezone.now() + timedelta(days=30)
+            
+            # Check if user already exists
+            from django.contrib.auth.models import User
+            try:
+                existing_user = User.objects.get(email=invitation.invitee_email)
+                invitation.invitee_user = existing_user
+                
+                # Check if user is already a member
+                if crew.memberships.filter(user=existing_user, is_active=True).exists():
+                    messages.error(request, f"{existing_user.username} is already a member of this crew.")
+                    return render(request, 'crews/invite_member.html', {
+                        'crew': crew,
+                        'form': form,
+                        'user_membership': user_membership
+                    })
+                
+                # Check if invitation already exists and is pending
+                existing_invitation = crew.invitations.filter(
+                    invitee_email=invitation.invitee_email,
+                    is_accepted=False,
+                    is_declined=False
+                ).first()
+                
+                if existing_invitation and not existing_invitation.is_expired:
+                    messages.error(request, f"An invitation to {invitation.invitee_email} is already pending.")
+                    return render(request, 'crews/invite_member.html', {
+                        'crew': crew,
+                        'form': form,
+                        'user_membership': user_membership
+                    })
+                
+            except User.DoesNotExist:
+                invitation.invitee_user = None
+            
+            invitation.save()
+            
+            # Create activity log
+            CrewActivity.objects.create(
+                crew=crew,
+                activity_type='MEMBER_PROMOTED',  # Using this for invitations
+                user=request.user,
+                target_user=invitation.invitee_user,
+                description=f"{request.user.username} invited {invitation.invitee_email} to join {crew.name}",
+                metadata={
+                    'action': 'invited',
+                    'proposed_role': invitation.proposed_role,
+                    'invitation_id': invitation.id
+                }
+            )
+            
+            # TODO: Send email notification (implement later)
+            
+            messages.success(request, f"Invitation sent to {invitation.invitee_email}!")
+            return redirect('crews:detail', slug=slug)
+    else:
+        form = CrewInvitationForm()
+    
+    return render(request, 'crews/invite_member.html', {
+        'crew': crew,
+        'form': form,
+        'user_membership': user_membership
+    })
 
 
 @login_required
 def my_invitations(request):
     """Show user's pending crew invitations."""
-    # TODO: Implement invitation listing
-    return render(request, 'crews/my_invitations.html')
+    # Get invitations by email and by user account
+    invitations_by_email = CrewInvitation.objects.filter(
+        invitee_email=request.user.email,
+        is_accepted=False,
+        is_declined=False
+    ).select_related('crew', 'inviter')
+    
+    invitations_by_user = CrewInvitation.objects.filter(
+        invitee_user=request.user,
+        is_accepted=False,
+        is_declined=False
+    ).select_related('crew', 'inviter')
+    
+    # Combine and remove duplicates
+    all_invitations = list(invitations_by_email) + list(invitations_by_user)
+    seen_crews = set()
+    unique_invitations = []
+    
+    for invitation in all_invitations:
+        if invitation.crew.id not in seen_crews:
+            seen_crews.add(invitation.crew.id)
+            unique_invitations.append(invitation)
+    
+    # Filter out expired invitations
+    pending_invitations = [inv for inv in unique_invitations if not inv.is_expired]
+    
+    return render(request, 'crews/my_invitations.html', {
+        'invitations': pending_invitations
+    })
 
 
 @login_required
 def accept_invitation(request, invitation_id):
     """Accept a crew invitation."""
-    # TODO: Implement invitation acceptance
-    return redirect('crews:my_invitations')
+    invitation = get_object_or_404(
+        CrewInvitation, 
+        id=invitation_id,
+        is_accepted=False,
+        is_declined=False
+    )
+    
+    # Verify this invitation is for the current user
+    if invitation.invitee_user != request.user and invitation.invitee_email != request.user.email:
+        messages.error(request, "This invitation is not for you.")
+        return redirect('crews:my_invitations')
+    
+    # Check if invitation has expired
+    if invitation.is_expired:
+        messages.error(request, "This invitation has expired.")
+        return redirect('crews:my_invitations')
+    
+    # Check if user is already a member
+    existing_active_membership = invitation.crew.memberships.filter(user=request.user, is_active=True).first()
+    if existing_active_membership:
+        messages.error(request, f"You are already a member of {invitation.crew.name}.")
+        invitation.is_accepted = True  # Mark as accepted to clean up
+        invitation.responded_at = timezone.now()
+        invitation.save()
+        return redirect('crews:my_invitations')
+    
+    # Check if user has an inactive membership (previously left)
+    existing_inactive_membership = invitation.crew.memberships.filter(user=request.user, is_active=False).first()
+    
+    if existing_inactive_membership:
+        # Reactivate the existing membership with the invited role
+        existing_inactive_membership.is_active = True
+        existing_inactive_membership.role = invitation.proposed_role
+        existing_inactive_membership.invited_by = invitation.inviter
+        existing_inactive_membership.joined_at = timezone.now()  # Update join date
+        existing_inactive_membership.save()
+        
+        membership = existing_inactive_membership
+        join_method = 'invitation_rejoin'
+    else:
+        # Create new membership
+        membership = CrewMembership.objects.create(
+            crew=invitation.crew,
+            user=request.user,
+            role=invitation.proposed_role,
+            invited_by=invitation.inviter,
+            is_active=True
+        )
+        join_method = 'invitation'
+    
+    # Mark invitation as accepted
+    invitation.is_accepted = True
+    invitation.responded_at = timezone.now()
+    invitation.save()
+    
+    # Create activity log
+    CrewActivity.objects.create(
+        crew=invitation.crew,
+        activity_type='MEMBER_JOINED',
+        user=request.user,
+        description=f"{request.user.username} accepted invitation and joined {invitation.crew.name}",
+        metadata={
+            'join_method': join_method,
+            'invited_by': invitation.inviter.username,
+            'role': invitation.proposed_role
+        }
+    )
+    
+    # Success message
+    if join_method == 'invitation_rejoin':
+        messages.success(request, f"Welcome back to {invitation.crew.name}! Your membership has been reactivated.")
+    else:
+        messages.success(request, f"Welcome to {invitation.crew.name}! You are now a {invitation.get_proposed_role_display().lower()}.")
+    
+    return redirect('crews:detail', slug=invitation.crew.slug)
 
 
 @login_required
 def decline_invitation(request, invitation_id):
     """Decline a crew invitation."""
-    # TODO: Implement invitation decline
+    invitation = get_object_or_404(
+        CrewInvitation, 
+        id=invitation_id,
+        is_accepted=False,
+        is_declined=False
+    )
+    
+    # Verify this invitation is for the current user
+    if invitation.invitee_user != request.user and invitation.invitee_email != request.user.email:
+        messages.error(request, "This invitation is not for you.")
+        return redirect('crews:my_invitations')
+    
+    # Mark invitation as declined
+    invitation.is_declined = True
+    invitation.responded_at = timezone.now()
+    invitation.save()
+    
+    # Create activity log (optional - could be considered private)
+    CrewActivity.objects.create(
+        crew=invitation.crew,
+        activity_type='MEMBER_PROMOTED',  # Using this for invitation responses
+        user=invitation.inviter,  # Log shows who sent the invitation
+        description=f"Invitation to {invitation.invitee_email} was declined",
+        metadata={
+            'action': 'invitation_declined',
+            'invitee_email': invitation.invitee_email
+        }
+    )
+    
+    messages.success(request, f"You declined the invitation to join {invitation.crew.name}.")
     return redirect('crews:my_invitations')
 
 

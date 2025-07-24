@@ -18,7 +18,12 @@ urlpatterns = [
     path('', views.crew_list, name='list'),
     path('create/', views.create_crew, name='create'),
     
-    # Crew detail and management
+    # Global invitation system (must come before crew-specific URLs)
+    path('invitations/', views.my_invitations, name='my_invitations'),
+    path('invitations/<int:invitation_id>/accept/', views.accept_invitation, name='accept_invitation'),
+    path('invitations/<int:invitation_id>/decline/', views.decline_invitation, name='decline_invitation'),
+    
+    # Crew detail and management (slug patterns must come after more specific paths)
     path('<slug:slug>/', views.crew_detail, name='detail'),
     path('<slug:slug>/edit/', views.edit_crew, name='edit'),
     path('<slug:slug>/delete/', views.delete_crew, name='delete'),
@@ -30,11 +35,8 @@ urlpatterns = [
     path('<slug:slug>/members/<int:user_id>/edit/', views.edit_member, name='edit_member'),
     path('<slug:slug>/members/<int:user_id>/remove/', views.remove_member, name='remove_member'),
     
-    # Invitation system
+    # Crew-specific invitation system
     path('<slug:slug>/invite/', views.invite_member, name='invite'),
-    path('invitations/', views.my_invitations, name='my_invitations'),
-    path('invitations/<int:invitation_id>/accept/', views.accept_invitation, name='accept_invitation'),
-    path('invitations/<int:invitation_id>/decline/', views.decline_invitation, name='decline_invitation'),
     
     # Activity feed
     path('<slug:slug>/activity/', views.crew_activity, name='activity'),

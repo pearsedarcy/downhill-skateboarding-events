@@ -99,6 +99,113 @@ function togglePublish(eventSlug, currentState) {
     form.submit();
 }
 
+// Toast notification system
+function showToast(message, type = 'success') {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+    
+    // Create toast
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast toast-top toast-end z-50`;
+    
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'error' ? 'alert-error' : 
+                      type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'error' ? 'fa-exclamation-circle' : 
+                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    
+    toast.innerHTML = `
+        <div class="alert ${alertClass} shadow-lg">
+            <i class="fas ${icon}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 4000);
+}
+
+// Update membership badge after leaving crew
+function updateMembershipBadge(isNowMember, crewName, memberCount) {
+    const badge = document.getElementById('membership-status-badge');
+    if (!badge) return;
+    
+    if (isNowMember) {
+        badge.innerHTML = `
+            <div class="badge badge-success gap-2 text-white shadow-lg backdrop-blur-sm">
+                <i class="fas fa-check text-xs"></i>
+                <span class="font-medium">Member</span>
+            </div>
+        `;
+    } else {
+        badge.innerHTML = `
+            <div class="badge badge-info gap-2 text-white shadow-lg backdrop-blur-sm">
+                <i class="fas fa-user-plus text-xs"></i>
+                <span class="font-medium">Join Crew</span>
+            </div>
+        `;
+    }
+}
+
+// Leave crew with AJAX
+async function leaveCrew(crewSlug, crewName) {
+    const leaveButton = document.querySelector('.btn-error');
+    const originalText = leaveButton.innerHTML;
+    
+    // Show loading state
+    leaveButton.disabled = true;
+    leaveButton.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span>Leaving...';
+    
+    try {
+        const response = await fetch(`/crews/${crewSlug}/leave/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Close modal
+            document.getElementById('leave_crew_modal').close();
+            
+            // Update membership badge
+            updateMembershipBadge(false, crewName, data.member_count);
+            
+            // Show success toast
+            showToast(data.message, 'success');
+            
+            // Update member count in UI
+            const memberCountElements = document.querySelectorAll('[data-member-count]');
+            memberCountElements.forEach(el => {
+                el.textContent = data.member_count;
+            });
+            
+            // Reload page to update action buttons and membership status
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (error) {
+        showToast('An error occurred while leaving the crew. Please try again.', 'error');
+    } finally {
+        // Reset button state
+        leaveButton.disabled = false;
+        leaveButton.innerHTML = originalText;
+    }
+}
+
 function deleteEvent(eventSlug, eventTitle) {
     if (confirm(`Are you sure you want to delete the event "${eventTitle}"?`)) {
         // Create and submit a form dynamically

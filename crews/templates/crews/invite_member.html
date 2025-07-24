@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invite Member to {{ crew.name }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/crews.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs text-sm mb-4">
+        <ul>
+            <li><a href="{% url 'crews:list' %}" class="text-primary hover:text-primary-focus">Crews</a></li>
+            <li><a href="{% url 'crews:detail' crew.slug %}" class="text-primary hover:text-primary-focus">{{ crew.name }}</a></li>
+            <li class="text-base-content/70">Invite Member</li>
+        </ul>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Invite Form -->
+        <div class="lg:col-span-2">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-4 sm:p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="avatar">
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                {% if crew.logo %}
+                                    <img src="{{ crew.logo.url }}" alt="{{ crew.name }}" class="w-12 h-12 rounded-full object-cover">
+                                {% else %}
+                                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-bold">Invite Member</h1>
+                            <p class="text-base-content/70">Invite someone to join {{ crew.name }}</p>
+                        </div>
+                    </div>
+
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Email Input -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.invitee_email.id_for_label }}">
+                                <span class="label-text font-medium">
+                                    {{ form.invitee_email.label }}
+                                    <span class="text-error">*</span>
+                                </span>
+                            </label>
+                            {{ form.invitee_email }}
+                            {% if form.invitee_email.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-base-content/60">{{ form.invitee_email.help_text }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.invitee_email.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.invitee_email.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+
+                        <!-- Role Selection -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.proposed_role.id_for_label }}">
+                                <span class="label-text font-medium">{{ form.proposed_role.label }}</span>
+                            </label>
+                            {{ form.proposed_role }}
+                            {% if form.proposed_role.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-base-content/60">{{ form.proposed_role.help_text }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.proposed_role.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.proposed_role.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+
+                        <!-- Personal Message -->
+                        <div class="form-control">
+                            <label class="label" for="{{ form.message.id_for_label }}">
+                                <span class="label-text font-medium">{{ form.message.label }}</span>
+                            </label>
+                            {{ form.message }}
+                            {% if form.message.help_text %}
+                                <label class="label">
+                                    <span class="label-text-alt text-base-content/60">{{ form.message.help_text }}</span>
+                                </label>
+                            {% endif %}
+                            {% if form.message.errors %}
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.message.errors.0 }}</span>
+                                </label>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                            <button type="submit" class="btn btn-primary flex-1 sm:flex-none">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                                Send Invitation
+                            </button>
+                            <a href="{% url 'crews:detail' crew.slug %}" class="btn btn-ghost flex-1 sm:flex-none">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crew Info Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-4 sm:p-6">
+                    <h3 class="font-bold text-lg mb-4">Crew Information</h3>
+                    
+                    <!-- Crew Stats -->
+                    <div class="stats stats-vertical w-full bg-base-200 mb-4">
+                        <div class="stat py-2">
+                            <div class="stat-title text-xs">Members</div>
+                            <div class="stat-value text-lg">{{ crew.member_count }}</div>
+                        </div>
+                        <div class="stat py-2">
+                            <div class="stat-title text-xs">Type</div>
+                            <div class="stat-value text-sm">{{ crew.get_crew_type_display }}</div>
+                        </div>
+                        <div class="stat py-2">
+                            <div class="stat-title text-xs">Discipline</div>
+                            <div class="stat-value text-sm">{{ crew.get_primary_discipline_display }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Your Role -->
+                    {% if user_membership %}
+                        <div class="alert alert-info mb-4">
+                            <div class="flex">
+                                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-sm">Your Role</p>
+                                    <p class="text-xs opacity-80">{{ user_membership.get_role_display }} in {{ crew.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Role Descriptions -->
+                    <div class="space-y-3">
+                        <h4 class="font-medium text-sm">Role Descriptions:</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-base-content/70">Member</span>
+                                <span class="text-xs">Basic access</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-base-content/70">Event Manager</span>
+                                <span class="text-xs">Can manage events</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-base-content/70">Admin</span>
+                                <span class="text-xs">Full crew management</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-base-content/70">Owner</span>
+                                <span class="text-xs">Complete control</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% comment %}
+Leave crew confirmation modal
+Replaces browser confirm() with a proper DaisyUI modal
+{% endcomment %}
+
+<!-- Leave Crew Modal -->
+<dialog id="leave_crew_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+            Leave {{ crew.name }}?
+        </h3>
+        
+        <div class="py-4">
+            <p class="text-base-content/70 mb-4">
+                Are you sure you want to leave <strong>{{ crew.name }}</strong>?
+            </p>
+            
+            {% if user_membership.role == 'OWNER' %}
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-crown"></i>
+                <div>
+                    <h4 class="font-bold">You are the crew owner</h4>
+                    <div class="text-sm">You cannot leave unless you transfer ownership to another member first.</div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <div class="text-sm">You can rejoin this crew at any time if it's public, or if you receive another invitation.</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="modal-action">
+            <button class="btn btn-ghost" onclick="leave_crew_modal.close()">
+                Cancel
+            </button>
+            {% if user_membership.role != 'OWNER' %}
+            <button type="button" 
+                    class="btn btn-error" 
+                    onclick="leaveCrew('{{ crew.slug }}', '{{ crew.name }}')">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                Leave Crew
+            </button>
+            {% else %}
+            <div class="text-sm text-base-content/70">
+                Transfer ownership to another member first to leave the crew.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Click outside to close -->
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>

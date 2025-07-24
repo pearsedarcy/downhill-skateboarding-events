@@ -1,0 +1,28 @@
+{% comment %}
+Membership status badge for crew banner header
+Shows current user's membership status as a small badge
+{% endcomment %}
+
+<div id="membership-status-badge" class="absolute top-4 right-4 z-20">
+    {% if user.is_authenticated %}
+        {% if user_membership %}
+            <!-- User is a member -->
+            <div class="badge badge-success gap-2 text-white shadow-lg backdrop-blur-sm">
+                <i class="fas fa-check text-xs"></i>
+                <span class="font-medium">{{ user_membership.get_role_display }}</span>
+            </div>
+        {% else %}
+            <!-- User is not a member -->
+            <div class="badge badge-info gap-2 text-white shadow-lg backdrop-blur-sm">
+                <i class="fas fa-user-plus text-xs"></i>
+                <span class="font-medium">Join Crew</span>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- User is not authenticated -->
+        <div class="badge badge-warning gap-2 text-white shadow-lg backdrop-blur-sm">
+            <i class="fas fa-sign-in-alt text-xs"></i>
+            <span class="font-medium">Login</span>
+        </div>
+    {% endif %}
+</div>
