@@ -1,0 +1,58 @@
+{% extends "crews/emails/base_email.html" %}
+
+{% block title %}Welcome to {{ crew.name }}!{% endblock %}
+
+{% block content %}
+<h2>🎉 Welcome to {{ crew.name }}!</h2>
+
+<p>Hello {{ user.get_full_name|default:user.username }},</p>
+
+<p>Welcome to <strong>{{ crew.name }}</strong>! We're excited to have you as part of our skateboarding community.</p>
+
+<div class="crew-info">
+    <h3>Your Membership Details</h3>
+    <p><strong>Crew:</strong> {{ crew.name }}</p>
+    <p><strong>Your Role:</strong> {{ membership.get_role_display }}</p>
+    <p><strong>Joined:</strong> {{ membership.joined_at|date:"F j, Y" }}</p>
+    <p><strong>Total Members:</strong> {{ crew.member_count }} skater{{ crew.member_count|pluralize }}</p>
+</div>
+
+<h3>🛹 What's Next?</h3>
+<ul>
+    <li><strong>Connect with your crew:</strong> Check out the crew page to see other members and recent activity</li>
+    <li><strong>Join events:</strong> Look for crew events and community competitions</li>
+    <li><strong>Share your skills:</strong> Update your profile to showcase your skating style and experience</li>
+    <li><strong>Stay active:</strong> Participate in discussions and help grow the community</li>
+</ul>
+
+{% if membership.role == 'ADMIN' or membership.role == 'OWNER' %}
+<div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    <h4>🔧 Admin Privileges</h4>
+    <p>As a {{ membership.get_role_display|lower }}, you have additional responsibilities:</p>
+    <ul>
+        <li>Manage crew members and permissions</li>
+        <li>Organize and publish crew events</li>
+        <li>Moderate crew discussions</li>
+        <li>Invite new members to join</li>
+    </ul>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ site_domain }}{{ crew_url }}" class="btn">
+        👥 Visit Your Crew
+    </a>
+    <a href="{{ site_domain }}{{ profile_url }}" class="btn btn-secondary">
+        👤 Update Your Profile
+    </a>
+</div>
+
+<p>If you have any questions about your new crew or the platform, don't hesitate to reach out to other crew members or check out our community guidelines.</p>
+
+<p>Get ready to shred! 🛹</p>
+
+<p>
+    Best regards,<br>
+    The Skate Downhills Team
+</p>
+{% endblock %}

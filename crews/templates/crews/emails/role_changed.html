@@ -1,0 +1,58 @@
+{% extends "crews/emails/base_email.html" %}
+
+{% block title %}Your Role in {{ crew.name }} Has Been Updated{% endblock %}
+
+{% block content %}
+<h2>🔄 Role Update</h2>
+
+<p>Hello {{ user.get_full_name|default:user.username }},</p>
+
+<p>Your role in <strong>{{ crew.name }}</strong> has been updated by {{ changed_by.get_full_name|default:changed_by.username }}.</p>
+
+<div class="crew-info">
+    <h3>Role Change Details</h3>
+    <p><strong>Previous Role:</strong> {{ old_role }}</p>
+    <p><strong>New Role:</strong> <span class="highlight">{{ new_role }}</span></p>
+    <p><strong>Changed By:</strong> {{ changed_by.get_full_name|default:changed_by.username }}</p>
+    <p><strong>Date:</strong> {{ membership.joined_at|date:"F j, Y \a\t g:i A" }}</p>
+</div>
+
+{% if membership.role == 'ADMIN' or membership.role == 'OWNER' %}
+<div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    <h4>🔧 Your New Privileges</h4>
+    <p>With your new {{ membership.get_role_display|lower }} role, you now have access to:</p>
+    <ul>
+        {% if membership.role == 'OWNER' %}
+        <li>Full crew management (edit details, delete crew)</li>
+        <li>Manage all member roles and permissions</li>
+        <li>Transfer ownership to other members</li>
+        {% endif %}
+        {% if membership.role == 'ADMIN' %}
+        <li>Manage crew members and permissions</li>
+        <li>Remove members from the crew</li>
+        {% endif %}
+        <li>Organize and publish crew events</li>
+        <li>Invite new members to join</li>
+        <li>Moderate crew discussions</li>
+    </ul>
+</div>
+{% elif old_role == 'ADMIN' or old_role == 'OWNER' %}
+<div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    <h4>📝 Permission Changes</h4>
+    <p>As a {{ membership.get_role_display|lower }}, your access has been adjusted. You may no longer have some administrative privileges you previously had.</p>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ site_domain }}{{ crew_url }}" class="btn">
+        👥 Visit Your Crew
+    </a>
+</div>
+
+<p>If you have any questions about your new role or responsibilities, feel free to reach out to other crew administrators.</p>
+
+<p>
+    Best regards,<br>
+    The Skate Downhills Team
+</p>
+{% endblock %}

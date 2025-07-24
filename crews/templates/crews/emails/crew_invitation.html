@@ -1,0 +1,46 @@
+{% extends "crews/emails/base_email.html" %}
+
+{% block title %}You're Invited to Join {{ crew.name }}{% endblock %}
+
+{% block content %}
+<h2>🎉 You've Been Invited!</h2>
+
+<p>Hello {{ recipient_name }},</p>
+
+<p><strong>{{ inviter.get_full_name|default:inviter.username }}</strong> has invited you to join <strong>{{ crew.name }}</strong> on Skate Downhills!</p>
+
+<div class="crew-info">
+    <h3>{{ crew.name }}</h3>
+    <p><strong>Type:</strong> {{ crew.get_crew_type_display }}</p>
+    <p><strong>Focus:</strong> {{ crew.get_primary_discipline_display }}</p>
+    {% if crew.city and crew.country %}
+    <p><strong>Location:</strong> {{ crew.city }}, {{ crew.country.name }}</p>
+    {% endif %}
+    <p><strong>Members:</strong> {{ crew.member_count }} skater{{ crew.member_count|pluralize }}</p>
+    
+    {% if crew.description %}
+    <p><strong>About:</strong></p>
+    <p>{{ crew.description|truncatewords:30 }}</p>
+    {% endif %}
+</div>
+
+<p>You've been invited to join as a <span class="highlight">{{ invitation.get_proposed_role_display }}</span>.</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ site_domain }}{{ accept_url }}" class="btn btn-success">
+        ✅ Accept Invitation
+    </a>
+    <a href="{{ site_domain }}{{ decline_url }}" class="btn btn-secondary">
+        ❌ Decline
+    </a>
+</div>
+
+<p>Want to learn more about the crew first? <a href="{{ site_domain }}{{ crew_url }}">View {{ crew.name }}'s profile</a></p>
+
+<p>Join the community and start connecting with fellow downhill skateboarders!</p>
+
+<p>
+    Best regards,<br>
+    The Skate Downhills Team
+</p>
+{% endblock %}

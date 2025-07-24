@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden, JsonResponse
 from django.utils import timezone
 from django.db import models
+from django.conf import settings
 from datetime import timedelta
 from .models import Crew, CrewMembership, CrewInvitation, CrewActivity
 from .forms import CrewForm, CrewMembershipForm, CrewInvitationForm, MemberPermissionForm, BulkPermissionForm
@@ -22,6 +23,7 @@ from .permissions import (
     InsufficientPermissionError
 )
 from .views_member_profiles import member_profile_detail, update_member_permissions
+from .email_service import crew_email_service
 
 
 def crew_list(request):
@@ -358,6 +360,10 @@ def join_crew(request, slug):
         metadata={'join_method': join_method}
     )
     
+    # Send welcome email for new members (not rejoining)
+    if join_method == 'direct' and getattr(settings, 'SEND_WELCOME_EMAIL', True):
+        crew_email_service.send_welcome_message(membership)
+    
     messages.success(request, welcome_message)
     return redirect('crews:detail', slug=slug)
 
@@ -403,6 +409,20 @@ def leave_crew(request, slug):
         description=f"{request.user.username} left {crew.name}",
         metadata={'leave_method': 'voluntary'}
     )
+    
+    # Notify crew admins about member leaving
+    admin_memberships = crew.memberships.filter(
+        role__in=['OWNER', 'ADMIN'],
+        is_active=True
+    ).exclude(user=request.user).select_related('user')
+    
+    for admin_membership in admin_memberships:
+        if admin_membership.user.email:
+            crew_email_service.send_member_left(
+                crew=crew,
+                user=request.user,
+                admin_user=admin_membership.user
+            )
     
     success_msg = f"You have left {crew.name}."
     
@@ -478,6 +498,14 @@ def edit_member(request, slug, user_id):
                 activity_type='member_role_changed',
                 description=f'{member_to_edit.user.get_full_name() or member_to_edit.user.username} role changed from {old_role} to {new_role}'
             )
+            
+            # Send role change notification
+            if member_to_edit.user.email and old_role != new_role:
+                crew_email_service.send_role_changed(
+                    membership=member_to_edit,
+                    old_role=old_role,
+                    changed_by=request.user
+                )
             
             messages.success(request, f"Updated {member_to_edit.user.get_full_name() or member_to_edit.user.username}'s role to {new_role}.")
         else:
@@ -623,7 +651,8 @@ def invite_member(request, slug):
                 }
             )
             
-            # TODO: Send email notification (implement later)
+            # Send email notification
+            crew_email_service.send_crew_invitation(invitation)
             
             messages.success(request, f"Invitation sent to {invitation.invitee_email}!")
             return redirect('crews:detail', slug=slug)
@@ -741,6 +770,14 @@ def accept_invitation(request, invitation_id):
             'role': invitation.proposed_role
         }
     )
+    
+    # Send email notifications
+    # 1. Send welcome email to new member (unless rejoining)
+    if join_method == 'invitation' and getattr(settings, 'SEND_WELCOME_EMAIL', True):
+        crew_email_service.send_welcome_message(membership)
+    
+    # 2. Notify crew admins about new member
+    crew_email_service.send_invitation_accepted(invitation, request.user)
     
     # Success message
     if join_method == 'invitation_rejoin':

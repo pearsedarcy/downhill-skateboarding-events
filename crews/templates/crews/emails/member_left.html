@@ -1,0 +1,36 @@
+{% extends "crews/emails/base_email.html" %}
+
+{% block title %}{{ departed_user.username }} Left {{ crew.name }}{% endblock %}
+
+{% block content %}
+<h2>👋 Member Departure</h2>
+
+<p>Hello {{ recipient_name }},</p>
+
+<p><strong>{{ departed_user.get_full_name|default:departed_user.username }}</strong> has left <strong>{{ crew.name }}</strong>.</p>
+
+<div class="crew-info">
+    <h3>Departure Details</h3>
+    <p><strong>Member:</strong> {{ departed_user.username }}</p>
+    {% if departed_user.get_full_name %}
+    <p><strong>Name:</strong> {{ departed_user.get_full_name }}</p>
+    {% endif %}
+    <p><strong>Left:</strong> {{ membership.joined_at|date:"F j, Y \a\t g:i A" }}</p>
+    <p><strong>Remaining Members:</strong> {{ crew.member_count }} skater{{ crew.member_count|pluralize }}</p>
+</div>
+
+<p>As a crew administrator, you've been notified of this change. The member can rejoin the crew at any time if they choose to return.</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ site_domain }}{{ crew_url }}" class="btn">
+        👥 View Crew
+    </a>
+</div>
+
+<p>Consider reaching out if appropriate, or focus on continuing to build an engaging community for your remaining members.</p>
+
+<p>
+    Best regards,<br>
+    The Skate Downhills Team
+</p>
+{% endblock %}

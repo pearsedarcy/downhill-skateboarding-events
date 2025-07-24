@@ -1,0 +1,39 @@
+{% extends "crews/emails/base_email.html" %}
+
+{% block title %}{{ new_member.username }} Joined {{ crew.name }}{% endblock %}
+
+{% block content %}
+<h2>🎉 New Member Alert!</h2>
+
+<p>Hello {{ recipient_name }},</p>
+
+<p>Great news! <strong>{{ new_member.get_full_name|default:new_member.username }}</strong> has joined <strong>{{ crew.name }}</strong>!</p>
+
+<div class="crew-info">
+    <h3>New Member Details</h3>
+    <p><strong>Username:</strong> {{ new_member.username }}</p>
+    {% if new_member.get_full_name %}
+    <p><strong>Name:</strong> {{ new_member.get_full_name }}</p>
+    {% endif %}
+    <p><strong>Role:</strong> {{ invitation.get_proposed_role_display }}</p>
+    <p><strong>Joined:</strong> {{ invitation.responded_at|date:"F j, Y \a\t g:i A" }}</p>
+</div>
+
+<p>{{ crew.name }} now has {{ crew.member_count }} member{{ crew.member_count|pluralize }}!</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ site_domain }}{{ crew_url }}" class="btn">
+        👥 View Crew
+    </a>
+    <a href="{{ site_domain }}{{ member_profile_url }}" class="btn btn-secondary">
+        👤 View Member Profile
+    </a>
+</div>
+
+<p>Consider welcoming them to the crew and helping them get started with the community!</p>
+
+<p>
+    Best regards,<br>
+    The Skate Downhills Team
+</p>
+{% endblock %}
