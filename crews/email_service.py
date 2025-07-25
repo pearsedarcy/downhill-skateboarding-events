@@ -54,7 +54,7 @@ class CrewEmailService:
             # Add common context variables
             context.update({
                 'site_domain': self._get_site_domain(),
-                'site_name': 'Skate Downhills',
+                'site_name': 'Skatedownhills',
                 'recipient_name': recipient_name or recipient_email.split('@')[0],
             })
             

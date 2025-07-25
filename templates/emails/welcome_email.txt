@@ -1,0 +1,33 @@
+🎉 WELCOME TO THE DOWNHILL SKATEBOARDING COMMUNITY! 🎉
+
+Hey {{ user.profile.get_display_name }},
+
+Welcome to the Downhill Skateboarding Events community! We're stoked to have you join our global community of passionate downhill skateboarding enthusiasts.
+
+🚀 HERE'S WHAT YOU CAN DO NOW:
+- Explore Events: Discover amazing skateboarding events near you and around the world
+- Connect with Riders: Find and connect with fellow skaters in your area  
+- Join Crews: Create or join skateboarding crews to ride with like-minded people
+- Share Your Journey: Post photos, videos, and updates about your skating adventures
+
+Your profile is {% if user.profile.profile_completion_percentage > 80 %}looking great{% elif user.profile.profile_completion_percentage > 50 %}coming along nicely{% else %}just getting started{% endif %}! 
+{% if user.profile.profile_completion_percentage < 100 %}Complete your profile to connect with more riders and get personalized event recommendations.{% endif %}
+
+🛡️ SAFETY FIRST!
+Remember to always wear proper protective gear and follow local skateboarding laws. Check out our Safety Guidelines to learn more about staying safe while riding.
+
+🔗 QUICK LINKS:
+- View Your Profile: {% url 'profiles:user_profile' user.username %}
+- Browse Events: {% url 'events:event_list' %}
+- Help Center: [help link]
+
+Got questions? Need help getting started? Just reply to this email.
+
+Welcome to the family! 🤘
+
+The Downhill Skateboarding Team
+Ride Safe, Ride Hard, Ride Together
+
+---
+You can update your email preferences here: {% url 'profiles:email_preferences' %}
+To unsubscribe from promotional emails: [unsubscribe link]

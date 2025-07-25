@@ -1,0 +1,119 @@
+{% extends 'emails/base_email.html' %}
+
+{% block email_title %}Community Spotlight - Downhill Skateboarding Events{% endblock %}
+
+{% block header_title %}🌟 Community News{% endblock %}
+{% block header_subtitle %}What's happening in the skateboarding world{% endblock %}
+
+{% block content %}
+<p>Hey {{ user.profile.get_display_name }},</p>
+
+<p>Here's what's been happening in our amazing skateboarding community!</p>
+
+{% if featured_rider %}
+<div style="border: 2px solid #28a745; border-radius: 12px; padding: 20px; margin: 20px 0; background: linear-gradient(135deg, #f0fff0 0%, #fff 100%);">
+    <h2 style="margin: 0 0 10px 0; color: #28a745;">🏆 Rider Spotlight</h2>
+    <h3 style="margin: 0 0 10px 0;">{{ featured_rider.profile.get_display_name }}</h3>
+    
+    {% if featured_rider.profile.city %}
+    <p><strong>From:</strong> {{ featured_rider.profile.city }}{% if featured_rider.profile.country %}, {{ featured_rider.profile.country }}{% endif %}</p>
+    {% endif %}
+    
+    {% if spotlight_reason %}
+    <p>{{ spotlight_reason }}</p>
+    {% endif %}
+    
+    {% if featured_rider.profile.bio %}
+    <p><em>"{{ featured_rider.profile.bio }}"</em></p>
+    {% endif %}
+    
+    <center>
+        <a href="{% url 'profiles:user_profile' featured_rider.username %}" class="btn" style="background: #28a745;">Check Out Their Profile</a>
+    </center>
+</div>
+{% endif %}
+
+{% if recent_events %}
+<h3>🎯 Recent Event Highlights</h3>
+{% for event in recent_events %}
+<div style="border-left: 4px solid #667eea; padding-left: 15px; margin: 15px 0;">
+    <h4 style="margin: 0;">{{ event.title }}</h4>
+    <p style="margin: 5px 0; color: #666;">
+        {{ event.start_date|date:"M d" }} in {{ event.city }}
+        - {{ event.participants.count }} rider{{ event.participants.count|pluralize }} joined
+    </p>
+    {% if event.highlight %}
+    <p>{{ event.highlight }}</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if safety_tip %}
+<div class="highlight">
+    <h3 style="margin: 0 0 10px 0;">🛡️ Safety Tip of the Week</h3>
+    <p style="margin: 0;">{{ safety_tip }}</p>
+</div>
+{% endif %}
+
+{% if upcoming_events %}
+<h3>📅 Upcoming Events You Might Like</h3>
+{% for event in upcoming_events %}
+<div style="border-left: 4px solid #ffc107; padding-left: 15px; margin: 15px 0;">
+    <h4 style="margin: 0;">{{ event.title }}</h4>
+    <p style="margin: 5px 0; color: #666;">
+        {{ event.start_date|date:"F d, Y" }} in {{ event.city }}
+    </p>
+    <a href="{% url 'events:event_details' event.slug %}">Learn More →</a>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if community_stats %}
+<div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+    <h3>📊 Community Growth</h3>
+    <div style="display: flex; justify-content: space-around; text-align: center;">
+        {% if community_stats.new_members %}
+        <div>
+            <strong style="font-size: 24px; color: #667eea;">{{ community_stats.new_members }}</strong><br>
+            <span style="color: #666;">New riders this month</span>
+        </div>
+        {% endif %}
+        {% if community_stats.events_this_month %}
+        <div>
+            <strong style="font-size: 24px; color: #28a745;">{{ community_stats.events_this_month }}</strong><br>
+            <span style="color: #666;">Events organized</span>
+        </div>
+        {% endif %}
+        {% if community_stats.total_distance %}
+        <div>
+            <strong style="font-size: 24px; color: #ffc107;">{{ community_stats.total_distance }}km</strong><br>
+            <span style="color: #666;">Distance covered</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<center>
+    <a href="{% url 'events:event_list' %}" class="btn">Browse Events</a>
+    <a href="{% url 'profiles:users_list' %}" class="btn">Explore Community</a>
+</center>
+
+<p>Keep riding and keep pushing your limits! The community is here to support you every step (or roll) of the way.</p>
+
+<p>
+The Community Team<br>
+<em>Celebrating the passion that drives us downhill</em>
+</p>
+{% endblock %}
+
+{% block unsubscribe %}
+<div class="unsubscribe">
+    <p>You're receiving this because you opted in to community news.</p>
+    <p>
+        <a href="{% url 'profiles:email_preferences' %}">Update your email preferences</a> |
+        <a href="#unsubscribe">Unsubscribe from community news</a>
+    </p>
+</div>
+{% endblock %}

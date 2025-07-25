@@ -1,0 +1,79 @@
+{% extends 'emails/base_email.html' %}
+
+{% block email_title %}{{ crew.name }} - Crew Invitation - Downhill Skateboarding Events{% endblock %}
+
+{% block header_title %}🤘 Crew Invitation!{% endblock %}
+{% block header_subtitle %}You've been invited to join a skating crew{% endblock %}
+
+{% block content %}
+<p>Hey {{ user.profile.get_display_name }},</p>
+
+<p>Great news! You've been invited to join a skateboarding crew on our platform.</p>
+
+<div style="border: 2px solid #667eea; border-radius: 12px; padding: 20px; margin: 20px 0; background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);">
+    <h2 style="margin: 0 0 10px 0; color: #667eea;">{{ crew.name }}</h2>
+    
+    {% if crew.description %}
+    <p style="margin: 8px 0;">{{ crew.description }}</p>
+    {% endif %}
+    
+    <p style="margin: 8px 0; font-size: 16px;">
+        <strong>📍 Location:</strong> 
+        {% if crew.city %}{{ crew.city }}{% endif %}
+        {% if crew.country %}{% if crew.city %}, {% endif %}{{ crew.country }}{% endif %}
+    </p>
+    
+    <p style="margin: 8px 0; font-size: 16px;">
+        <strong>👥 Members:</strong> {{ crew.members.count }} rider{{ crew.members.count|pluralize }}
+    </p>
+    
+    {% if crew.skill_level %}
+    <p style="margin: 8px 0; font-size: 16px;">
+        <strong>🎯 Skill Focus:</strong> {{ crew.get_skill_level_display }}
+    </p>
+    {% endif %}
+</div>
+
+<p><strong>Invited by:</strong> {{ inviter.profile.get_display_name }}
+{% if inviter.profile.city %}from {{ inviter.profile.city }}{% endif %}</p>
+
+{% if invitation_message %}
+<div class="highlight">
+    <strong>Personal Message:</strong><br>
+    {{ invitation_message|linebreaks }}
+</div>
+{% endif %}
+
+<p>Joining a crew is a great way to:</p>
+<ul>
+    <li>🤝 Connect with local riders who share your passion</li>
+    <li>📅 Get invites to exclusive crew events and sessions</li>
+    <li>📸 Share photos and videos with your riding buddies</li>
+    <li>🏆 Participate in crew challenges and competitions</li>
+    <li>💬 Stay connected through crew chat and updates</li>
+</ul>
+
+<center>
+    <a href="{% url 'crews:crew_detail' crew.slug %}" class="btn">View Crew Details</a>
+    <a href="{% url 'crews:accept_invitation' invitation.id %}" class="btn">Accept Invitation</a>
+</center>
+
+<p>This invitation will expire in 7 days, so don't wait too long to decide!</p>
+
+<p>Ready to ride with your new crew? 🛹</p>
+
+<p>
+The Crew Team<br>
+<em>Stronger together, faster downhill</em>
+</p>
+{% endblock %}
+
+{% block unsubscribe %}
+<div class="unsubscribe">
+    <p>You're receiving this because you opted in to crew notifications.</p>
+    <p>
+        <a href="{% url 'profiles:email_preferences' %}">Update your email preferences</a> |
+        <a href="#unsubscribe">Unsubscribe from crew invitations</a>
+    </p>
+</div>
+{% endblock %}

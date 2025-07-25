@@ -1,0 +1,83 @@
+{% extends 'emails/base_email.html' %}
+
+{% block email_title %}New Event: {{ event.title }} - Downhill Skateboarding Events{% endblock %}
+
+{% block header_title %}🏁 New Event Alert!{% endblock %}
+{% block header_subtitle %}An awesome event you might be interested in{% endblock %}
+
+{% block content %}
+<p>Hey {{ user.profile.get_display_name }},</p>
+
+<p>There's a new skateboarding event that we think you'd love to check out!</p>
+
+<div style="border: 2px solid #667eea; border-radius: 12px; padding: 20px; margin: 20px 0; background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);">
+    <h2 style="margin: 0 0 10px 0; color: #667eea;">{{ event.title }}</h2>
+    
+    <p style="margin: 8px 0; font-size: 16px;">
+        <strong>📅 Date:</strong> {{ event.start_date|date:"F d, Y" }}
+        {% if event.end_date and event.end_date != event.start_date %}
+        - {{ event.end_date|date:"F d, Y" }}
+        {% endif %}
+    </p>
+    
+    <p style="margin: 8px 0; font-size: 16px;">
+        <strong>📍 Location:</strong> {{ event.location }}
+        {% if event.city %}, {{ event.city }}{% endif %}
+        {% if event.country %}, {{ event.country }}{% endif %}
+    </p>
+    
+    {% if event.event_type %}
+    <p style="margin: 8px 0; font-size: 16px;">
+        <strong>🏆 Type:</strong> {{ event.get_event_type_display }}
+    </p>
+    {% endif %}
+    
+    {% if event.max_participants %}
+    <p style="margin: 8px 0; font-size: 16px;">
+        <strong>👥 Spots:</strong> {{ event.current_participants }}/{{ event.max_participants }} registered
+    </p>
+    {% endif %}
+</div>
+
+{% if event.description %}
+<p><strong>Event Details:</strong></p>
+<p>{{ event.description|linebreaks }}</p>
+{% endif %}
+
+{% if event.skill_level_required %}
+<div class="highlight">
+    <strong>Skill Level:</strong> This event is recommended for {{ event.get_skill_level_required_display|lower }} riders.
+</div>
+{% endif %}
+
+<center>
+    <a href="{% url 'events:event_details' event.slug %}" class="btn">View Event Details</a>
+    {% if event.is_registration_open %}
+    <a href="{% url 'events:event_details' event.slug %}" class="btn">Register Now</a>
+    {% endif %}
+</center>
+
+{% if event.organizer.profile %}
+<p><strong>Organized by:</strong> {{ event.organizer.profile.get_display_name }}
+{% if event.organizer.profile.city %}from {{ event.organizer.profile.city }}{% endif %}</p>
+{% endif %}
+
+<p>Don't miss out on this awesome riding opportunity! Events like this fill up fast, so make sure to register early if you're interested.</p>
+
+<p>See you on the hills! 🛹</p>
+
+<p>
+The Events Team<br>
+<em>Connecting riders, one event at a time</em>
+</p>
+{% endblock %}
+
+{% block unsubscribe %}
+<div class="unsubscribe">
+    <p>You're receiving this because you opted in to event notifications.</p>
+    <p>
+        <a href="{% url 'profiles:email_preferences' %}">Update your email preferences</a> |
+        <a href="#unsubscribe">Unsubscribe from event notifications</a>
+    </p>
+</div>
+{% endblock %}

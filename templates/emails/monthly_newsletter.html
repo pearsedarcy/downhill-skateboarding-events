@@ -1,0 +1,137 @@
+{% extends 'emails/base_email.html' %}
+
+{% block email_title %}Monthly Digest - Downhill Skateboarding Events{% endblock %}
+
+{% block header_title %}📮 Monthly Newsletter{% endblock %}
+{% block header_subtitle %}Your monthly dose of skateboarding awesomeness{% endblock %}
+
+{% block content %}
+<p>Hey {{ user.profile.get_display_name }},</p>
+
+<p>Welcome to your monthly skateboarding digest! Here's everything you need to know about what's been happening in our community and what's coming up.</p>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+    <h2 style="margin: 0; color: white;">{{ month_name }} {{ year }} Highlights</h2>
+</div>
+
+{% if monthly_stats %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+    {% if monthly_stats.events_count %}
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+        <strong style="font-size: 24px; color: #667eea;">{{ monthly_stats.events_count }}</strong><br>
+        <span style="color: #666;">Events hosted</span>
+    </div>
+    {% endif %}
+    {% if monthly_stats.new_members %}
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+        <strong style="font-size: 24px; color: #28a745;">{{ monthly_stats.new_members }}</strong><br>
+        <span style="color: #666;">New riders</span>
+    </div>
+    {% endif %}
+    {% if monthly_stats.crews_formed %}
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+        <strong style="font-size: 24px; color: #ffc107;">{{ monthly_stats.crews_formed }}</strong><br>
+        <span style="color: #666;">New crews</span>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if featured_content %}
+<h3>🌟 This Month's Featured Content</h3>
+
+{% if featured_content.event %}
+<div style="border: 2px solid #667eea; border-radius: 12px; padding: 20px; margin: 15px 0;">
+    <h4 style="margin: 0 0 10px 0; color: #667eea;">Event of the Month</h4>
+    <h5 style="margin: 0;">{{ featured_content.event.title }}</h5>
+    <p>{{ featured_content.event.description|truncatewords:30 }}</p>
+    <a href="{% url 'events:event_details' featured_content.event.slug %}">Read more →</a>
+</div>
+{% endif %}
+
+{% if featured_content.rider %}
+<div style="border: 2px solid #28a745; border-radius: 12px; padding: 20px; margin: 15px 0;">
+    <h4 style="margin: 0 0 10px 0; color: #28a745;">Rider of the Month</h4>
+    <h5 style="margin: 0;">{{ featured_content.rider.profile.get_display_name }}</h5>
+    <p>{{ featured_content.rider_story|truncatewords:30 }}</p>
+    <a href="{% url 'profiles:user_profile' featured_content.rider.username %}">View profile →</a>
+</div>
+{% endif %}
+{% endif %}
+
+{% if gear_review %}
+<h3>🛠️ Gear Review</h3>
+<div style="border-left: 4px solid #ffc107; padding-left: 15px; margin: 15px 0;">
+    <h4 style="margin: 0;">{{ gear_review.title }}</h4>
+    <p>{{ gear_review.excerpt }}</p>
+    <p><strong>Rating:</strong> {{ gear_review.rating }}/5 ⭐</p>
+    <a href="{{ gear_review.url }}">Read full review →</a>
+</div>
+{% endif %}
+
+{% if tips_section %}
+<h3>💡 Pro Tips & Techniques</h3>
+{% for tip in tips_section %}
+<div style="background: #fff3cd; padding: 12px; border-left: 4px solid #ffc107; border-radius: 4px; margin: 12px 0;">
+    <h5 style="margin: 0 0 8px 0;">{{ tip.title }}</h5>
+    <p style="margin: 0;">{{ tip.content }}</p>
+    {% if tip.video_url %}
+    <a href="{{ tip.video_url }}" style="font-size: 14px;">Watch tutorial →</a>
+    {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if upcoming_events %}
+<h3>📅 Don't Miss These Upcoming Events</h3>
+{% for event in upcoming_events %}
+<div style="border-left: 4px solid #dc3545; padding-left: 15px; margin: 15px 0;">
+    <h4 style="margin: 0;">{{ event.title }}</h4>
+    <p style="margin: 5px 0; color: #666;">
+        📅 {{ event.start_date|date:"F d, Y" }}<br>
+        📍 {{ event.city }}{% if event.country %}, {{ event.country }}{% endif %}
+    </p>
+    <a href="{% url 'events:event_details' event.slug %}">Event details →</a>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if safety_focus %}
+<div class="highlight">
+    <h3 style="margin: 0 0 10px 0;">🛡️ Safety Focus: {{ safety_focus.title }}</h3>
+    <p style="margin: 0;">{{ safety_focus.content }}</p>
+    {% if safety_focus.link %}
+    <a href="{{ safety_focus.link }}">Learn more about safety →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if community_shoutouts %}
+<h3>👏 Community Shoutouts</h3>
+{% for shoutout in community_shoutouts %}
+<p><strong>{{ shoutout.user.profile.get_display_name }}</strong> - {{ shoutout.achievement }}</p>
+{% endfor %}
+{% endif %}
+
+<center>
+    <a href="{% url 'events:event_list' %}" class="btn">Explore Events</a>
+    <a href="{% url 'profiles:users_list' %}" class="btn">Browse Community</a>
+</center>
+
+<p>That's a wrap for this month! Keep riding, keep improving, and keep being awesome. See you on the hills!</p>
+
+<p>
+The Newsletter Team<br>
+<em>Bringing you the best of skateboarding, monthly</em>
+</p>
+{% endblock %}
+
+{% block unsubscribe %}
+<div class="unsubscribe">
+    <p>You're receiving this monthly newsletter because you opted in.</p>
+    <p>
+        <a href="{% url 'profiles:email_preferences' %}">Update your email preferences</a> |
+        <a href="#unsubscribe">Unsubscribe from newsletter</a>
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+🏁 NEW EVENT ALERT! 🏁
+
+Hey {{ user.profile.get_display_name }},
+
+There's a new skateboarding event that we think you'd love to check out!
+
+EVENT: {{ event.title }}
+📅 Date: {{ event.start_date|date:"F d, Y" }}{% if event.end_date and event.end_date != event.start_date %} - {{ event.end_date|date:"F d, Y" }}{% endif %}
+📍 Location: {{ event.location }}{% if event.city %}, {{ event.city }}{% endif %}{% if event.country %}, {{ event.country }}{% endif %}
+{% if event.event_type %}🏆 Type: {{ event.get_event_type_display }}{% endif %}
+{% if event.max_participants %}👥 Spots: {{ event.current_participants }}/{{ event.max_participants }} registered{% endif %}
+
+{% if event.description %}EVENT DETAILS:
+{{ event.description }}
+{% endif %}
+
+{% if event.skill_level_required %}SKILL LEVEL: This event is recommended for {{ event.get_skill_level_required_display|lower }} riders.{% endif %}
+
+{% if event.organizer.profile %}ORGANIZED BY: {{ event.organizer.profile.get_display_name }}{% if event.organizer.profile.city %} from {{ event.organizer.profile.city }}{% endif %}{% endif %}
+
+🔗 QUICK LINKS:
+- View Event Details: {% url 'events:event_details' event.slug %}
+{% if event.is_registration_open %}- Register Now: {% url 'events:event_details' event.slug %}{% endif %}
+
+Don't miss out on this awesome riding opportunity! Events like this fill up fast, so make sure to register early if you're interested.
+
+See you on the hills! 🛹
+
+The Events Team
+Connecting riders, one event at a time
+
+---
+You can update your email preferences here: {% url 'profiles:email_preferences' %}
+To unsubscribe from event notifications: [unsubscribe link]

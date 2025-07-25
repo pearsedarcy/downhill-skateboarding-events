@@ -1,0 +1,57 @@
+{% extends 'emails/base_email.html' %}
+
+{% block email_title %}Welcome to the Community - Downhill Skateboarding Events{% endblock %}
+
+{% block header_title %}🎉 Welcome to the Community!{% endblock %}
+{% block header_subtitle %}Your skateboarding adventure starts now{% endblock %}
+
+{% block content %}
+<p>Hey {{ user.profile.get_display_name }},</p>
+
+<p>🛹 <strong>Welcome to the Downhill Skateboarding Events community!</strong></p>
+
+<p>We're stoked to have you join our global community of passionate downhill skateboarding enthusiasts. Whether you're just starting out or you're a seasoned pro, you're now part of something special.</p>
+
+<div class="highlight">
+    <strong>🚀 Here's what you can do now:</strong>
+    <ul>
+        <li><strong>Explore Events:</strong> Discover amazing skateboarding events near you and around the world</li>
+        <li><strong>Connect with Riders:</strong> Find and connect with fellow skaters in your area</li>
+        <li><strong>Join Crews:</strong> Create or join skateboarding crews to ride with like-minded people</li>
+        <li><strong>Share Your Journey:</strong> Post photos, videos, and updates about your skating adventures</li>
+    </ul>
+</div>
+
+<p>Your profile is {% if user.profile.profile_completion_percentage > 80 %}looking great{% elif user.profile.profile_completion_percentage > 50 %}coming along nicely{% else %}just getting started{% endif %}! 
+{% if user.profile.profile_completion_percentage < 100 %}
+Complete your profile to connect with more riders and get personalized event recommendations.
+{% endif %}
+</p>
+
+<center>
+    <a href="{% url 'profiles:user_profile' user.username %}" class="btn">View Your Profile</a>
+    <a href="{% url 'events:event_list' %}" class="btn">Browse Events</a>
+</center>
+
+<p><strong>Safety First! 🛡️</strong><br>
+Remember to always wear proper protective gear and follow local skateboarding laws. Check out our <a href="#safety-guide">Safety Guidelines</a> to learn more about staying safe while riding.</p>
+
+<p>Got questions? Need help getting started? Just reply to this email or check out our <a href="#help">Help Center</a>.</p>
+
+<p>Welcome to the family! 🤘</p>
+
+<p>
+The Downhill Skateboarding Team<br>
+<em>Ride Safe, Ride Hard, Ride Together</em>
+</p>
+{% endblock %}
+
+{% block unsubscribe %}
+<div class="unsubscribe">
+    <p>You're receiving this welcome email as a new member of our community.</p>
+    <p>
+        <a href="{% url 'profiles:email_preferences' %}">Update your email preferences</a> |
+        <a href="#unsubscribe">Unsubscribe from promotional emails</a>
+    </p>
+</div>
+{% endblock %}

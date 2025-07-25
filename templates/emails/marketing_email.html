@@ -1,0 +1,95 @@
+{% extends 'emails/base_email.html' %}
+
+{% block email_title %}Special Offer - Downhill Skateboarding Events{% endblock %}
+
+{% block header_title %}🎁 Special Offer{% endblock %}
+{% block header_subtitle %}Exclusive deals for our community members{% endblock %}
+
+{% block content %}
+<p>Hey {{ user.profile.get_display_name }},</p>
+
+<p>We've got something special just for you! Check out this exclusive offer available to our skateboarding community members.</p>
+
+{% if offer %}
+<div style="border: 2px solid #dc3545; border-radius: 12px; padding: 25px; margin: 20px 0; background: linear-gradient(135deg, #fff5f5 0%, #fff 100%); text-align: center;">
+    <h2 style="margin: 0 0 15px 0; color: #dc3545;">{{ offer.title }}</h2>
+    
+    {% if offer.discount_percentage %}
+    <div style="background: #dc3545; color: white; border-radius: 50px; padding: 10px 20px; display: inline-block; font-size: 24px; font-weight: bold; margin: 10px 0;">
+        {{ offer.discount_percentage }}% OFF
+    </div>
+    {% endif %}
+    
+    <p style="font-size: 18px; margin: 15px 0;">{{ offer.description }}</p>
+    
+    {% if offer.original_price and offer.sale_price %}
+    <p style="font-size: 20px;">
+        <span style="text-decoration: line-through; color: #999;">${{ offer.original_price }}</span>
+        <strong style="color: #dc3545; font-size: 24px;"> ${{ offer.sale_price }}</strong>
+    </p>
+    {% endif %}
+    
+    {% if offer.code %}
+    <div style="background: #f8f9fa; border: 2px dashed #dc3545; padding: 15px; margin: 15px 0; border-radius: 8px;">
+        <p style="margin: 0; font-size: 14px;">Use code:</p>
+        <strong style="font-size: 20px; color: #dc3545;">{{ offer.code }}</strong>
+    </div>
+    {% endif %}
+    
+    {% if offer.expires_at %}
+    <p style="color: #dc3545; font-weight: bold; margin: 15px 0;">
+        ⏰ Expires: {{ offer.expires_at|date:"F d, Y" }}
+    </p>
+    {% endif %}
+    
+    <a href="{{ offer.url }}" class="btn" style="background: #dc3545; font-size: 18px; padding: 15px 30px;">Claim This Offer</a>
+</div>
+{% endif %}
+
+{% if offer.details %}
+<h3>📋 Offer Details</h3>
+<ul>
+    {% for detail in offer.details %}
+    <li>{{ detail }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if partner_info %}
+<div style="border-left: 4px solid #667eea; padding-left: 15px; margin: 20px 0;">
+    <h4 style="margin: 0;">About {{ partner_info.name }}</h4>
+    <p>{{ partner_info.description }}</p>
+    {% if partner_info.website %}
+    <a href="{{ partner_info.website }}">Visit {{ partner_info.name }} →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if why_sharing %}
+<div class="highlight">
+    <h4 style="margin: 0 0 10px 0;">Why We're Sharing This</h4>
+    <p style="margin: 0;">{{ why_sharing }}</p>
+</div>
+{% endif %}
+
+<p><strong>Quick reminder:</strong> This offer is exclusive to our community members. Make sure to use it before it expires!</p>
+
+<p>Questions about this offer? Just reply to this email and we'll help you out.</p>
+
+<p>Happy shopping and happy skating! 🛹</p>
+
+<p>
+The Partnerships Team<br>
+<em>Bringing you the best deals on skateboarding gear</em>
+</p>
+{% endblock %}
+
+{% block unsubscribe %}
+<div class="unsubscribe">
+    <p>You're receiving this because you opted in to marketing emails and special offers.</p>
+    <p>
+        <a href="{% url 'profiles:email_preferences' %}">Update your email preferences</a> |
+        <a href="#unsubscribe">Unsubscribe from promotional emails</a>
+    </p>
+</div>
+{% endblock %}
