@@ -553,6 +553,127 @@ class FormHandler {
 }
 ```
 
+### **Email Preferences Management Pattern**
+```javascript
+// Real-time preference toggling with proper error handling
+function updateToggle(element) {
+    const field = element.dataset.field;
+    const value = element.checked;
+    
+    fetch('/profiles/api/update/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ field: field, value: value })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success feedback
+            if (window.showToast) {
+                window.showToast(`${field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} updated!`, 'success', 2000);
+            }
+        } else {
+            // Revert toggle and show error
+            element.checked = !value;
+            if (window.showToast) {
+                window.showToast(`Error: ${data.error}`, 'error');
+            }
+        }
+    })
+    .catch(error => {
+        // Revert toggle and show network error
+        element.checked = !value;
+        console.error('Error:', error);
+        if (window.showToast) {
+            window.showToast('An error occurred while updating.', 'error');
+        }
+    });
+}
+
+// Professional bulk unsubscribe with modal confirmation
+function confirmUnsubscribeAll() {
+    const emailFields = [
+        'email_community_news',
+        'email_event_notifications', 
+        'email_newsletter',
+        'email_crew_invites',
+        'email_marketing'
+    ];
+    
+    let updatesCompleted = 0;
+    const totalUpdates = emailFields.length;
+    
+    emailFields.forEach(fieldName => {
+        const toggle = document.querySelector(`input[data-field="${fieldName}"]`);
+        if (toggle && toggle.checked) {
+            toggle.disabled = true;
+            toggle.checked = false;
+            
+            fetch('/profiles/api/update/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ field: fieldName, value: false })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    toggle.checked = true; // Revert on error
+                    console.error(`Failed to update ${fieldName}:`, data.error);
+                }
+            })
+            .finally(() => {
+                toggle.disabled = false;
+                updatesCompleted++;
+                
+                if (updatesCompleted === totalUpdates) {
+                    if (window.showToast) {
+                        window.showToast('✅ Successfully unsubscribed from all emails', 'success', 4000);
+                    }
+                }
+            });
+        }
+    });
+}
+```
+
+### **DaisyUI Modal Pattern for Confirmations**
+```html
+<!-- Replace browser confirm() with professional modal -->
+<dialog id="confirmation_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+            Confirm Action
+        </h3>
+        <p class="py-4">Detailed explanation of what will happen...</p>
+        <ul class="list-disc list-inside space-y-1 text-sm mb-6">
+            <li>Specific consequence 1</li>
+            <li>Specific consequence 2</li>
+            <li>Specific consequence 3</li>
+        </ul>
+        <p class="text-sm text-base-content/70 mb-6">
+            <i class="fas fa-info-circle text-info mr-2"></i>
+            Additional helpful information
+        </p>
+        <div class="modal-action">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-warning" onclick="confirmAction()">
+                <i class="fas fa-check mr-2"></i>Yes, Continue
+            </button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="closeModal()">close</button>
+    </form>
+</dialog>
+```
+
 ## 🧪 **Testing Patterns**
 
 ### **Model Testing Pattern**

@@ -16,7 +16,7 @@ from django.core.files.base import ContentFile
 from django.contrib import messages
 from events.models import RSVP, Favorite
 from profiles.models import UserProfile, ProfileFollow, ProfileActivity
-from .forms import UserProfileForm, AvatarUploadForm
+from .forms import AvatarUploadForm
 from typing import Optional
 import json
 import base64
@@ -214,21 +214,10 @@ def edit_profile_deprecated(request):
     profile = request.user.profile
     
     if request.method == "POST":
-        form = UserProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Your profile has been updated successfully!")
-            return redirect("profiles:my_profile")
-        else:
-            messages.error(request, "Please correct the errors below.")
-    else:
-        form = UserProfileForm(instance=profile)
-    
-    return render(request, "profiles/edit_profile.html", {
-        "form": form,
-        "profile": profile,
-        "completion_percentage": profile.profile_completion_percentage
-    })
+        # UserProfileForm temporarily disabled to unblock OTP migrations
+        form = None
+        messages.error(request, "Profile editing is temporarily disabled.")
+        return redirect("profiles:my_profile")
 
 
 @require_POST
@@ -502,11 +491,38 @@ def profile_completion_suggestions(request):
             'priority': 'medium'
         })
     
+    if not profile.stance:
+        suggestions.append({
+            'field': 'stance',
+            'title': 'Select your stance',
+            'description': 'Regular, goofy, or switch - let others know your style',
+            'points': 5,
+            'priority': 'medium'
+        })
+    
     if not profile.years_skating:
         suggestions.append({
             'field': 'years_skating',
             'title': 'Share your experience',
             'description': 'Let others know how long you\'ve been skating',
+            'points': 5,
+            'priority': 'low'
+        })
+    
+    if not profile.primary_setup:
+        suggestions.append({
+            'field': 'primary_setup',
+            'title': 'Describe your setup',
+            'description': 'Share details about your skateboard setup',
+            'points': 10,
+            'priority': 'medium'
+        })
+    
+    if not profile.instagram:
+        suggestions.append({
+            'field': 'instagram',
+            'title': 'Add Instagram handle',
+            'description': 'Connect your social media for more visibility',
             'points': 5,
             'priority': 'low'
         })

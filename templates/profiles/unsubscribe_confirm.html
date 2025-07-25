@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Unsubscribe - Downhill Skateboarding Events{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body text-center">
+            <div class="text-6xl text-warning mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <h1 class="text-2xl font-bold text-base-content mb-4">
+                Unsubscribe from Promotional Emails
+            </h1>
+            
+            <p class="text-base-content/70 mb-6">
+                You're about to unsubscribe from promotional emails and newsletters. 
+                You'll still receive important notifications about:
+            </p>
+            
+            <div class="bg-base-200 rounded-lg p-4 mb-6">
+                <ul class="text-left space-y-2">
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-success"></i>
+                        Event notifications and updates
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-success"></i>
+                        Crew invitations and activities
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check text-success"></i>
+                        Account and security notifications
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-times text-error"></i>
+                        Monthly newsletters
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-times text-error"></i>
+                        Marketing offers and promotions
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="alert alert-info mb-6">
+                <i class="fas fa-info-circle"></i>
+                <span>You can always re-enable these emails later in your preferences.</span>
+            </div>
+            
+            <div class="card-actions justify-center gap-4">
+                <a href="{% url 'profiles:email_preferences' %}" class="btn btn-outline">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Go Back
+                </a>
+                
+                <form method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-times mr-2"></i>
+                        Yes, Unsubscribe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

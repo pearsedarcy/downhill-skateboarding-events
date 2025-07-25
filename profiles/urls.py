@@ -6,7 +6,7 @@ enhanced signup and onboarding flows.
 """
 
 from django.urls import path
-from . import views, signup_views
+from . import views, signup_views, email_preferences_views
 
 app_name = 'profiles'
 
@@ -16,10 +16,17 @@ urlpatterns = [
     # path("edit/", views.edit_profile, name="edit_profile"),  # Deprecated - using inline editing
     
     # Enhanced signup and onboarding
-    path("complete-signup/", signup_views.complete_signup, name="complete_signup"),
+    # path("complete-signup/", signup_views.complete_signup, name="complete_signup"),
+    path("api/request-otp/", signup_views.request_signup_otp, name="request_signup_otp"),
+    path("api/verify-otp/", signup_views.verify_signup_otp, name="verify_signup_otp"),
     path("onboarding/", signup_views.onboarding_tour, name="onboarding_tour"),
+    path("verify-otp/", signup_views.VerifyOTPView.as_view(), name="verify_otp"),
     path("signup-success/", signup_views.signup_success, name="signup_success"),
     path("api/signup-validation/", signup_views.signup_step_validation, name="signup_validation"),
+    
+    # Email preferences
+    path("email-preferences/", email_preferences_views.email_preferences, name="email_preferences"),
+    path("unsubscribe/", email_preferences_views.unsubscribe_all, name="unsubscribe_all"),
     
     # Social features - Following system
     path("api/follow/<int:user_id>/", views.follow_user, name="follow_user"),

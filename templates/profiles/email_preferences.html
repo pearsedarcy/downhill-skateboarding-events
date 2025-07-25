@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Email Preferences - Downhill Skateboarding Events{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-base-content mb-2">Email Preferences</h1>
+        <p class="text-base-content/70">Control what emails you receive from our community</p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-6 rounded-xl">
+                <i class="fas fa-check-circle"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Email Preferences Form -->
+        <div class="lg:col-span-2">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-6">
+                        <i class="fas fa-envelope text-primary"></i>
+                        Communication Settings
+                    </h2>
+
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+
+                        <!-- Essential Notifications -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-base-content flex items-center gap-2">
+                                <i class="fas fa-bell text-primary"></i>
+                                Essential Notifications
+                            </h3>
+                            
+                            <div class="bg-base-200 rounded-lg p-4 space-y-3">
+                                <div class="form-control">
+                                    <label class="cursor-pointer label justify-start gap-4">
+                                        <input type="checkbox" name="email_event_notifications" 
+                                               class="checkbox checkbox-primary"
+                                               {% if profile.email_event_notifications %}checked{% endif %}>
+                                        <div class="flex flex-col">
+                                            <span class="label-text font-medium">Event Notifications</span>
+                                            <span class="label-text-alt text-xs">New events, registration reminders, event updates</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="cursor-pointer label justify-start gap-4">
+                                        <input type="checkbox" name="email_crew_invites" 
+                                               class="checkbox checkbox-primary"
+                                               {% if profile.email_crew_invites %}checked{% endif %}>
+                                        <div class="flex flex-col">
+                                            <span class="label-text font-medium">Crew Invitations</span>
+                                            <span class="label-text-alt text-xs">Invites to join crews, crew activity updates</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Community Updates -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-base-content flex items-center gap-2">
+                                <i class="fas fa-users text-secondary"></i>
+                                Community Updates
+                            </h3>
+                            
+                            <div class="bg-base-200 rounded-lg p-4 space-y-3">
+                                <div class="form-control">
+                                    <label class="cursor-pointer label justify-start gap-4">
+                                        <input type="checkbox" name="email_community_news" 
+                                               class="checkbox checkbox-primary"
+                                               {% if profile.email_community_news %}checked{% endif %}>
+                                        <div class="flex flex-col">
+                                            <span class="label-text font-medium">Community News</span>
+                                            <span class="label-text-alt text-xs">Featured riders, community highlights, safety updates</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="cursor-pointer label justify-start gap-4">
+                                        <input type="checkbox" name="email_newsletter" 
+                                               class="checkbox checkbox-primary"
+                                               {% if profile.email_newsletter %}checked{% endif %}>
+                                        <div class="flex flex-col">
+                                            <span class="label-text font-medium">Monthly Newsletter</span>
+                                            <span class="label-text-alt text-xs">Curated content, tips, gear reviews, monthly digest</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Marketing & Promotions -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-base-content flex items-center gap-2">
+                                <i class="fas fa-tag text-accent"></i>
+                                Marketing & Promotions
+                            </h3>
+                            
+                            <div class="bg-base-200 rounded-lg p-4">
+                                <div class="form-control">
+                                    <label class="cursor-pointer label justify-start gap-4">
+                                        <input type="checkbox" name="email_marketing" 
+                                               class="checkbox checkbox-primary"
+                                               {% if profile.email_marketing %}checked{% endif %}>
+                                        <div class="flex flex-col">
+                                            <span class="label-text font-medium">Marketing & Promotions</span>
+                                            <span class="label-text-alt text-xs">Partner offers, gear discounts, sponsored content</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card-actions justify-end pt-4 border-t border-base-300">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>
+                                Save Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats & Info Sidebar -->
+        <div class="space-y-6">
+            <!-- Current Settings Summary -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-lg">
+                        <i class="fas fa-chart-pie text-info"></i>
+                        Your Settings
+                    </h3>
+                    
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Event Notifications:</span>
+                            <span class="badge badge-{% if profile.email_event_notifications %}success{% else %}ghost{% endif %}">
+                                {% if profile.email_event_notifications %}ON{% else %}OFF{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Community News:</span>
+                            <span class="badge badge-{% if profile.email_community_news %}success{% else %}ghost{% endif %}">
+                                {% if profile.email_community_news %}ON{% else %}OFF{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Newsletter:</span>
+                            <span class="badge badge-{% if profile.email_newsletter %}success{% else %}ghost{% endif %}">
+                                {% if profile.email_newsletter %}ON{% else %}OFF{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Crew Invites:</span>
+                            <span class="badge badge-{% if profile.email_crew_invites %}success{% else %}ghost{% endif %}">
+                                {% if profile.email_crew_invites %}ON{% else %}OFF{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Marketing:</span>
+                            <span class="badge badge-{% if profile.email_marketing %}success{% else %}ghost{% endif %}">
+                                {% if profile.email_marketing %}ON{% else %}OFF{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if email_stats %}
+            <!-- Community Stats -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-lg">
+                        <i class="fas fa-users text-secondary"></i>
+                        Community Stats
+                    </h3>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Event Notifications</span>
+                                <span>{{ email_stats.event_notifications_percentage }}%</span>
+                            </div>
+                            <progress class="progress progress-primary w-full" 
+                                     value="{{ email_stats.event_notifications_percentage }}" 
+                                     max="100"></progress>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Newsletter</span>
+                                <span>{{ email_stats.newsletter_percentage }}%</span>
+                            </div>
+                            <progress class="progress progress-secondary w-full" 
+                                     value="{{ email_stats.newsletter_percentage }}" 
+                                     max="100"></progress>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Community News</span>
+                                <span>{{ email_stats.community_news_percentage }}%</span>
+                            </div>
+                            <progress class="progress progress-accent w-full" 
+                                     value="{{ email_stats.community_news_percentage }}" 
+                                     max="100"></progress>
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs text-base-content/60 mt-2">
+                        Based on {{ email_stats.total_active_users }} active users
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-lg">
+                        <i class="fas fa-bolt text-warning"></i>
+                        Quick Actions
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <a href="{% url 'profiles:unsubscribe_all' %}" 
+                           class="btn btn-outline btn-sm w-full">
+                            <i class="fas fa-times mr-2"></i>
+                            Unsubscribe from Promotions
+                        </a>
+                        
+                        <a href="{% url 'profiles:profile_detail' user.username %}" 
+                           class="btn btn-outline btn-sm w-full">
+                            <i class="fas fa-user mr-2"></i>
+                            View My Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-lg">
+                        <i class="fas fa-question-circle text-info"></i>
+                        Need Help?
+                    </h3>
+                    
+                    <p class="text-sm text-base-content/70">
+                        You can change these settings anytime. Essential notifications help you stay connected with the community.
+                    </p>
+                    
+                    <div class="card-actions">
+                        <a href="#contact" class="btn btn-ghost btn-sm">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

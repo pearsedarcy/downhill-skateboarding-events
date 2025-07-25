@@ -6,7 +6,7 @@
 **Project Name**: Downhill Skateboarding Events Platform  
 **Purpose**: Community platform for downhill skateboarding enthusiasts to organize events, form crews, track results, and connect  
 **Tech Stack**: Django 4.2+ | PostgreSQL | TailwindCSS | DaisyUI | Cloudinary | Allauth  
-**Current Status**: Profile system **COMPLETE** (~85%), Crew joining & invitation system **COMPLETE** (~95%), **NEXT**: Crews-Profiles Integration phase
+**Current Status**: Profile system **COMPLETE** (~95%), Crew joining & invitation system **COMPLETE** (~95%), Email preferences system **COMPLETE** (~100%), **NEXT**: Crews-Profiles Integration phase
 
 ## 📁 **Project Structure & App Architecture**
 
@@ -66,6 +66,13 @@ class UserProfile(SearchableModel):
     show_real_name = BooleanField()
     show_location = BooleanField()
     
+    # Email communication preferences
+    email_event_notifications = BooleanField(default=True)
+    email_community_news = BooleanField(default=True)
+    email_newsletter = BooleanField(default=True)
+    email_crew_invites = BooleanField(default=True)
+    email_marketing = BooleanField(default=False)
+    
     # Social media integration
     instagram = CharField()
     youtube = URLField()
@@ -91,7 +98,7 @@ profiles/templates/profiles/
 │   ├── events_tab.html        # Events section
 │   ├── activity_tab.html      # Activity timeline
 │   ├── social_tab.html        # Social links and connections
-│   ├── settings_tab.html      # Privacy and preferences
+│   ├── settings_tab.html      # Privacy, email preferences, and account settings
 │   └── toast_notifications.html  # Global toast notification system
 └── signup_enhanced.html       # 4-step signup flow
 ```
@@ -119,6 +126,14 @@ profiles/templates/profiles/
 - **Z-index conflict resolution**: Intelligent toast positioning with fallback to global container
 - **Crew permission integration**: Seamless user feedback for permission toggle operations
 - **Cross-browser compatibility**: Works with all DaisyUI modal implementations
+
+#### **✅ Email Preferences System**
+- **Granular email controls**: Individual toggles for event notifications, community news, newsletter, crew invites, and marketing emails
+- **Professional unsubscribe modal**: DaisyUI modal interface replacing browser confirm dialogs with detailed explanation of affected email types
+- **Real-time preference updates**: AJAX-powered toggles with visual feedback and error handling
+- **Backend validation**: Secure API endpoint with proper field validation and error responses
+- **Mobile-optimized interface**: Touch-friendly toggles with clear descriptions and responsive grid layout
+- **Integration with existing systems**: Email preferences connect with crew invitation and event notification systems
 
 #### **✅ Technical Infrastructure Improvements**
 - **Enhanced UserProfile model**: Complete skateboarding-specific fields with privacy controls

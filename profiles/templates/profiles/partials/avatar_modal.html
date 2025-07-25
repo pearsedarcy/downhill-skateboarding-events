@@ -154,7 +154,20 @@ function uploadAvatar() {
     
     const formData = new FormData();
     formData.append('avatar', selectedFile);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    // Get CSRF token properly
+    let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    if (!csrfToken) {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                csrfToken = value;
+                break;
+            }
+        }
+    }
+    formData.append('csrfmiddlewaretoken', csrfToken);
     
     const uploadBtn = document.getElementById('upload-btn');
     const progressArea = document.getElementById('upload-progress');
@@ -182,20 +195,61 @@ function uploadAvatar() {
             try {
                 const response = JSON.parse(xhr.responseText);
                 if (response.success) {
-                    // Update the avatar in the UI
+                    // Update all avatar images in the UI
                     const newAvatarUrl = response.avatar_url;
+                    
+                    // Update profile header avatar
+                    const headerAvatar = document.querySelector('.profile-avatar img');
+                    if (headerAvatar) {
+                        headerAvatar.src = newAvatarUrl;
+                    } else {
+                        // If it was a placeholder, replace it with an image
+                        const placeholderDiv = document.querySelector('.profile-avatar');
+                        if (placeholderDiv && !placeholderDiv.querySelector('img')) {
+                            placeholderDiv.innerHTML = `<img src="${newAvatarUrl}" alt="${document.querySelector('[data-profile-display="display_name"]')?.textContent || 'User'}'s avatar" class="profile-avatar w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 rounded-full object-cover">`;
+                        }
+                    }
+                    
+                    // Update any other avatar images on the page
                     document.querySelectorAll('img[alt*="avatar"], img[alt*="Avatar"]').forEach(img => {
                         img.src = newAvatarUrl;
                     });
                     
+                    // Update the modal preview
+                    const modalPreview = document.getElementById('current-avatar-preview');
+                    if (modalPreview) {
+                        if (modalPreview.tagName === 'IMG') {
+                            modalPreview.src = newAvatarUrl;
+                        } else {
+                            modalPreview.outerHTML = `<img src="${newAvatarUrl}" alt="Current avatar" id="current-avatar-preview" class="w-24 h-24 rounded-full object-cover">`;
+                        }
+                    }
+                    
                     // Close modal and show success message
                     closeAvatarModal();
-                    showToast('Profile photo updated successfully!', 'success');
+                    
+                    // Update completion progress if available
+                    if (response.completion_percentage !== undefined && window.updateCompletionProgress) {
+                        window.updateCompletionProgress(response.completion_percentage);
+                    }
+                    
+                    if (window.showToast) {
+                        window.showToast('Profile photo updated successfully!', 'success');
+                    }
                 } else {
-                    alert('Error: ' + response.error);
+                    if (window.showToast) {
+                        window.showToast('Error: ' + response.error, 'error');
+                    } else {
+                        alert('Error: ' + response.error);
+                    }
                 }
             } catch (e) {
-                alert('Error processing response');
+                console.error('Error processing response:', e);
+                if (window.showToast) {
+                    window.showToast('Error processing response', 'error');
+                } else {
+                    alert('Error processing response');
+                }
             }
         } else {
             alert('Upload failed. Please try again.');

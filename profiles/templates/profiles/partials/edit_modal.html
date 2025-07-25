@@ -285,6 +285,118 @@
 </dialog>
 
 <script>
+// Toast notification function
+function showToast(message, type = 'info', duration = 3000) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-top toast-end z-50`;
+    
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'error' ? 'alert-error' : 
+                      type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    const iconClass = type === 'success' ? 'fas fa-check-circle' : 
+                      type === 'error' ? 'fas fa-exclamation-circle' : 
+                      type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+    
+    toast.innerHTML = `
+        <div class="alert ${alertClass}">
+            <i class="${iconClass}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        toast.remove();
+    }, duration);
+}
+
+// Update profile display on page without reload
+function updateProfileDisplay(results) {
+    results.forEach(result => {
+        if (result.success) {
+            const field = result.field;
+            const value = result.value;
+            const displayValue = result.display_value || value;
+            
+            // Update various display elements based on field
+            switch(field) {
+                case 'display_name':
+                    // Update display name elements
+                    document.querySelectorAll('[data-profile-display="display_name"]').forEach(el => {
+                        el.textContent = displayValue || document.querySelector('[data-profile-display="username"]')?.textContent;
+                    });
+                    break;
+                case 'bio':
+                    document.querySelectorAll('[data-profile-display="bio"]').forEach(el => {
+                        el.textContent = displayValue || 'No bio provided';
+                        el.classList.toggle('text-base-content/60', !displayValue);
+                    });
+                    break;
+                case 'city':
+                case 'country':
+                    updateLocationDisplay();
+                    break;
+                case 'skating_style':
+                    document.querySelectorAll('[data-profile-display="skating_style"]').forEach(el => {
+                        el.textContent = displayValue || 'Not specified';
+                    });
+                    break;
+                case 'skill_level':
+                    document.querySelectorAll('[data-profile-display="skill_level"]').forEach(el => {
+                        el.textContent = value ? `${value}/10` : 'Not specified';
+                    });
+                    break;
+                case 'years_skating':
+                    document.querySelectorAll('[data-profile-display="years_skating"]').forEach(el => {
+                        el.textContent = value ? `${value} years` : 'Not specified';
+                    });
+                    break;
+                case 'stance':
+                    document.querySelectorAll('[data-profile-display="stance"]').forEach(el => {
+                        el.textContent = displayValue || 'Not specified';
+                    });
+                    break;
+                case 'primary_setup':
+                    document.querySelectorAll('[data-profile-display="primary_setup"]').forEach(el => {
+                        el.textContent = displayValue || 'No setup information';
+                        el.classList.toggle('text-base-content/60', !displayValue);
+                    });
+                    break;
+            }
+        }
+    });
+    
+    // Update completion percentage if provided
+    const completionResult = results.find(r => r.completion_percentage);
+    if (completionResult) {
+        updateCompletionDisplay(completionResult.completion_percentage);
+    }
+}
+
+function updateLocationDisplay() {
+    const city = document.getElementById('edit-city')?.value || '';
+    const country = document.getElementById('edit-country')?.value || '';
+    const locationText = [city, country].filter(Boolean).join(', ') || 'Location not specified';
+    
+    document.querySelectorAll('[data-profile-display="location"]').forEach(el => {
+        el.textContent = locationText;
+        el.classList.toggle('text-base-content/60', locationText === 'Location not specified');
+    });
+}
+
+function updateCompletionDisplay(percentage) {
+    document.querySelectorAll('[data-profile-display="completion_percentage"]').forEach(el => {
+        el.textContent = `${percentage}%`;
+    });
+    document.querySelectorAll('[data-profile-display="completion_progress"]').forEach(el => {
+        el.value = percentage;
+    });
+}
+
 // Character counter updates
 function updateCharCounter(field) {
     const textarea = document.getElementById(`edit-${field === 'bio' ? 'bio' : 'primary-setup'}`);
@@ -349,13 +461,30 @@ function saveQuickEdit() {
         progressBar.value = Math.min(progress, 90);
     }, 100);
     
+    // Get CSRF token from cookie or meta tag
+    function getCSRFToken() {
+        let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        if (!csrfToken) {
+            // Try to get from cookie
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    csrfToken = value;
+                    break;
+                }
+            }
+        }
+        return csrfToken;
+    }
+
     // Save each field
     const promises = Object.entries(formData).map(([field, value]) => {
         return fetch('{% url "profiles:update_profile_api" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': getCSRFToken()
             },
             body: JSON.stringify({
                 field: field,
@@ -372,19 +501,16 @@ function saveQuickEdit() {
             // Check for errors
             const errors = results.filter(result => !result.success);
             if (errors.length > 0) {
-                alert('Some changes could not be saved: ' + errors.map(e => e.error).join(', '));
+                showToast('Some changes could not be saved: ' + errors.map(e => e.error).join(', '), 'error');
             } else {
                 showToast('Profile updated successfully!', 'success');
+                updateProfileDisplay(results);
                 closeEditModal();
-                // Reload the page to show updated content
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while saving changes.');
+            showToast('An error occurred while saving changes. Please try again.', 'error');
         })
         .finally(() => {
             clearInterval(progressInterval);
@@ -406,12 +532,41 @@ function closeEditModal() {
 }
 
 // Initialize modal when opened
-document.getElementById('edit-modal').addEventListener('show', function() {
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('edit-modal');
+    
+    if (modal) {
+        // Initialize when modal is shown
+        modal.addEventListener('show', function() {
+            initializeModalFields();
+        });
+        
+        // Add a custom event listener for when modal is opened programmatically
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'open') {
+                    if (modal.hasAttribute('open')) {
+                        initializeModalFields();
+                    }
+                }
+            });
+        });
+        
+        observer.observe(modal, { attributes: true });
+    }
+});
+
+function initializeModalFields() {
     // Update character counters
     updateCharCounter('bio');
     updateCharCounter('setup');
+    
+    // Update skill display
     updateSkillDisplay();
-});
+    
+    // Load any saved draft
+    loadDraft();
+}
 
 // Auto-save draft functionality (optional)
 let draftTimeout;

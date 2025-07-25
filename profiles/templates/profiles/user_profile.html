@@ -115,6 +115,16 @@ View {{ profile.get_display_name }}'s skateboarding profile.
         backdrop-filter: blur(5px);
         background: rgba(0, 0, 0, 0.5);
     }
+    
+    .input-success {
+        border-color: hsl(var(--su)) !important;
+        box-shadow: 0 0 0 2px rgba(36, 185, 120, 0.2) !important;
+        background-color: rgba(36, 185, 120, 0.05) !important;
+    }
+    
+    .toast {
+        z-index: 9999;
+    }
 </style>
 {% endblock %}
 
@@ -155,13 +165,14 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                 <!-- Profile Info -->
                 <div class="text-center md:text-left text-white flex-1">
                     <h1 class="text-xl sm:text-2xl  font-bold mb-1 sm:mb-2">
-                        {{ profile.get_display_name }}
+                        <span data-profile-display="display_name">{{ profile.get_display_name }}</span>
                         {% if profile.skating_style %}
                             <span class="text-sm sm:text-lg font-normal opacity-90">🛹</span>
                         {% endif %}
                     </h1>
                     <h2 class="text-sm sm:text-lg font-normal opacity-90">
                         {% if profile.show_real_name and profile.get_full_name != profile.get_display_name %}
+                            <span data-profile-display="username" class="hidden">{{ profile.user.username }}</span>
                             ({{ profile.get_full_name }})
                         {% endif %}
                     </h2>
@@ -169,7 +180,12 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                     {% if profile.get_location_display %}
                         <p class="text-sm sm:text-lg opacity-90 mb-1 sm:mb-2">
                             <i class="fas fa-map-marker-alt mr-1 sm:mr-2"></i>
-                            {{ profile.get_location_display }}
+                            <span data-profile-display="location">{{ profile.get_location_display }}</span>
+                        </p>
+                    {% else %}
+                        <p class="text-sm sm:text-lg opacity-90 mb-1 sm:mb-2 {% if not can_edit %}hidden{% endif %}">
+                            <i class="fas fa-map-marker-alt mr-1 sm:mr-2"></i>
+                            <span data-profile-display="location" class="text-base-content/60">Location not specified</span>
                         </p>
                     {% endif %}
                     
@@ -177,36 +193,36 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                     <div class="flex flex-wrap gap-1 sm:gap-2 justify-center md:justify-start mb-2 sm:mb-4">
                         {% if profile.skating_style %}
                             <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm font-semibold">
-                                {{ profile.get_skating_style_display }} Skater
+                                <span data-profile-display="skating_style">{{ profile.get_skating_style_display }}</span> Skater
                             </span>
                         {% endif %}
                         {% if profile.stance %}
                             <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
-                                {{ profile.get_stance_display }} Stance
+                                <span data-profile-display="stance">{{ profile.get_stance_display }}</span> Stance
                             </span>
                         {% endif %}
                         {% if profile.years_skating %}
                             <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
-                                {{ profile.years_skating }}yr{{ profile.years_skating|pluralize }} exp
+                                <span data-profile-display="years_skating">{{ profile.years_skating }}yr{{ profile.years_skating|pluralize }}</span> exp
                             </span>
                         {% endif %}
                         {% if profile.skill_level %}
                             <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
-                                Level {{ profile.skill_level }}/10
+                                Level <span data-profile-display="skill_level">{{ profile.skill_level }}/10</span>
                             </span>
                         {% endif %}
                     </div>
                     
                     <!-- Bio -->
                     {% if profile.bio %}
-                        <p class="text-sm sm:text-base opacity-90 max-w-2xl leading-relaxed hidden sm:block">{{ profile.bio }}</p>
-                        <p class="text-xs opacity-90 leading-relaxed sm:hidden">{{ profile.bio|truncatewords:15 }}</p>
+                        <p class="text-sm sm:text-base opacity-90 max-w-2xl leading-relaxed hidden sm:block" data-profile-display="bio">{{ profile.bio }}</p>
+                        <p class="text-xs opacity-90 leading-relaxed sm:hidden" data-profile-display="bio">{{ profile.bio|truncatewords:15 }}</p>
                     {% else %}
-                        <p class="text-xs sm:text-base opacity-70 italic">
+                        <p class="text-xs sm:text-base opacity-70 italic" data-profile-display="bio">
                             {% if can_edit %}
                                 Add a bio 🎯
                             {% else %}
-                                No bio yet
+                                No bio provided
                             {% endif %}
                         </p>
                     {% endif %}
@@ -215,7 +231,7 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                 <!-- Action Buttons -->
                 <div class="flex gap-1 sm:gap-2">
                     {% if can_edit %}
-                        <button class="btn btn-xs sm:btn-sm btn-primary" onclick="console.log('Edit button clicked'); const modal = document.getElementById('edit-modal'); console.log('Modal element:', modal); if(modal) modal.showModal(); else console.error('Edit modal not found');">
+                        <button class="btn btn-xs sm:btn-sm btn-primary" onclick="scrollToSettings()">
                             <i class="fas fa-edit mr-1 sm:mr-2 text-xs sm:text-sm"></i>
                             <span class="hidden sm:inline">Edit Profile</span>
                             <span class="sm:hidden">Edit</span>
@@ -346,8 +362,15 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                                     {% if profile.primary_setup %}
                                         <div class="mt-2 sm:mt-4">
                                             <h3 class="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Primary Setup</h3>
-                                            <p class="text-base-content/80 text-xs sm:text-sm">{{ profile.primary_setup }}</p>
+                                            <p class="text-base-content/80 text-xs sm:text-sm" data-profile-display="primary_setup">{{ profile.primary_setup }}</p>
                                         </div>
+                                    {% else %}
+                                        {% if can_edit %}
+                                            <div class="mt-2 sm:mt-4">
+                                                <h3 class="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Primary Setup</h3>
+                                                <p class="text-base-content/60 text-xs sm:text-sm italic" data-profile-display="primary_setup">No setup information</p>
+                                            </div>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -502,13 +525,13 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                                     </h2>
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <span>{{ completion_percentage }}% Complete</span>
+                                            <span data-completion-percentage>{{ completion_percentage }}% Complete</span>
                                             <span class="text-sm text-base-content/70">{{ remaining_percentage }}% to go</span>
                                         </div>
                                         <progress class="progress progress-primary w-full" value="{{ completion_percentage }}" max="100"></progress>
                                         
                                         {% if completion_suggestions %}
-                                            <div class="space-y-2">
+                                            <div class="space-y-2" data-completion-suggestions>
                                                 <h3 class="font-semibold text-sm">Quick wins:</h3>
                                                 {% for suggestion in completion_suggestions|slice:":3" %}
                                                     <div class="flex items-center gap-2 text-sm">
@@ -517,6 +540,14 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                                                         <span class="badge badge-warning badge-xs">+{{ suggestion.weight }}%</span>
                                                     </div>
                                                 {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="space-y-2" data-completion-suggestions>
+                                                <div class="text-center py-4">
+                                                    <div class="text-2xl mb-2">🎉</div>
+                                                    <p class="text-sm font-semibold text-success">Profile Complete!</p>
+                                                    <p class="text-xs text-base-content/70">Your profile is fully filled out</p>
+                                                </div>
                                             </div>
                                         {% endif %}
                                     </div>
@@ -634,7 +665,7 @@ View {{ profile.get_display_name }}'s skateboarding profile.
                 
                 <!-- Settings Section -->
                 {% if can_edit %}
-                    <div class="divider my-6 sm:my-8 lg:my-12">
+                    <div class="divider my-6 sm:my-8 lg:my-12" id="profile-settings" data-section="settings">
                         <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-primary flex items-center gap-2 sm:gap-3">
                             <div class="w-8 h-8 sm:w-10 sm:h-10 bg-accent rounded-lg flex items-center justify-center">
                                 <i class="fas fa-cog text-white text-sm sm:text-base"></i>
@@ -655,13 +686,233 @@ View {{ profile.get_display_name }}'s skateboarding profile.
 <!-- Modals -->
 {% if can_edit %}
     {% include 'profiles/partials/avatar_modal.html' %}
-    {% include 'profiles/partials/edit_modal.html' %}
+    {# Removed edit_modal.html - using settings tab instead #}
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Edit mode functionality
+// Scroll to settings section
+function scrollToSettings() {
+    const settingsSection = document.getElementById('profile-settings') || 
+                          document.querySelector('[data-section="settings"]');
+    
+    if (settingsSection) {
+        settingsSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+        
+        // Add a subtle highlight effect
+        settingsSection.style.transition = 'all 0.3s ease';
+        settingsSection.style.backgroundColor = 'rgba(var(--p), 0.1)';
+        settingsSection.style.borderRadius = '0.5rem';
+        settingsSection.style.padding = '1rem';
+        setTimeout(() => {
+            settingsSection.style.backgroundColor = '';
+            settingsSection.style.padding = '';
+        }, 2000);
+    } else {
+        // Fallback: scroll to bottom of page where settings usually are
+        window.scrollTo({ 
+            top: document.body.scrollHeight - window.innerHeight, 
+            behavior: 'smooth' 
+        });
+    }
+}
+
+// Live update functions for profile display
+function updateProfileDisplay(field, value, displayValue = null) {
+    const elements = document.querySelectorAll(`[data-profile-display="${field}"]`);
+    const actualDisplayValue = displayValue || value;
+    
+    elements.forEach(element => {
+        switch(field) {
+            case 'display_name':
+                element.textContent = actualDisplayValue || document.querySelector('[data-profile-display="username"]')?.textContent || 'User';
+                break;
+            case 'bio':
+                if (actualDisplayValue) {
+                    element.textContent = actualDisplayValue;
+                    element.classList.remove('text-base-content/60', 'italic');
+                } else {
+                    element.textContent = 'Add a bio 🎯';
+                    element.classList.add('text-base-content/60', 'italic');
+                }
+                break;
+            case 'city':
+            case 'country':
+                updateLocationDisplay();
+                break;
+            case 'skating_style':
+                element.textContent = actualDisplayValue || 'Not specified';
+                // Also update the skating style badge visibility
+                updateSkatingBadges();
+                break;
+            case 'skill_level':
+                element.textContent = value ? `${value}/10` : 'Not specified';
+                updateSkatingBadges();
+                break;
+            case 'years_skating':
+                if (value) {
+                    element.textContent = `${value}yr${value == 1 ? '' : 's'}`;
+                } else {
+                    element.textContent = 'Not specified';
+                }
+                updateSkatingBadges();
+                break;
+            case 'stance':
+                element.textContent = actualDisplayValue || 'Not specified';
+                updateSkatingBadges();
+                break;
+            case 'primary_setup':
+                if (actualDisplayValue) {
+                    element.textContent = actualDisplayValue;
+                    element.classList.remove('text-base-content/60', 'italic');
+                } else {
+                    element.textContent = 'No setup information';
+                    element.classList.add('text-base-content/60', 'italic');
+                }
+                break;
+        }
+    });
+}
+
+// Update skateboarding badges visibility and content
+function updateSkatingBadges() {
+    const badgesContainer = document.querySelector('.flex.flex-wrap.gap-1') || 
+                          document.querySelector('div:has([data-profile-display="skating_style"])') ||
+                          document.querySelector('.skating-style-badge')?.parentElement;
+    
+    if (!badgesContainer) return;
+    
+    // Get current values from settings fields
+    const skatingStyleField = document.querySelector('select[data-field="skating_style"]');
+    const skillLevelField = document.querySelector('input[data-field="skill_level"]');
+    const yearsSkatingField = document.querySelector('input[data-field="years_skating"]');
+    const stanceField = document.querySelector('select[data-field="stance"]');
+    
+    const skatingStyle = skatingStyleField ? skatingStyleField.value : '';
+    const skillLevel = skillLevelField ? skillLevelField.value : '';
+    const yearsSkating = yearsSkatingField ? yearsSkatingField.value : '';
+    const stance = stanceField ? stanceField.value : '';
+    
+    // Clear existing badges
+    badgesContainer.innerHTML = '';
+    
+    // Add skating style badge if present
+    if (skatingStyle) {
+        const styleOption = skatingStyleField.querySelector(`option[value="${skatingStyle}"]`);
+        const styleDisplay = styleOption ? styleOption.textContent : skatingStyle;
+        badgesContainer.innerHTML += `
+            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm font-semibold">
+                <span data-profile-display="skating_style">${styleDisplay}</span> Skater
+            </span>
+        `;
+    }
+    
+    // Add stance badge if present
+    if (stance) {
+        const stanceOption = stanceField.querySelector(`option[value="${stance}"]`);
+        const stanceDisplay = stanceOption ? stanceOption.textContent : stance;
+        badgesContainer.innerHTML += `
+            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
+                <span data-profile-display="stance">${stanceDisplay}</span> Stance
+            </span>
+        `;
+    }
+    
+    // Add years skating badge if present
+    if (yearsSkating) {
+        badgesContainer.innerHTML += `
+            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
+                <span data-profile-display="years_skating">${yearsSkating}yr${yearsSkating == 1 ? '' : 's'}</span> exp
+            </span>
+        `;
+    }
+    
+    // Add skill level badge if present
+    if (skillLevel) {
+        badgesContainer.innerHTML += `
+            <span class="skating-style-badge px-2 py-1 rounded-full text-xs sm:text-sm">
+                Level <span data-profile-display="skill_level">${skillLevel}/10</span>
+            </span>
+        `;
+    }
+}
+
+function updateLocationDisplay() {
+    const cityField = document.querySelector('input[data-field="city"]');
+    const countryField = document.querySelector('input[data-field="country"]');
+    
+    const city = cityField ? cityField.value.trim() : '';
+    const country = countryField ? countryField.value.trim() : '';
+    const locationText = [city, country].filter(Boolean).join(', ');
+    
+    // Find all location display elements
+    const locationElements = document.querySelectorAll('[data-profile-display="location"]');
+    const locationParagraphs = document.querySelectorAll('p:has([data-profile-display="location"])');
+    
+    locationElements.forEach(el => {
+        if (locationText) {
+            el.textContent = locationText;
+            el.classList.remove('text-base-content/60');
+            
+            // Show the parent paragraph if it was hidden
+            const parentP = el.closest('p');
+            if (parentP) {
+                parentP.classList.remove('hidden');
+            }
+        } else {
+            el.textContent = 'Location not specified';
+            el.classList.add('text-base-content/60');
+            
+            // Handle showing/hiding based on edit permissions
+            const parentP = el.closest('p');
+            if (parentP) {
+                // If user can't edit and no location, hide the paragraph
+                const canEdit = document.querySelector('[onclick="scrollToSettings()"]') !== null;
+                if (!canEdit) {
+                    parentP.classList.add('hidden');
+                } else {
+                    parentP.classList.remove('hidden');
+                }
+            }
+        }
+    });
+}
+
+// Toast notification function
+function showToast(message, type = 'info', duration = 3000) {
+    // Remove existing toasts
+    document.querySelectorAll('.toast').forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-top toast-end z-50`;
+    
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'error' ? 'alert-error' : 
+                      type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    const iconClass = type === 'success' ? 'fas fa-check-circle' : 
+                      type === 'error' ? 'fas fa-exclamation-circle' : 
+                      type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+    
+    toast.innerHTML = `
+        <div class="alert ${alertClass}">
+            <i class="${iconClass}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, duration);
+}
+
+// Edit mode functionality (legacy - keeping for compatibility)
 let editMode = false;
 
 function toggleEditMode() {
@@ -758,5 +1009,192 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         });
     });
 });
+
+// Global completion progress update function
+window.updateCompletionProgress = function(newPercentage) {
+    // Update progress bar
+    const progressBars = document.querySelectorAll('progress.progress-primary');
+    progressBars.forEach(bar => {
+        bar.value = newPercentage;
+    });
+    
+    // Update percentage text
+    const percentageElements = document.querySelectorAll('[data-completion-percentage]');
+    percentageElements.forEach(el => {
+        el.textContent = `${newPercentage}% Complete`;
+    });
+    
+    // Update completion text in various places
+    const completionTexts = document.querySelectorAll('[data-completion-text]');
+    completionTexts.forEach(el => {
+        if (newPercentage >= 100) {
+            el.textContent = 'Perfect! Your profile is complete!';
+        } else if (newPercentage >= 80) {
+            el.textContent = 'Excellent! Your profile is almost complete.';
+        } else if (newPercentage >= 50) {
+            el.textContent = 'Good progress! Keep filling out your profile.';
+        } else {
+            el.textContent = 'Complete your profile to get more visibility.';
+        }
+    });
+    
+    // Update completion section visibility
+    const completionSection = document.querySelector('.profile-section:has([data-completion-percentage])');
+    if (completionSection) {
+        if (newPercentage >= 100) {
+            // Hide the completion section since profile is complete
+            completionSection.style.display = 'none';
+        } else {
+            // Show the completion section if it was hidden
+            completionSection.style.display = 'block';
+        }
+    }
+    
+    // Fetch updated completion suggestions
+    fetch('{% url "profiles:completion_suggestions" %}')
+        .then(response => response.json())
+        .then(data => {
+            const suggestionsContainer = document.querySelector('[data-completion-suggestions]');
+            if (!suggestionsContainer) return;
+            
+            if (data.suggestions.length === 0 || newPercentage >= 100) {
+                suggestionsContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="text-2xl mb-2">🎉</div>
+                        <p class="text-sm font-semibold text-success">Profile Complete!</p>
+                        <p class="text-xs text-base-content/70">Your profile is fully filled out</p>
+                    </div>
+                `;
+            } else {
+                const suggestionsHTML = data.suggestions.slice(0, 3).map(suggestion => `
+                    <div class="flex items-center gap-2 text-sm">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        ${suggestion.message || suggestion.title}
+                        <span class="badge badge-warning badge-xs">+${suggestion.weight || suggestion.points}%</span>
+                    </div>
+                `).join('');
+                
+                suggestionsContainer.innerHTML = `
+                    <h3 class="font-semibold text-sm">Quick wins:</h3>
+                    ${suggestionsHTML}
+                `;
+            }
+        })
+        .catch(error => console.error('Error fetching suggestions:', error));
+    
+    // Check if profile is complete and show celebration
+    if (newPercentage >= 100) {
+        showProfileCompleteAnimation();
+    }
+};
+
+// Profile completion celebration animation (global function)
+window.showProfileCompleteAnimation = function() {
+    // Don't show animation if already shown recently
+    if (sessionStorage.getItem('profileCompleteShown')) {
+        return;
+    }
+    
+    // Mark as shown for this session
+    sessionStorage.setItem('profileCompleteShown', 'true');
+    
+    // Create confetti effect
+    createConfetti();
+    
+    // Show celebration toast
+    if (window.showToast) {
+        window.showToast('🎉 Congratulations! Your profile is now 100% complete!', 'success', 5000);
+    }
+    
+    // Create a celebration modal
+    const celebrationModal = document.createElement('div');
+    celebrationModal.className = 'modal modal-open';
+    celebrationModal.innerHTML = `
+        <div class="modal-box text-center">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="font-bold text-xl mb-4">Profile Complete!</h3>
+            <p class="py-4">
+                Awesome work! Your skateboarding profile is now 100% complete. 
+                You'll get better visibility and more connections with other riders.
+            </p>
+            <div class="modal-action justify-center">
+                <button class="btn btn-primary" onclick="this.closest('.modal').remove()">
+                    Sweet! Let's Ride! 🛹
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(celebrationModal);
+    
+    // Auto-close after 8 seconds
+    setTimeout(() => {
+        if (celebrationModal.parentNode) {
+            celebrationModal.remove();
+        }
+    }, 8000);
+};
+
+// Confetti animation function (global)
+function createConfetti() {
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7'];
+    const confettiContainer = document.createElement('div');
+    confettiContainer.style.position = 'fixed';
+    confettiContainer.style.top = '0';
+    confettiContainer.style.left = '0';
+    confettiContainer.style.width = '100%';
+    confettiContainer.style.height = '100%';
+    confettiContainer.style.pointerEvents = 'none';
+    confettiContainer.style.zIndex = '9999';
+    document.body.appendChild(confettiContainer);
+    
+    // Create confetti pieces
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'absolute';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-10px';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confetti.style.opacity = Math.random();
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        confettiContainer.appendChild(confetti);
+        
+        // Animate the confetti
+        const duration = Math.random() * 3000 + 2000; // 2-5 seconds
+        const horizontalMovement = (Math.random() - 0.5) * 200; // -100px to 100px
+        
+        confetti.animate([
+            { 
+                transform: `translateY(0px) translateX(0px) rotate(0deg)`,
+                opacity: confetti.style.opacity
+            },
+            { 
+                transform: `translateY(${window.innerHeight + 20}px) translateX(${horizontalMovement}px) rotate(720deg)`,
+                opacity: '0'
+            }
+        ], {
+            duration: duration,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        });
+        
+        // Remove confetti piece after animation
+        setTimeout(() => {
+            if (confetti.parentNode) {
+                confetti.remove();
+            }
+        }, duration);
+    }
+    
+    // Remove container after all animations complete
+    setTimeout(() => {
+        if (confettiContainer.parentNode) {
+            confettiContainer.remove();
+        }
+    }, 6000);
+}
 </script>
 {% endblock %}

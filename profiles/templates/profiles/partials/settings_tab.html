@@ -375,8 +375,8 @@
                         <i class="fas fa-chart-pie text-2xl"></i>
                     </div>
                     <div class="stat-title">Profile Completion</div>
-                    <div class="stat-value text-primary">{{ completion_percentage }}%</div>
-                    <div class="stat-desc">
+                    <div class="stat-value text-primary" data-completion-percentage>{{ completion_percentage }}%</div>
+                    <div class="stat-desc" data-completion-text>
                         {% if completion_percentage >= 80 %}
                             Excellent! Your profile is almost complete.
                         {% elif completion_percentage >= 50 %}
@@ -391,7 +391,7 @@
                     </div>
                     
                     {% if completion_suggestions %}
-                        <div class="mt-4 space-y-2">
+                        <div class="mt-4 space-y-2" data-completion-suggestions>
                             <h4 class="font-semibold text-sm">Quick wins:</h4>
                             {% for suggestion in completion_suggestions|slice:":2" %}
                                 <div class="flex items-center gap-2 text-sm">
@@ -400,6 +400,14 @@
                                     <span class="badge badge-primary badge-xs">+{{ suggestion.weight }}%</span>
                                 </div>
                             {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="mt-4 space-y-2" data-completion-suggestions>
+                            <div class="text-center py-4">
+                                <div class="text-2xl mb-2">🎉</div>
+                                <p class="text-sm font-semibold text-success">Profile Complete!</p>
+                                <p class="text-xs text-base-content/70">Your profile is fully filled out</p>
+                            </div>
                         </div>
                     {% endif %}
                 </div>
@@ -452,6 +460,23 @@
 </div>
 
 <script>
+// Get CSRF token properly
+function getCSRFToken() {
+    let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    if (!csrfToken) {
+        // Try to get from cookie
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                csrfToken = value;
+                break;
+            }
+        }
+    }
+    return csrfToken;
+}
+
 // Field update functions
 function updateField(element) {
     const field = element.dataset.field;
@@ -467,7 +492,7 @@ function updateField(element) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
+            'X-CSRFToken': getCSRFToken()
         },
         body: JSON.stringify({
             field: field,
@@ -477,13 +502,31 @@ function updateField(element) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Update the display elements immediately
+            if (window.updateProfileDisplay) {
+                window.updateProfileDisplay(field, data.value, data.display_value);
+            }
+            
+            // Update completion progress
+            if (data.completion_percentage !== undefined) {
+                updateCompletionProgress(data.completion_percentage);
+            }
+            
             // Show success feedback
             element.classList.add('input-success');
+            if (window.showToast) {
+                window.showToast(`${field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} updated!`, 'success', 2000);
+            }
+            
             setTimeout(() => {
                 element.classList.remove('input-success');
             }, 2000);
         } else {
-            alert('Error: ' + data.error);
+            if (window.showToast) {
+                window.showToast(`Error: ${data.error}`, 'error');
+            } else {
+                alert('Error: ' + data.error);
+            }
             // Revert the value if it failed
             if (data.original_value !== undefined) {
                 element.value = data.original_value;
@@ -492,7 +535,11 @@ function updateField(element) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while saving.');
+        if (window.showToast) {
+            window.showToast('An error occurred while saving.', 'error');
+        } else {
+            alert('An error occurred while saving.');
+        }
     })
     .finally(() => {
         element.disabled = false;
@@ -508,7 +555,7 @@ function updateToggle(element) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
+            'X-CSRFToken': getCSRFToken()
         },
         body: JSON.stringify({
             field: field,
@@ -517,15 +564,45 @@ function updateToggle(element) {
     })
     .then(response => response.json())
     .then(data => {
-        if (!data.success) {
-            alert('Error: ' + data.error);
+        if (data.success) {
+            // Handle special cases for toggles
+            if (field === 'show_location') {
+                // Update location display immediately based on the toggle
+                if (window.updateLocationDisplay) {
+                    window.updateLocationDisplay();
+                }
+            }
+            
+            // Update display elements if needed
+            if (window.updateProfileDisplay) {
+                window.updateProfileDisplay(field, data.value, data.display_value);
+            }
+            
+            // Update completion progress
+            if (data.completion_percentage !== undefined) {
+                updateCompletionProgress(data.completion_percentage);
+            }
+            
+            if (window.showToast) {
+                window.showToast(`${field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} updated!`, 'success', 2000);
+            }
+        } else {
+            if (window.showToast) {
+                window.showToast(`Error: ${data.error}`, 'error');
+            } else {
+                alert('Error: ' + data.error);
+            }
             // Revert the toggle
             element.checked = !value;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while updating.');
+        if (window.showToast) {
+            window.showToast('An error occurred while updating.', 'error');
+        } else {
+            alert('An error occurred while updating.');
+        }
         // Revert the toggle
         element.checked = !value;
     });
@@ -550,7 +627,7 @@ function deleteAccount() {
             fetch('{% url "profiles:delete_profile" %}', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
+                    'X-CSRFToken': getCSRFToken()
                 }
             })
             .then(response => {
@@ -600,4 +677,185 @@ function autoSave(element) {
 document.querySelectorAll('input[data-field], textarea[data-field]').forEach(element => {
     element.addEventListener('input', () => autoSave(element));
 });
+
+// Completion progress update function
+function updateCompletionProgress(newPercentage) {
+    // Update progress bar
+    const progressBars = document.querySelectorAll('progress.progress-primary');
+    progressBars.forEach(bar => {
+        bar.value = newPercentage;
+    });
+    
+    // Update percentage text
+    const percentageElements = document.querySelectorAll('[data-completion-percentage]');
+    percentageElements.forEach(el => {
+        el.textContent = `${newPercentage}%`;
+    });
+    
+    // Update completion text in various places
+    const completionTexts = document.querySelectorAll('[data-completion-text]');
+    completionTexts.forEach(el => {
+        if (newPercentage >= 100) {
+            el.textContent = 'Perfect! Your profile is complete!';
+        } else if (newPercentage >= 80) {
+            el.textContent = 'Excellent! Your profile is almost complete.';
+        } else if (newPercentage >= 50) {
+            el.textContent = 'Good progress! Keep filling out your profile.';
+        } else {
+            el.textContent = 'Complete your profile to get more visibility.';
+        }
+    });
+    
+    // Fetch updated completion suggestions
+    fetch('{% url "profiles:completion_suggestions" %}')
+        .then(response => response.json())
+        .then(data => {
+            updateCompletionSuggestions(data.suggestions);
+        })
+        .catch(error => console.error('Error fetching suggestions:', error));
+    
+    // Check if profile is complete and show celebration
+    if (newPercentage >= 100) {
+        showProfileCompleteAnimation();
+    }
+}
+
+// Update completion suggestions display
+function updateCompletionSuggestions(suggestions) {
+    const suggestionsContainer = document.querySelector('[data-completion-suggestions]');
+    if (!suggestionsContainer) return;
+    
+    if (suggestions.length === 0) {
+        suggestionsContainer.innerHTML = `
+            <div class="text-center py-4">
+                <div class="text-2xl mb-2">🎉</div>
+                <p class="text-sm font-semibold text-success">Profile Complete!</p>
+                <p class="text-xs text-base-content/70">Your profile is fully filled out</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const suggestionsHTML = suggestions.slice(0, 2).map(suggestion => `
+        <div class="flex items-center gap-2 text-sm">
+            <i class="fas fa-arrow-right text-primary"></i>
+            ${suggestion.message || suggestion.title}
+            <span class="badge badge-primary badge-xs">+${suggestion.weight || suggestion.points}%</span>
+        </div>
+    `).join('');
+    
+    suggestionsContainer.innerHTML = `
+        <h4 class="font-semibold text-sm">Quick wins:</h4>
+        ${suggestionsHTML}
+    `;
+}
+
+// Profile completion celebration animation
+function showProfileCompleteAnimation() {
+    // Don't show animation if already shown recently
+    if (sessionStorage.getItem('profileCompleteShown')) {
+        return;
+    }
+    
+    // Mark as shown for this session
+    sessionStorage.setItem('profileCompleteShown', 'true');
+    
+    // Create confetti effect
+    createConfetti();
+    
+    // Show celebration toast
+    if (window.showToast) {
+        window.showToast('🎉 Congratulations! Your profile is now 100% complete!', 'success', 5000);
+    }
+    
+    // Create a celebration modal
+    const celebrationModal = document.createElement('div');
+    celebrationModal.className = 'modal modal-open';
+    celebrationModal.innerHTML = `
+        <div class="modal-box text-center">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="font-bold text-xl mb-4">Profile Complete!</h3>
+            <p class="py-4">
+                Awesome work! Your skateboarding profile is now 100% complete. 
+                You'll get better visibility and more connections with other riders.
+            </p>
+            <div class="modal-action justify-center">
+                <button class="btn btn-primary" onclick="this.closest('.modal').remove()">
+                    Sweet! Let's Ride! 🛹
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(celebrationModal);
+    
+    // Auto-close after 8 seconds
+    setTimeout(() => {
+        if (celebrationModal.parentNode) {
+            celebrationModal.remove();
+        }
+    }, 8000);
+}
+
+// Confetti animation function
+function createConfetti() {
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7'];
+    const confettiContainer = document.createElement('div');
+    confettiContainer.style.position = 'fixed';
+    confettiContainer.style.top = '0';
+    confettiContainer.style.left = '0';
+    confettiContainer.style.width = '100%';
+    confettiContainer.style.height = '100%';
+    confettiContainer.style.pointerEvents = 'none';
+    confettiContainer.style.zIndex = '9999';
+    document.body.appendChild(confettiContainer);
+    
+    // Create confetti pieces
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'absolute';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-10px';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confetti.style.opacity = Math.random();
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        confettiContainer.appendChild(confetti);
+        
+        // Animate the confetti
+        const duration = Math.random() * 3000 + 2000; // 2-5 seconds
+        const horizontalMovement = (Math.random() - 0.5) * 200; // -100px to 100px
+        
+        confetti.animate([
+            { 
+                transform: `translateY(0px) translateX(0px) rotate(0deg)`,
+                opacity: confetti.style.opacity
+            },
+            { 
+                transform: `translateY(${window.innerHeight + 20}px) translateX(${horizontalMovement}px) rotate(720deg)`,
+                opacity: '0'
+            }
+        ], {
+            duration: duration,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        });
+        
+        // Remove confetti piece after animation
+        setTimeout(() => {
+            if (confetti.parentNode) {
+                confetti.remove();
+            }
+        }, duration);
+    }
+    
+    // Remove container after all animations complete
+    setTimeout(() => {
+        if (confettiContainer.parentNode) {
+            confettiContainer.remove();
+        }
+    }, 6000);
+}
 </script>
